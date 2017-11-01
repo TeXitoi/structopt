@@ -387,7 +387,8 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
                 Ty::Vec => quote!( .takes_value(true).multiple(true).#validator ),
                 Ty::Other => {
                     let required = extract_attrs(&field.attrs, AttrSource::Field)
-                        .find(|&(ref i, _)| i.as_ref() == "default_value")
+                        .find(|&(ref i, _)| i.as_ref() == "default_value"
+                              || i.as_ref() == "default_value_raw")
                         .is_none();
                     quote!( .takes_value(true).multiple(false).required(#required).#validator )
                 },
@@ -413,7 +414,8 @@ fn gen_attr_call(key: &syn::Ident, val: &syn::Lit) -> quote::Tokens {
         if key.ends_with("_raw") {
             let key = Ident::from(&key[..(key.len() - 4)]);
             // Call method without quoting the string
-            let ts = syn::parse_token_trees(val).unwrap();
+            let ts = syn::parse_token_trees(val)
+                .expect(&format!("bad parameter {} = {}: the parameter must be valid rust code", key, val));
             return quote!(.#key(#(#ts)*));
         }
     }
@@ -503,7 +505,7 @@ fn gen_clap(attrs: &[Attribute]) -> quote::Tokens {
     let author = format_author(from_attr_or_env(&attrs, "author", "CARGO_PKG_AUTHORS"));
     let about = from_attr_or_env(&attrs, "about", "CARGO_PKG_DESCRIPTION");
     let settings = attrs.iter()
-        .filter(|&&(ref i, _)| !["name", "version", "auther", "about"].contains(&i.as_ref()))
+        .filter(|&&(ref i, _)| !["name", "version", "author", "about"].contains(&i.as_ref()))
         .map(|&(ref i, ref l)| gen_attr_call(i, l))
         .collect::<Vec<_>>();
 
