@@ -64,7 +64,8 @@
 //! The `FromStr` trait is used to convert the argument to the given
 //! type, and the `Arg::validator` method is set to a method using
 //! `FromStr::Err::description()` (`FromStr::Err` must implement
-//! `std::Error::Error`).
+//! `std::Error::Error`). If you would like to use a custom string parser other
+//! than `FromStr`, see the [same titled section](#custom-string-parsers) below.
 //!
 //! Thus, the `speed` argument is generated as:
 //!
@@ -227,6 +228,52 @@
 //!     Quux
 //! }
 //! ```
+//!
+//! ## Custom string parsers
+//!
+//! If the field type does not have a `FromStr` implementation, or you would
+//! like to provide a custom parsing scheme other than `FromStr`, you may
+//! provide a custom string parser using `parse(...)` like this:
+//!
+//! ```ignore
+//! use std::num::ParseIntError;
+//! use std::path::PathBuf;
+//!
+//! fn parse_hex(src: &str) -> Result<u32, ParseIntError> {
+//!     u32::from_str_radix(src, 16)
+//! }
+//!
+//! #[derive(StructOpt)]
+//! struct HexReader {
+//!     #[structopt(short = "n", parse(try_from_str = "parse_hex"))]
+//!     number: u32,
+//!     #[structopt(short = "o", parse(from_os_str))]
+//!     output: PathBuf,
+//! }
+//! ```
+//!
+//! There are four kinds custom string parsers:
+//!
+//! | Kind              | Signature                             | Default                         |
+//! |-------------------|---------------------------------------|---------------------------------|
+//! | `from_str`        | `fn(&str) -> T`                       | `::std::convert::From::from`    |
+//! | `try_from_str`    | `fn(&str) -> Result<T, E>`            | `::std::str::FromStr::from_str` |
+//! | `from_os_str`     | `fn(&OsStr) -> T`                     | `::std::convert::From::from`    |
+//! | `try_from_os_str` | `fn(&OsStr) -> Result<T, OsString>`   | (no default function)           |
+//!
+//! When supplying a custom string parser, `bool` and `u64` will not be treated
+//! specially:
+//!
+//! Type        | Effect            | Added method call to `clap::Arg`
+//! ------------|-------------------|--------------------------------------
+//! `Option<T>` | optional argument | `.takes_value(true).multiple(false)`
+//! `Vec<T>`    | list of arguments | `.takes_value(true).multiple(true)`
+//! `T`         | required argument | `.takes_value(true).multiple(false).required(!has_default)`
+//!
+//! In the `try_from_*` variants, the function will run twice on valid input:
+//! once to validate, and once to parse. Hence, make sure the function is
+//! side-effect-free.
+
 
 extern crate proc_macro;
 extern crate syn;
@@ -285,6 +332,19 @@ fn sub_type(t: &syn::Ty) -> Option<&syn::Ty> {
 
 #[derive(Debug, Clone, Copy)]
 enum AttrSource { Struct, Field, }
+
+#[derive(Debug)]
+enum Parser {
+    /// Parse an option to using a `fn(&str) -> T` function. The function should never fail.
+    FromStr,
+    /// Parse an option to using a `fn(&str) -> Result<T, E>` function. The error will be
+    /// converted to a string using `.to_string()`.
+    TryFromStr,
+    /// Parse an option to using a `fn(&OsStr) -> T` function. The function should never fail.
+    FromOsStr,
+    /// Parse an option to using a `fn(&OsStr) -> Result<T, OsString>` function.
+    TryFromOsStr,
+}
 
 fn extract_attrs<'a>(attrs: &'a [Attribute], attr_source: AttrSource) -> Box<Iterator<Item = (Ident, Lit)> + 'a> {
     let settings_attrs = attrs.iter()
@@ -355,6 +415,67 @@ fn is_subcommand(field: &Field) -> bool {
         })
 }
 
+fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
+    field.attrs.iter()
+        .flat_map(|attr| {
+            if let MetaItem::List(ref i, ref l) = attr.value {
+                if i == "structopt" {
+                    return &**l;
+                }
+            }
+            &[]
+        })
+        .filter_map(|attr| {
+            if let NestedMetaItem::MetaItem(MetaItem::List(ref i, ref l)) = *attr {
+                if i == "parse" {
+                    return l.first();
+                }
+            }
+            None
+        })
+        .map(|attr| {
+            match *attr {
+                NestedMetaItem::MetaItem(MetaItem::NameValue(ref i, Lit::Str(ref v, _))) => {
+                    let function = parse_path(v).expect("parser function path");
+                    let parser = if i == "from_str" {
+                        Parser::FromStr
+                    } else if i == "try_from_str" {
+                        Parser::TryFromStr
+                    } else if i == "from_os_str" {
+                        Parser::FromOsStr
+                    } else if i == "try_from_os_str" {
+                        Parser::TryFromOsStr
+                    } else {
+                        panic!("unsupported parser {}", i);
+                    };
+                    (parser, quote!(#function))
+                }
+                NestedMetaItem::MetaItem(MetaItem::Word(ref i)) => {
+                    if i == "from_str" {
+                        (Parser::FromStr, quote!(::std::convert::From::from))
+                    } else if i == "try_from_str" {
+                        (Parser::TryFromStr, quote!(::std::str::FromStr::from_str))
+                    } else if i == "from_os_str" {
+                        (Parser::FromOsStr, quote!(::std::convert::From::from))
+                    } else if i == "try_from_os_str" {
+                        panic!("cannot omit parser function name with `try_from_os_str`")
+                    } else {
+                        panic!("unsupported parser {}", i);
+                    }
+                }
+                _ => panic!("unknown value parser specification"),
+            }
+        })
+        .next()
+}
+
+fn despecialize_bool_and_u64(cur_type: Ty) -> Ty {
+    match cur_type {
+        Ty::Bool | Ty::U64 => Ty::Other,
+        rest => rest,
+    }
+}
+
 /// Generate a block of code to add arguments/subcommands corresponding to
 /// the `fields` to an app.
 fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
@@ -382,22 +503,37 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
                 Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
                 _ => &field.ty,
             };
-            let validator = quote! {
-                validator(|s| s.parse::<#convert_type>()
-                          .map(|_| ())
-                          .map_err(|e| e.description().into()))
+            let (cur_type, validator) = match get_parser(field) {
+                None => (cur_type, quote! {
+                    .validator(|s| {
+                        s.parse::<#convert_type>()
+                            .map(|_| ())
+                            .map_err(|e| e.description().into())
+                    })
+                }),
+                Some((Parser::TryFromStr, f)) => (despecialize_bool_and_u64(cur_type), quote! {
+                    .validator(|s| {
+                        #f(&s)
+                            .map(|_| ())
+                            .map_err(|e| e.to_string())
+                    })
+                }),
+                Some((Parser::TryFromOsStr, f)) => (despecialize_bool_and_u64(cur_type), quote! {
+                    .validator_os(|s| #f(&s).map(|_| ()))
+                }),
+                Some(_) => (despecialize_bool_and_u64(cur_type), quote! {}),
             };
             let modifier = match cur_type {
                 Ty::Bool => quote!( .takes_value(false).multiple(false) ),
                 Ty::U64 => quote!( .takes_value(false).multiple(true) ),
-                Ty::Option => quote!( .takes_value(true).multiple(false).#validator ),
-                Ty::Vec => quote!( .takes_value(true).multiple(true).#validator ),
+                Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
+                Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
                 Ty::Other => {
                     let required = extract_attrs(&field.attrs, AttrSource::Field)
                         .find(|&(ref i, _)| i.as_ref() == "default_value"
                               || i.as_ref() == "default_value_raw")
                         .is_none();
-                    quote!( .takes_value(true).multiple(false).required(#required).#validator )
+                    quote!( .takes_value(true).multiple(false).required(#required) #validator )
                 },
             };
             let from_attr = extract_attrs(&field.attrs, AttrSource::Field)
@@ -445,24 +581,57 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
             };
             quote!( #field_name: #subcmd_type ::from_subcommand(matches.subcommand()) #unwrapper )
         } else {
-            let convert = match ty(&field.ty) {
+            let cur_type = ty(&field.ty);
+
+            let (cur_type, value_of, values_of, parse) = match get_parser(field) {
+                None => (
+                    cur_type,
+                    quote!(value_of),
+                    quote!(values_of),
+                    quote!(|s| s.parse().unwrap()),
+                ),
+                Some((Parser::FromStr, f)) => (
+                    despecialize_bool_and_u64(cur_type),
+                    quote!(value_of),
+                    quote!(values_of),
+                    f,
+                ),
+                Some((Parser::TryFromStr, f)) => (
+                    despecialize_bool_and_u64(cur_type),
+                    quote!(value_of),
+                    quote!(values_of),
+                    quote!(|s| #f(s).unwrap()),
+                ),
+                Some((Parser::FromOsStr, f)) => (
+                    despecialize_bool_and_u64(cur_type),
+                    quote!(value_of_os),
+                    quote!(values_of_os),
+                    f,
+                ),
+                Some((Parser::TryFromOsStr, f)) => (
+                    despecialize_bool_and_u64(cur_type),
+                    quote!(value_of_os),
+                    quote!(values_of_os),
+                    quote!(|s| #f(s).unwrap()),
+                ),
+            };
+
+            let convert = match cur_type {
                 Ty::Bool => quote!(is_present(stringify!(#name))),
                 Ty::U64 => quote!(occurrences_of(stringify!(#name))),
                 Ty::Option => quote! {
-                    value_of(stringify!(#name))
+                    #value_of(stringify!(#name))
                         .as_ref()
-                        .map(|s| s.parse().unwrap())
+                        .map(#parse)
                 },
                 Ty::Vec => quote! {
-                    values_of(stringify!(#name))
-                        .map(|v| v.map(|s| s.parse().unwrap()).collect())
+                    #values_of(stringify!(#name))
+                        .map(|v| v.map(#parse).collect())
                         .unwrap_or_else(Vec::new)
                 },
                 Ty::Other => quote! {
-                    value_of(stringify!(#name))
-                        .as_ref()
-                        .unwrap()
-                        .parse()
+                    #value_of(stringify!(#name))
+                        .map(#parse)
                         .unwrap()
                 },
             };
