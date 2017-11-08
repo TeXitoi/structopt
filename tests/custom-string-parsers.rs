@@ -45,7 +45,7 @@ fn test_path_opt_simple() {
                 PathBuf::from("/g/h/i"),
             ],
             option_path_1: None,
-            option_path_2: Some(PathBuf::from("j.zip"))
+            option_path_2: Some(PathBuf::from("j.zip")),
         },
         PathOpt::from_clap(PathOpt::clap().get_matches_from(&[
             "test",
@@ -120,6 +120,40 @@ fn test_every_custom_parser() {
         NoOpOpt { a: "A", b: "B", c: "C", d: "D" },
         NoOpOpt::from_clap(NoOpOpt::clap().get_matches_from(&[
             "test", "-a=?", "-b=?", "-c=?", "-d=?",
+        ]))
+    );
+}
+
+
+// Note: can't use `Vec<u8>` directly, as structopt would instead look for
+// conversion function from `&str` to `u8`.
+type Bytes = Vec<u8>;
+
+#[derive(StructOpt, PartialEq, Debug)]
+struct DefaultedOpt {
+    #[structopt(short = "b", parse(from_str))]
+    bytes: Bytes,
+
+    #[structopt(short = "i", parse(try_from_str))]
+    integer: u64,
+
+    #[structopt(short = "p", parse(from_os_str))]
+    path: PathBuf,
+}
+
+#[test]
+fn test_parser_with_default_value() {
+    assert_eq!(
+        DefaultedOpt {
+            bytes: b"E\xc2\xb2=p\xc2\xb2c\xc2\xb2+m\xc2\xb2c\xe2\x81\xb4".to_vec(),
+            integer: 9000,
+            path: PathBuf::from("src/lib.rs"),
+        },
+        DefaultedOpt::from_clap(DefaultedOpt::clap().get_matches_from(&[
+            "test",
+            "-b", "E²=p²c²+m²c⁴",
+            "-i", "9000",
+            "-p", "src/lib.rs",
         ]))
     );
 }

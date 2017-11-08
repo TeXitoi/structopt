@@ -63,9 +63,9 @@
 //!
 //! The `FromStr` trait is used to convert the argument to the given
 //! type, and the `Arg::validator` method is set to a method using
-//! `FromStr::Err::description()` (`FromStr::Err` must implement
-//! `std::Error::Error`). If you would like to use a custom string parser other
-//! than `FromStr`, see the [same titled section](#custom-string-parsers) below.
+//! `to_string()` (`FromStr::Err` must implement `std::fmt::Display`).
+//! If you would like to use a custom string parser other than `FromStr`, see
+//! the [same titled section](#custom-string-parsers) below.
 //!
 //! Thus, the `speed` argument is generated as:
 //!
@@ -415,6 +415,10 @@ fn is_subcommand(field: &Field) -> bool {
         })
 }
 
+fn get_default_parser() -> (Parser, quote::Tokens) {
+    (Parser::TryFromStr, quote!(::std::str::FromStr::from_str))
+}
+
 fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
     field.attrs.iter()
         .flat_map(|attr| {
@@ -469,7 +473,7 @@ fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
         .next()
 }
 
-fn despecialize_bool_and_u64(cur_type: Ty) -> Ty {
+fn convert_with_custom_parse(cur_type: Ty) -> Ty {
     match cur_type {
         Ty::Bool | Ty::U64 => Ty::Other,
         rest => rest,
@@ -498,31 +502,30 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
         .filter(|&field| !is_subcommand(field))
         .map(|field| {
             let name = gen_name(field);
-            let cur_type = ty(&field.ty);
+            let mut cur_type = ty(&field.ty);
             let convert_type = match cur_type {
                 Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
                 _ => &field.ty,
             };
-            let (cur_type, validator) = match get_parser(field) {
-                None => (cur_type, quote! {
-                    .validator(|s| {
-                        s.parse::<#convert_type>()
-                            .map(|_| ())
-                            .map_err(|e| e.description().into())
-                    })
-                }),
-                Some((Parser::TryFromStr, f)) => (despecialize_bool_and_u64(cur_type), quote! {
+
+            let parser = get_parser(field);
+            if parser.is_some() {
+                cur_type = convert_with_custom_parse(cur_type);
+            }
+            let validator = match parser.unwrap_or_else(get_default_parser) {
+                (Parser::TryFromStr, f) => quote! {
                     .validator(|s| {
                         #f(&s)
-                            .map(|_| ())
+                            .map(|_: #convert_type| ())
                             .map_err(|e| e.to_string())
                     })
-                }),
-                Some((Parser::TryFromOsStr, f)) => (despecialize_bool_and_u64(cur_type), quote! {
-                    .validator_os(|s| #f(&s).map(|_| ()))
-                }),
-                Some(_) => (despecialize_bool_and_u64(cur_type), quote! {}),
+                },
+                (Parser::TryFromOsStr, f) => quote! {
+                    .validator_os(|s| #f(&s).map(|_: #convert_type| ()))
+                },
+                _ => quote! {},
             };
+
             let modifier = match cur_type {
                 Ty::Bool => quote!( .takes_value(false).multiple(false) ),
                 Ty::U64 => quote!( .takes_value(false).multiple(true) ),
@@ -581,35 +584,29 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
             };
             quote!( #field_name: #subcmd_type ::from_subcommand(matches.subcommand()) #unwrapper )
         } else {
-            let cur_type = ty(&field.ty);
+            let mut cur_type = ty(&field.ty);
+            let parser = get_parser(field);
+            if parser.is_some() {
+                cur_type = convert_with_custom_parse(cur_type);
+            }
 
-            let (cur_type, value_of, values_of, parse) = match get_parser(field) {
-                None => (
-                    cur_type,
-                    quote!(value_of),
-                    quote!(values_of),
-                    quote!(|s| s.parse().unwrap()),
-                ),
-                Some((Parser::FromStr, f)) => (
-                    despecialize_bool_and_u64(cur_type),
+            let (value_of, values_of, parse) = match parser.unwrap_or_else(get_default_parser) {
+                (Parser::FromStr, f) => (
                     quote!(value_of),
                     quote!(values_of),
                     f,
                 ),
-                Some((Parser::TryFromStr, f)) => (
-                    despecialize_bool_and_u64(cur_type),
+                (Parser::TryFromStr, f) => (
                     quote!(value_of),
                     quote!(values_of),
                     quote!(|s| #f(s).unwrap()),
                 ),
-                Some((Parser::FromOsStr, f)) => (
-                    despecialize_bool_and_u64(cur_type),
+                (Parser::FromOsStr, f) => (
                     quote!(value_of_os),
                     quote!(values_of_os),
                     f,
                 ),
-                Some((Parser::TryFromOsStr, f)) => (
-                    despecialize_bool_and_u64(cur_type),
+                (Parser::TryFromOsStr, f) => (
                     quote!(value_of_os),
                     quote!(values_of_os),
                     quote!(|s| #f(s).unwrap()),
