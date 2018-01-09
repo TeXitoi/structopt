@@ -721,6 +721,8 @@ fn gen_clap(attrs: &[Attribute]) -> quote::Tokens {
     let author = method_if_arg("author", &author);
     let about = from_attr_or_env(&attrs, "about", "CARGO_PKG_DESCRIPTION");
     let about = method_if_arg("about", &about);
+    let bin_name = from_attr_or_env(&attrs, "bin_name", "BIN_NAME");
+    let bin_name = method_if_arg("bin_name", &bin_name);
     let settings = attrs.iter()
         .filter(|&&(ref i, _)| !["name", "version", "author", "about"].contains(&i.as_ref()))
         .map(|&(ref i, ref l)| gen_attr_call(i, l))
@@ -731,6 +733,7 @@ fn gen_clap(attrs: &[Attribute]) -> quote::Tokens {
             #version
             #author
             #about
+            #bin_name
             #( #settings )*
     }
 }
