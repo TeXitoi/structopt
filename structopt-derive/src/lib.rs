@@ -50,9 +50,9 @@
 //! extern crate structopt;
 //! #[macro_use]
 //! extern crate structopt_derive;
-//! 
+//!
 //! use structopt::StructOpt;
-//! 
+//!
 //! #[derive(StructOpt, Debug)]
 //! #[structopt(setting_raw = "clap::AppSettings::ColoredHelp")]
 //! struct Opt {
@@ -61,7 +61,7 @@
 //!     #[structopt(short = "d")]
 //!     debug: bool,
 //! }
-//! 
+//!
 //! fn main() {
 //!     let opt = Opt::from_args();
 //!     println!("{:?}", opt);
@@ -82,7 +82,6 @@
 //! Type                 | Effect                                            | Added method call to `clap::Arg`
 //! ---------------------|---------------------------------------------------|--------------------------------------
 //! `bool`               | `true` if the flag is present                     | `.takes_value(false).multiple(false)`
-//! `u64`                | number of times the flag is used                  | `.takes_value(false).multiple(true)`
 //! `Option<T: FromStr>` | optional positional argument or option            | `.takes_value(true).multiple(false)`
 //! `Vec<T: FromStr>`    | list of options or the other positional arguments | `.takes_value(true).multiple(true)`
 //! `T: FromStr`         | required option or positional argument            | `.takes_value(true).multiple(false).required(!has_default)`
@@ -197,7 +196,7 @@
 //!     #[structopt(name = "sparkle")]
 //!     /// Add magical sparkles -- the secret ingredient!
 //!     Sparkle {
-//!         #[structopt(short = "m")]
+//!         #[structopt(short = "m", parse(multiple))]
 //!         magicality: u64,
 //!         #[structopt(short = "c")]
 //!         color: String
@@ -278,7 +277,7 @@
 //! }
 //! ```
 //!
-//! There are four kinds custom string parsers:
+//! There are five kinds of custom parsers:
 //!
 //! | Kind              | Signature                             | Default                         |
 //! |-------------------|---------------------------------------|---------------------------------|
@@ -286,9 +285,15 @@
 //! | `try_from_str`    | `fn(&str) -> Result<T, E>`            | `::std::str::FromStr::from_str` |
 //! | `from_os_str`     | `fn(&OsStr) -> T`                     | `::std::convert::From::from`    |
 //! | `try_from_os_str` | `fn(&OsStr) -> Result<T, OsString>`   | (no default function)           |
+//! | `multiple`        | (no signature)                        | (no default function)           |
 //!
-//! When supplying a custom string parser, `bool` and `u64` will not be treated
-//! specially:
+//! The `multiple` parser is special. It can only be used with fields of
+//! unsigned integer types (`u8`, `u32`, `u64`, and `usize`). Using
+//! `parse(multiple)` results in the _number of flags occurences_ being stored
+//! in the field's. In other words, it converts something like `-vvv` to `3`.
+//! This is equivalent to `.takes_value(false).multiple(true)`.
+//!
+//! When supplying a custom string parser, `bool` will not be treated specially:
 //!
 //! Type        | Effect            | Added method call to `clap::Arg`
 //! ------------|-------------------|--------------------------------------
@@ -321,7 +326,6 @@ pub fn structopt(input: TokenStream) -> TokenStream {
 #[derive(Copy, Clone, PartialEq)]
 enum Ty {
     Bool,
-    U64,
     Vec,
     Option,
     Other,
@@ -331,7 +335,6 @@ fn ty(t: &syn::Ty) -> Ty {
     if let syn::Ty::Path(None, syn::Path { segments: ref segs, .. }) = *t {
         match segs.last().unwrap().ident.as_ref() {
             "bool" => Ty::Bool,
-            "u64" => Ty::U64,
             "Option" => Ty::Option,
             "Vec" => Ty::Vec,
             _ => Ty::Other,
@@ -359,7 +362,7 @@ fn sub_type(t: &syn::Ty) -> Option<&syn::Ty> {
 #[derive(Debug, Clone, Copy)]
 enum AttrSource { Struct, Field, }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Parser {
     /// Parse an option to using a `fn(&str) -> T` function. The function should never fail.
     FromStr,
@@ -370,6 +373,8 @@ enum Parser {
     FromOsStr,
     /// Parse an option to using a `fn(&OsStr) -> Result<T, OsString>` function.
     TryFromOsStr,
+    /// Doesn't take a value. Instead, count the number of repitions.
+    Multiple,
 }
 
 fn extract_attrs<'a>(attrs: &'a [Attribute], attr_source: AttrSource) -> Box<Iterator<Item = (Ident, Lit)> + 'a> {
@@ -470,30 +475,24 @@ fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
             match *attr {
                 NestedMetaItem::MetaItem(MetaItem::NameValue(ref i, Lit::Str(ref v, _))) => {
                     let function = parse_path(v).expect("parser function path");
-                    let parser = if i == "from_str" {
-                        Parser::FromStr
-                    } else if i == "try_from_str" {
-                        Parser::TryFromStr
-                    } else if i == "from_os_str" {
-                        Parser::FromOsStr
-                    } else if i == "try_from_os_str" {
-                        Parser::TryFromOsStr
-                    } else {
-                        panic!("unsupported parser {}", i);
+                    let parser = match i.as_ref() {
+                        "from_str" => Parser::FromStr,
+                        "try_from_str" => Parser::TryFromStr,
+                        "from_os_str" => Parser::FromOsStr,
+                        "try_from_os_str" => Parser::TryFromOsStr,
+                        _ => panic!("unsupported parser {}", i)
                     };
+
                     (parser, quote!(#function))
                 }
                 NestedMetaItem::MetaItem(MetaItem::Word(ref i)) => {
-                    if i == "from_str" {
-                        (Parser::FromStr, quote!(::std::convert::From::from))
-                    } else if i == "try_from_str" {
-                        (Parser::TryFromStr, quote!(::std::str::FromStr::from_str))
-                    } else if i == "from_os_str" {
-                        (Parser::FromOsStr, quote!(::std::convert::From::from))
-                    } else if i == "try_from_os_str" {
-                        panic!("cannot omit parser function name with `try_from_os_str`")
-                    } else {
-                        panic!("unsupported parser {}", i);
+                    match i.as_ref() {
+                        "from_str" => (Parser::FromStr, quote!(::std::convert::From::from)),
+                        "try_from_str" => (Parser::TryFromStr, quote!(::std::str::FromStr::from_str)),
+                        "from_os_str" => (Parser::FromOsStr, quote!(::std::convert::From::from)),
+                        "try_from_os_str" => panic!("cannot omit parser function name with `try_from_os_str`"),
+                        "multiple" => (Parser::Multiple, quote!()),
+                            _ => panic!("unsupported parser {}", i)
                     }
                 }
                 _ => panic!("unknown value parser specification"),
@@ -504,7 +503,7 @@ fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
 
 fn convert_with_custom_parse(cur_type: Ty) -> Ty {
     match cur_type {
-        Ty::Bool | Ty::U64 => Ty::Other,
+        Ty::Bool => Ty::Other,
         rest => rest,
     }
 }
@@ -540,15 +539,18 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
         .map(|field| {
             let name = gen_name(field);
             let mut cur_type = ty(&field.ty);
+            let mut multiple = false;
             let convert_type = match cur_type {
                 Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
                 _ => &field.ty,
             };
 
             let parser = get_parser(field);
-            if parser.is_some() {
+            if let Some((ref parser, _)) = parser {
                 cur_type = convert_with_custom_parse(cur_type);
+                multiple = *parser == Parser::Multiple;
             }
+
             let validator = match parser.unwrap_or_else(get_default_parser) {
                 (Parser::TryFromStr, f) => quote! {
                     .validator(|s| {
@@ -565,9 +567,9 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
 
             let modifier = match cur_type {
                 Ty::Bool => quote!( .takes_value(false).multiple(false) ),
-                Ty::U64 => quote!( .takes_value(false).multiple(true) ),
                 Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
                 Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
+                Ty::Other if multiple => quote!( .takes_value(false).multiple(true) ),
                 Ty::Other => {
                     let required = extract_attrs(&field.attrs, AttrSource::Field)
                         .find(|&(ref i, _)| i.as_ref() == "default_value"
@@ -621,13 +623,15 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
             };
             quote!( #field_name: #subcmd_type ::from_subcommand(matches.subcommand()) #unwrapper )
         } else {
-            let mut cur_type = ty(&field.ty);
+            let real_ty = &field.ty;
+            let mut cur_type = ty(real_ty);
             let parser = get_parser(field);
             if parser.is_some() {
                 cur_type = convert_with_custom_parse(cur_type);
             }
 
-            let (value_of, values_of, parse) = match parser.unwrap_or_else(get_default_parser) {
+            let parser = parser.unwrap_or_else(get_default_parser);
+            let (value_of, values_of, parse) = match parser {
                 (Parser::FromStr, f) => (
                     quote!(value_of),
                     quote!(values_of),
@@ -648,11 +652,12 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
                     quote!(values_of_os),
                     quote!(|s| #f(s).unwrap()),
                 ),
+                (Parser::Multiple, f) => ( quote!(), quote!(), f ),
             };
 
+            let multiple = parser.0 == Parser::Multiple;
             let convert = match cur_type {
                 Ty::Bool => quote!(is_present(stringify!(#name))),
-                Ty::U64 => quote!(occurrences_of(stringify!(#name))),
                 Ty::Option => quote! {
                     #value_of(stringify!(#name))
                         .as_ref()
@@ -663,6 +668,7 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
                         .map(|v| v.map(#parse).collect())
                         .unwrap_or_else(Vec::new)
                 },
+                Ty::Other if multiple => quote!(occurrences_of(stringify!(#name)) as #real_ty),
                 Ty::Other => quote! {
                     #value_of(stringify!(#name))
                         .map(#parse)
