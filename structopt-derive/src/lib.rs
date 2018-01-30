@@ -196,7 +196,7 @@
 //!     #[structopt(name = "sparkle")]
 //!     /// Add magical sparkles -- the secret ingredient!
 //!     Sparkle {
-//!         #[structopt(short = "m", parse(multiple))]
+//!         #[structopt(short = "m", parse(from_occurrences))]
 //!         magicality: u64,
 //!         #[structopt(short = "c")]
 //!         color: String
@@ -285,13 +285,14 @@
 //! | `try_from_str`    | `fn(&str) -> Result<T, E>`            | `::std::str::FromStr::from_str` |
 //! | `from_os_str`     | `fn(&OsStr) -> T`                     | `::std::convert::From::from`    |
 //! | `try_from_os_str` | `fn(&OsStr) -> Result<T, OsString>`   | (no default function)           |
-//! | `multiple`        | (no signature)                        | (no default function)           |
+//! | `from_occurrences`| `fn(u64) -> T`                        | `value as T`                    |
 //!
-//! The `multiple` parser is special. It can only be used with fields of
-//! unsigned integer types (`u8`, `u32`, `u64`, and `usize`). Using
-//! `parse(multiple)` results in the _number of flags occurences_ being stored
-//! in the field's. In other words, it converts something like `-vvv` to `3`.
-//! This is equivalent to `.takes_value(false).multiple(true)`.
+//! The `from_occurrences` parser is special. Using `parse(from_occurrences)`
+//! results in the _number of flags occurrences_ being stored in the relevant
+//! field or being passed to the supplied function. In other words, it converts
+//! something like `-vvv` to `3`. This is equivalent to
+//! `.takes_value(false).multiple(true)`. Note that the default parser can only
+//! be used with fields of integer types (`u8`, `usize`, `i64`, etc.).
 //!
 //! When supplying a custom string parser, `bool` will not be treated specially:
 //!
@@ -373,8 +374,9 @@ enum Parser {
     FromOsStr,
     /// Parse an option to using a `fn(&OsStr) -> Result<T, OsString>` function.
     TryFromOsStr,
-    /// Doesn't take a value. Instead, count the number of repitions.
-    Multiple,
+    /// Counts the number of flag occurrences. Parses using a `fn(u64) -> T` function. The function
+    /// should never fail.
+    FromOccurrences,
 }
 
 fn extract_attrs<'a>(attrs: &'a [Attribute], attr_source: AttrSource) -> Box<Iterator<Item = (Ident, Lit)> + 'a> {
@@ -480,6 +482,7 @@ fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
                         "try_from_str" => Parser::TryFromStr,
                         "from_os_str" => Parser::FromOsStr,
                         "try_from_os_str" => Parser::TryFromOsStr,
+                        "from_occurrences" => Parser::FromOccurrences,
                         _ => panic!("unsupported parser {}", i)
                     };
 
@@ -491,8 +494,8 @@ fn get_parser(field: &Field) -> Option<(Parser, quote::Tokens)> {
                         "try_from_str" => (Parser::TryFromStr, quote!(::std::str::FromStr::from_str)),
                         "from_os_str" => (Parser::FromOsStr, quote!(::std::convert::From::from)),
                         "try_from_os_str" => panic!("cannot omit parser function name with `try_from_os_str`"),
-                        "multiple" => (Parser::Multiple, quote!()),
-                            _ => panic!("unsupported parser {}", i)
+                        "from_occurrences" => (Parser::FromOccurrences, quote!({|v| v as _})),
+                        _ => panic!("unsupported parser {}", i)
                     }
                 }
                 _ => panic!("unknown value parser specification"),
@@ -539,16 +542,16 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
         .map(|field| {
             let name = gen_name(field);
             let mut cur_type = ty(&field.ty);
-            let mut multiple = false;
             let convert_type = match cur_type {
                 Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
                 _ => &field.ty,
             };
 
+            let mut occurences = false;
             let parser = get_parser(field);
             if let Some((ref parser, _)) = parser {
                 cur_type = convert_with_custom_parse(cur_type);
-                multiple = *parser == Parser::Multiple;
+                occurences = *parser == Parser::FromOccurrences;
             }
 
             let validator = match parser.unwrap_or_else(get_default_parser) {
@@ -569,7 +572,7 @@ fn gen_augmentation(fields: &[Field], app_var: &Ident) -> quote::Tokens {
                 Ty::Bool => quote!( .takes_value(false).multiple(false) ),
                 Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
                 Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
-                Ty::Other if multiple => quote!( .takes_value(false).multiple(true) ),
+                Ty::Other if occurences => quote!( .takes_value(false).multiple(true) ),
                 Ty::Other => {
                     let required = extract_attrs(&field.attrs, AttrSource::Field)
                         .find(|&(ref i, _)| i.as_ref() == "default_value"
@@ -652,30 +655,37 @@ fn gen_constructor(fields: &[Field]) -> quote::Tokens {
                     quote!(values_of_os),
                     quote!(|s| #f(s).unwrap()),
                 ),
-                (Parser::Multiple, f) => ( quote!(), quote!(), f ),
+                (Parser::FromOccurrences, f) => (
+                    quote!(occurrences_of),
+                    quote!(),
+                    f,
+                ),
             };
 
-            let multiple = parser.0 == Parser::Multiple;
-            let convert = match cur_type {
-                Ty::Bool => quote!(is_present(stringify!(#name))),
+            let occurences = parser.0 == Parser::FromOccurrences;
+            let field_value = match cur_type {
+                Ty::Bool => quote!(matches.is_present(stringify!(#name))),
                 Ty::Option => quote! {
-                    #value_of(stringify!(#name))
+                    matches.#value_of(stringify!(#name))
                         .as_ref()
                         .map(#parse)
                 },
                 Ty::Vec => quote! {
-                    #values_of(stringify!(#name))
+                    matches.#values_of(stringify!(#name))
                         .map(|v| v.map(#parse).collect())
                         .unwrap_or_else(Vec::new)
                 },
-                Ty::Other if multiple => quote!(occurrences_of(stringify!(#name)) as #real_ty),
+                Ty::Other if occurences => quote! {
+                    #parse(matches.#value_of(stringify!(#name)))
+                },
                 Ty::Other => quote! {
-                    #value_of(stringify!(#name))
+                    matches.#value_of(stringify!(#name))
                         .map(#parse)
                         .unwrap()
                 },
             };
-            quote!( #field_name: matches.#convert )
+
+            quote!( #field_name: #field_value )
         }
     });
 

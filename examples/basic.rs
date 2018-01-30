@@ -20,7 +20,7 @@ struct Opt {
     debug: bool,
 
     /// Verbose mode (-v, -vv, -vvv, etc.)
-    #[structopt(short = "v", long = "verbose", parse(multiple))]
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: u64,
 
     /// Set speed
