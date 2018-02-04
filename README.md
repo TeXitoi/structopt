@@ -12,6 +12,7 @@ Add `structopt` and `structopt-derive` to your dependencies of your `Cargo.toml`
 ```toml
 [dependencies]
 structopt = "0.2"
+structopt-derive = "0.2"
 ```
 
 And then, in your rust file:
