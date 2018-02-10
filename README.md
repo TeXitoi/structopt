@@ -38,6 +38,10 @@ struct Opt {
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: u8,
+    
+    /// An u64 value
+    #[structopt(long = "timeout", short = "t", default_value = "3")]
+    timeout: u64,
 
     /// Set speed
     #[structopt(short = "s", long = "speed", default_value = "42")]
@@ -47,7 +51,7 @@ struct Opt {
     #[structopt(short = "o", long = "output", parse(from_os_str))]
     output: PathBuf,
 
-    /// Number of car
+    /// Number of cars
     #[structopt(short = "c", long = "car")]
     car: Option<i32>,
 
