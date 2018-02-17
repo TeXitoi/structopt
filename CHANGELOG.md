@@ -1,6 +1,6 @@
 # Unreleased
 
-* Re-licensed to Apache-2.0/MIT
+* Re-licensed to Apache-2.0/MIT by [@CAD97](https://github.com/cad97)
 
 # v0.2.3 (2018-02-16)
 
