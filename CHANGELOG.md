@@ -1,3 +1,7 @@
+# Unreleased
+
+* Re-licensed to Apache-2.0/MIT
+
 # v0.2.3 (2018-02-16)
 
 * An empty line in a doc comment will result in a double linefeed in the generated about/help call by [@TeXitoi](https://github.com/TeXitoi)
