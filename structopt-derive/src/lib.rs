@@ -287,7 +287,16 @@ fn gen_augment_clap_enum(variants: &Punctuated<Variant, Comma>) -> quote::Tokens
             Unit => quote!( #app_var ),
             Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
                 let ty = &unnamed[0];
-                quote!(#ty::augment_clap(#app_var))
+                quote! {
+                    {
+                        let #app_var = #ty::augment_clap(#app_var);
+                        if #ty::is_subcommand() {
+                            #app_var.setting(::structopt::clap::AppSettings::SubcommandRequiredElseHelp)
+                        } else {
+                            #app_var
+                        }
+                    }
+                }
             }
             Unnamed(..) => panic!("{}: tuple enum are not supported", variant.ident),
         };
@@ -344,7 +353,6 @@ fn gen_from_subcommand(name: &Ident, variants: &Punctuated<Variant, Comma>) -> q
     });
 
     quote! {
-        #[doc(hidden)]
         pub fn from_subcommand<'a, 'b>(sub: (&'b str, Option<&'b ::structopt::clap::ArgMatches<'a>>)) -> Option<Self> {
             match sub {
                 #( #match_arms ),*,
@@ -370,8 +378,11 @@ fn impl_structopt_for_struct(
             #from_clap
         }
 
+        #[allow(dead_code)]
+        #[doc(hidden)]
         impl #name {
             #augment_clap
+            pub fn is_subcommand() -> bool { false }
         }
     }
 }
@@ -392,10 +403,12 @@ fn impl_structopt_for_enum(
             #from_clap
         }
 
-        #[allow(unused_variables)]
+        #[allow(unused_variables, dead_code)]
+        #[doc(hidden)]
         impl #name {
             #augment_clap
             #from_subcommand
+            pub fn is_subcommand() -> bool { true }
         }
     }
 }
