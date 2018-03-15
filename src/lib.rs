@@ -68,10 +68,10 @@
 //! #[macro_use]
 //! extern crate structopt;
 //!
-//! use structopt::StructOpt;
+//! use structopt::{clap, StructOpt};
 //!
 //! #[derive(StructOpt, Debug)]
-//! #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
+//! #[structopt(raw(setting = "clap::AppSettings::ColoredHelp"))]
 //! struct Opt {
 //!     #[structopt(short = "s")]
 //!     speed: bool,
