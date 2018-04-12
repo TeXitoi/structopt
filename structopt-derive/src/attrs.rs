@@ -311,7 +311,7 @@ impl Attrs {
 
         res
     }
-    pub fn set_kind(&mut self, kind: Kind) {
+    fn set_kind(&mut self, kind: Kind) {
         if let Kind::Arg(_) = self.kind {
             self.kind = kind;
         } else {
