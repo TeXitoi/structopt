@@ -143,10 +143,17 @@ fn gen_augmentation(fields: &Punctuated<Field, Comma>, app_var: &Ident) -> Token
                 };
                 let methods = attrs.methods();
                 let name = attrs.name();
+                let kebab_name = name.replace("_", "-");
+                let kebab_me = if attrs.is_positional() || attrs.has_method("long") || attrs.has_method("short") {
+                    quote!{}
+                } else {
+                    quote!{ .long(#kebab_name) }
+                };
                 Some(quote!{
                     let #app_var = #app_var.arg(
                         ::structopt::clap::Arg::with_name(#name)
                             #modifier
+                            #kebab_me
                             #methods
                     );
                 })

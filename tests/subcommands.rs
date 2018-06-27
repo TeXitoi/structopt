@@ -15,11 +15,11 @@ use structopt::StructOpt;
 enum Opt {
     #[structopt(name = "fetch", about = "Fetch stuff from GitHub.")]
     Fetch {
-        #[structopt(long = "all")]
         all: bool,
         #[structopt(short = "f", long = "force")]
         /// Overwrite local branches.
         force: bool,
+        #[structopt(positional)]
         repo: String,
     },
 
@@ -85,7 +85,10 @@ fn test_no_parse() {
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt2 {
     #[structopt(name = "do-something")]
-    DoSomething { arg: String },
+    DoSomething {
+        #[structopt(positional)]
+        arg: String
+    },
 }
 
 #[test]
@@ -129,11 +132,13 @@ fn test_null_commands() {
 #[derive(StructOpt, PartialEq, Debug)]
 #[structopt(about = "Not shown")]
 struct Add {
+    #[structopt(positional)]
     file: String,
 }
 /// Not shown
 #[derive(StructOpt, PartialEq, Debug)]
 struct Fetch {
+    #[structopt(positional)]
     remote: String,
 }
 #[derive(StructOpt, PartialEq, Debug)]

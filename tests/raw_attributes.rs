@@ -17,7 +17,6 @@ use structopt::StructOpt;
 #[structopt(raw(global_settings = "&[AppSettings::ColoredHelp]"))]
 struct Opt {
     #[structopt(
-        long = "x",
         raw(
             display_order = "2",
             next_line_help = "true",
@@ -30,10 +29,9 @@ struct Opt {
     #[structopt(short = "l", long = "level", raw(aliases = r#"&["set-level", "lvl"]"#))]
     level: String,
 
-    #[structopt(long = "values")]
     values: Vec<i32>,
 
-    #[structopt(name = "FILE", raw(requires_if = r#""FILE", "values""#))]
+    #[structopt(name = "FILE", raw(requires_if = r#""FILE", "values""#), positional)]
     files: Vec<String>,
 }
 
