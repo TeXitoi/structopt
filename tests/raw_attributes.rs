@@ -24,14 +24,16 @@ struct Opt {
             require_equals = "true"
         )
     )]
+    #[structopt(long)]
     x: i32,
 
     #[structopt(short = "l", long = "level", raw(aliases = r#"&["set-level", "lvl"]"#))]
     level: String,
 
+    #[structopt(long = "values")]
     values: Vec<i32>,
 
-    #[structopt(name = "FILE", raw(requires_if = r#""FILE", "values""#), positional)]
+    #[structopt(name = "FILE", raw(requires_if = r#""FILE", "values""#))]
     files: Vec<String>,
 }
 

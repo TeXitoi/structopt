@@ -118,7 +118,6 @@ struct Opt3 {
 enum Sub2 {
     #[structopt(name = "foo")]
     Foo {
-        #[structopt(positional)]
         file: String,
         #[structopt(subcommand)]
         cmd: Sub3,
@@ -166,14 +165,11 @@ enum SubSubCmdWithOption {
 enum Remote {
     #[structopt(name = "add")]
     Add {
-        #[structopt(positional)]
         name: String,
-        #[structopt(positional)]
         url: String
     },
     #[structopt(name = "remove")]
     Remove {
-        #[structopt(positional)]
         name: String
     },
 }

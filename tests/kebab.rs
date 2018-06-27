@@ -15,7 +15,9 @@ use structopt::StructOpt;
 fn no_short_or_long() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
+        #[structopt(long)]
         arg: i32,
+        #[structopt(long)]
         other_arg: i32,
     }
     assert_eq!(

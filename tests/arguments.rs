@@ -16,7 +16,6 @@ use structopt::StructOpt;
 fn required_argument() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(positional)]
         arg: i32,
     }
     assert_eq!(Opt { arg: 42 }, Opt::from_iter(&["test", "42"]));
@@ -32,7 +31,6 @@ fn required_argument() {
 fn optional_argument() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(positional)]
         arg: Option<i32>,
     }
     assert_eq!(Opt { arg: Some(42) }, Opt::from_iter(&["test", "42"]));
@@ -48,7 +46,7 @@ fn optional_argument() {
 fn argument_with_default() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(default_value = "42", positional)]
+        #[structopt(default_value = "42")]
         arg: i32,
     }
     assert_eq!(Opt { arg: 24 }, Opt::from_iter(&["test", "24"]));
@@ -64,7 +62,7 @@ fn argument_with_default() {
 fn argument_with_raw_default() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(raw(default_value = r#""42""#), positional)]
+        #[structopt(raw(default_value = r#""42""#))]
         arg: i32,
     }
     println!("working on argument_with_raw_default");
@@ -81,7 +79,6 @@ fn argument_with_raw_default() {
 fn arguments() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(positional)]
         arg: Vec<i32>,
     }
     assert_eq!(Opt { arg: vec![24] }, Opt::from_iter(&["test", "24"]));
@@ -96,7 +93,6 @@ fn arguments() {
 fn arguments_safe() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(positional)]
         arg: Vec<i32>,
     }
     assert_eq!(

@@ -15,7 +15,6 @@ use structopt::StructOpt;
 fn flatten() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Common {
-        #[structopt(positional)]
         arg: i32,
     }
 
@@ -43,7 +42,6 @@ fn flatten() {
 fn flatten_twice() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Common {
-        #[structopt(positional)]
         arg: i32,
     }
 
@@ -62,7 +60,6 @@ fn flatten_twice() {
 fn flatten_in_subcommand() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Common {
-        #[structopt(positional)]
         arg: i32,
     }
 

@@ -30,7 +30,7 @@ pub struct Attrs {
     methods: Vec<Method>,
     parser: (Parser, TokenStream),
     has_custom_parser: bool,
-    is_positional: bool,
+    is_autokebab: bool,
     kind: Kind,
 }
 #[derive(Debug)]
@@ -67,7 +67,7 @@ impl Attrs {
             methods: vec![],
             parser: (Parser::TryFromStr, quote!(::std::str::FromStr::from_str)),
             has_custom_parser: false,
-            is_positional: false,
+            is_autokebab: false,
             kind: Kind::Arg(Ty::Other),
         }
     }
@@ -180,8 +180,8 @@ impl Attrs {
                 Word(ref w) if w == "flatten" => {
                     self.set_kind(Kind::FlattenStruct);
                 }
-                Word(ref w) if w == "positional" => {
-                    self.is_positional = true;
+                Word(ref w) if w == "long" => {
+                    self.is_autokebab = true;
                 }
                 ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
             }
@@ -379,7 +379,7 @@ impl Attrs {
     pub fn kind(&self) -> Kind {
         self.kind
     }
-    pub fn is_positional(&self) -> bool {
-        self.is_positional
+    pub fn is_autokebab(&self) -> bool {
+        self.is_autokebab
     }
 }
