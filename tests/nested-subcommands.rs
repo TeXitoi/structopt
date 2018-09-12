@@ -144,7 +144,9 @@ fn test_subsubcommand() {
                 cmd: Sub3::Quux {}
             }
         },
-        Opt3::from_clap(&Opt3::clap().get_matches_from(&["test", "--all", "foo", "lib.rs", "quux"]))
+        Opt3::from_clap(
+            &Opt3::clap().get_matches_from(&["test", "--all", "foo", "lib.rs", "quux"])
+        )
     );
 }
 

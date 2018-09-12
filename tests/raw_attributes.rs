@@ -95,7 +95,9 @@ fn test_raw_multi_args() {
             files: vec!["FILE".to_string()],
             values: vec![1],
         },
-        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-l", "1", "--values", "1", "--", "FILE"]))
+        Opt::from_clap(
+            &Opt::clap().get_matches_from(&["test", "-l", "1", "--values", "1", "--", "FILE"]),
+        )
     );
 }
 

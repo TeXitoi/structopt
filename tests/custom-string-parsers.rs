@@ -115,7 +115,9 @@ fn test_every_custom_parser() {
             c: "C",
             d: "D"
         },
-        NoOpOpt::from_clap(&NoOpOpt::clap().get_matches_from(&["test", "-a=?", "-b=?", "-c=?", "-d=?"]))
+        NoOpOpt::from_clap(
+            &NoOpOpt::clap().get_matches_from(&["test", "-a=?", "-b=?", "-c=?", "-d=?"])
+        )
     );
 }
 
