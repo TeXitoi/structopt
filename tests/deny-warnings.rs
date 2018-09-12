@@ -10,7 +10,6 @@
 #![cfg(feature = "nightly")] // TODO: remove that when never is stable
 #![feature(never_type)]
 
-#[macro_use]
 extern crate structopt;
 
 use structopt::StructOpt;
