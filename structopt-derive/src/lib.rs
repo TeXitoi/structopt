@@ -45,7 +45,8 @@ fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
             arguments:
                 PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }),
             ..
-        } if args.len() == 1 =>
+        }
+            if args.len() == 1 =>
         {
             if let GenericArgument::Type(ref ty) = args[0] {
                 Some(ty)
@@ -86,8 +87,7 @@ fn gen_augmentation(fields: &Punctuated<Field, Comma>, app_var: &Ident) -> Token
             } else {
                 None
             }
-        })
-        .collect();
+        }).collect();
 
     assert!(
         subcmds.len() <= 1,

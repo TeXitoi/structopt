@@ -178,7 +178,11 @@ struct Occurrences {
     #[structopt(short = "r", parse(from_occurrences))]
     little_unsigned: u8,
 
-    #[structopt(short = "c", long = "custom", parse(from_occurrences = "foo"))]
+    #[structopt(
+        short = "c",
+        long = "custom",
+        parse(from_occurrences = "foo")
+    )]
     custom: Foo,
 }
 
@@ -211,7 +215,11 @@ fn test_custom_bool() {
     struct Opt {
         #[structopt(short = "d", parse(try_from_str = "parse_bool"))]
         debug: bool,
-        #[structopt(short = "v", default_value = "false", parse(try_from_str = "parse_bool"))]
+        #[structopt(
+            short = "v",
+            default_value = "false",
+            parse(try_from_str = "parse_bool")
+        )]
         verbose: bool,
         #[structopt(short = "t", parse(try_from_str = "parse_bool"))]
         tribool: Option<bool>,

@@ -37,7 +37,11 @@ fn help_is_better_than_comments() {
     #[structopt(name = "lorem-ipsum", about = "Dolor sit amet")]
     struct LoremIpsum {
         /// Fooify a bar
-        #[structopt(short = "f", long = "foo", help = "DO NOT PASS A BAR UNDER ANY CIRCUMSTANCES")]
+        #[structopt(
+            short = "f",
+            long = "foo",
+            help = "DO NOT PASS A BAR UNDER ANY CIRCUMSTANCES"
+        )]
         foo: bool,
     }
 

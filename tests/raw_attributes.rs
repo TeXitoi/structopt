@@ -27,7 +27,11 @@ struct Opt {
     )]
     x: i32,
 
-    #[structopt(short = "l", long = "level", raw(aliases = r#"&["set-level", "lvl"]"#))]
+    #[structopt(
+        short = "l",
+        long = "level",
+        raw(aliases = r#"&["set-level", "lvl"]"#)
+    )]
     level: String,
 
     #[structopt(long = "values")]
