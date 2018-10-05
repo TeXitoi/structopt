@@ -1,3 +1,7 @@
+# v0.2.11 (2018-10-05)
+
+* Upgrade syn to 0.15 by [@konstin](https://github.com/konstin)
+
 # v0.2.10 (2018-06-07)
 
 * 1.21.0 is the minimum required rustc version by
