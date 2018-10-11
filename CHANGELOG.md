@@ -1,3 +1,7 @@
+# v0.2.12 (2018-10-11)
+
+* Fix minimal clap version by [@TeXitoi](https://github.com/TeXitoi)
+
 # v0.2.11 (2018-10-05)
 
 * Upgrade syn to 0.15 by [@konstin](https://github.com/konstin)
