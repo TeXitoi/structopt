@@ -17,7 +17,6 @@ use structopt::StructOpt;
 #[structopt(raw(global_settings = "&[AppSettings::ColoredHelp]"))]
 struct Opt {
     #[structopt(
-        long = "x",
         raw(
             display_order = "2",
             next_line_help = "true",
@@ -25,6 +24,7 @@ struct Opt {
             require_equals = "true"
         )
     )]
+    #[structopt(long)]
     x: i32,
 
     #[structopt(

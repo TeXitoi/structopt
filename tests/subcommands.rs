@@ -15,7 +15,7 @@ use structopt::StructOpt;
 enum Opt {
     #[structopt(name = "fetch", about = "Fetch stuff from GitHub.")]
     Fetch {
-        #[structopt(long = "all")]
+        #[structopt(long)]
         all: bool,
         #[structopt(short = "f", long = "force")]
         /// Overwrite local branches.
@@ -85,7 +85,9 @@ fn test_no_parse() {
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt2 {
     #[structopt(name = "do-something")]
-    DoSomething { arg: String },
+    DoSomething {
+        arg: String
+    },
 }
 
 #[test]

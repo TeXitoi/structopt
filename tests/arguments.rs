@@ -65,6 +65,7 @@ fn argument_with_raw_default() {
         #[structopt(raw(default_value = r#""42""#))]
         arg: i32,
     }
+    println!("working on argument_with_raw_default");
     assert_eq!(Opt { arg: 24 }, Opt::from_iter(&["test", "24"]));
     assert_eq!(Opt { arg: 42 }, Opt::from_iter(&["test"]));
     assert!(

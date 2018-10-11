@@ -166,9 +166,14 @@ enum SubSubCmdWithOption {
 #[derive(StructOpt, PartialEq, Debug)]
 enum Remote {
     #[structopt(name = "add")]
-    Add { name: String, url: String },
+    Add {
+        name: String,
+        url: String
+    },
     #[structopt(name = "remove")]
-    Remove { name: String },
+    Remove {
+        name: String
+    },
 }
 
 #[derive(StructOpt, PartialEq, Debug)]
