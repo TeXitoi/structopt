@@ -16,6 +16,7 @@ travis-ci = { repository = "TeXitoi/structopt" }
 syn = "0.15"
 quote = "0.6"
 proc-macro2 = "0.4"
+heck = "^0.3.0"
 
 [features]
 nightly = ["proc-macro2/nightly"]
