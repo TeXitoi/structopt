@@ -199,3 +199,116 @@ fn test_standalone_short_works_with_verbatim_casing() {
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-_"]))
     );
 }
+
+#[test]
+fn test_rename_all_is_propagated_from_struct_to_fields() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(rename_all = "screaming_snake")]
+    struct Opt {
+        #[structopt(long)]
+        foo: bool,
+    }
+
+    assert_eq!(
+        Opt { foo: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--FOO"]))
+    );
+}
+
+#[test]
+fn test_rename_all_is_not_propagated_from_struct_into_flattened() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(rename_all = "screaming_snake")]
+    struct Opt {
+        #[structopt(flatten)]
+        foo: Foo,
+    }
+
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Foo {
+        #[structopt(long)]
+        foo: bool,
+    }
+
+    assert_eq!(
+        Opt {
+            foo: Foo { foo: true }
+        },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--foo"]))
+    );
+}
+
+#[test]
+fn test_rename_all_is_not_propagated_from_struct_into_subcommand() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(rename_all = "screaming_snake")]
+    struct Opt {
+        #[structopt(subcommand)]
+        foo: Foo,
+    }
+
+    #[derive(StructOpt, Debug, PartialEq)]
+    enum Foo {
+        COMMAND {
+            #[structopt(long)]
+            foo: bool,
+        },
+    }
+
+    assert_eq!(
+        Opt {
+            foo: Foo::COMMAND { foo: true }
+        },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "command", "--foo"]))
+    );
+}
+
+#[test]
+fn test_rename_all_is_propagated_from_enum_to_variants_and_their_fields() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(rename_all = "screaming_snake")]
+    enum Opt {
+        FirstVariant,
+        SecondVariant {
+            #[structopt(long)]
+            foo: bool,
+        },
+    }
+
+    assert_eq!(
+        Opt::FirstVariant,
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "FIRST_VARIANT"]))
+    );
+
+    assert_eq!(
+        Opt::SecondVariant { foo: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "SECOND_VARIANT", "--FOO"]))
+    );
+}
+
+#[test]
+fn test_rename_all_is_propagation_can_be_overridden() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(rename_all = "screaming_snake")]
+    enum Opt {
+        #[structopt(rename_all = "kebab_case")]
+        FirstVariant {
+            #[structopt(long)]
+            foo_option: bool,
+        },
+        SecondVariant {
+            #[structopt(rename_all = "kebab_case", long)]
+            foo_option: bool,
+        },
+    }
+
+    assert_eq!(
+        Opt::FirstVariant { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "first-variant", "--foo-option"]))
+    );
+
+    assert_eq!(
+        Opt::SecondVariant { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "SECOND_VARIANT", "--foo-option"]))
+    );
+}

@@ -51,7 +51,7 @@ pub enum Parser {
 }
 
 /// Defines the casing for the attributes long representation.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum NameCasing {
     /// Indicate word boundaries with uppercase letter, excluding the first word.
     Camel,
@@ -115,8 +115,7 @@ impl ::std::str::FromStr for NameCasing {
 }
 
 impl Attrs {
-    fn new(name: String) -> Attrs {
-        let casing = NameCasing::Kebab;
+    fn new(name: String, casing: NameCasing) -> Attrs {
         let cased_name = casing.translate(&name);
 
         Attrs {
@@ -181,6 +180,7 @@ impl Attrs {
                 {
                     if let Ok(casing) = ::std::str::FromStr::from_str(&value.value()) {
                         self.casing = casing;
+                        self.cased_name = self.casing.translate(&self.name)
                     }
                 }
                 NameValue(MetaNameValue {
@@ -327,8 +327,8 @@ impl Attrs {
             args: quote!(#arg),
         });
     }
-    pub fn from_struct(attrs: &[Attribute], name: String) -> Attrs {
-        let mut res = Self::new(name);
+    pub fn from_struct(attrs: &[Attribute], name: String, argument_casing: NameCasing) -> Attrs {
+        let mut res = Self::new(name, argument_casing);
         let attrs_with_env = [
             ("version", "CARGO_PKG_VERSION"),
             ("about", "CARGO_PKG_DESCRIPTION"),
@@ -373,9 +373,9 @@ impl Attrs {
             Ty::Other
         }
     }
-    pub fn from_field(field: &syn::Field) -> Attrs {
+    pub fn from_field(field: &syn::Field, struct_casing: NameCasing) -> Attrs {
         let name = field.ident.as_ref().unwrap().to_string();
-        let mut res = Self::new(name);
+        let mut res = Self::new(name, struct_casing);
         res.push_doc_comment(&field.attrs, "help");
         res.push_attrs(&field.attrs);
 
@@ -455,5 +455,8 @@ impl Attrs {
     }
     pub fn kind(&self) -> Kind {
         self.kind
+    }
+    pub fn casing(&self) -> NameCasing {
+        self.casing
     }
 }
