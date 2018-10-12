@@ -47,6 +47,14 @@ pub enum Parser {
     TryFromOsStr,
     FromOccurrences,
 }
+
+/// Defines the casing for the attributes long representation.
+#[derive(Debug)]
+pub enum NameCasing {
+    /// Keep all letters lowercase and indicate word boundaries with hyphens.
+    Kebab,
+}
+
 impl ::std::str::FromStr for Parser {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -57,6 +65,14 @@ impl ::std::str::FromStr for Parser {
             "try_from_os_str" => Ok(Parser::TryFromOsStr),
             "from_occurrences" => Ok(Parser::FromOccurrences),
             _ => Err(format!("unsupported parser {}", s)),
+        }
+    }
+}
+
+impl NameCasing {
+    fn translate(&self, input: &str) -> String {
+        match self {
+            NameCasing::Kebab => input.to_kebab_case(),
         }
     }
 }
@@ -180,6 +196,10 @@ impl Attrs {
                 }
                 Word(ref w) if w == "flatten" => {
                     self.set_kind(Kind::FlattenStruct);
+                }
+                Word(ref w) if w == "long" => {
+                    let translation = NameCasing::Kebab.translate(self.name());
+                    self.push_str_method("long", &translation);
                 }
                 ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
             }
