@@ -6,8 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
+
+use heck::KebabCase;
+use proc_macro2::{Span, TokenStream};
 use syn::Type::Path;
 use syn::{self, Attribute, Ident, LitStr, MetaList, MetaNameValue, TypePath};
 
@@ -61,6 +63,7 @@ impl ::std::str::FromStr for Parser {
 
 impl Attrs {
     fn new(name: String) -> Attrs {
+        let name = name.to_kebab_case();
         Attrs {
             name: name,
             methods: vec![],
