@@ -30,7 +30,7 @@ pub enum Ty {
 pub struct Attrs {
     name: String,
     cased_name: String,
-    casing: NameCasing,
+    casing: CasingStyle,
     methods: Vec<Method>,
     parser: (Parser, TokenStream),
     has_custom_parser: bool,
@@ -52,7 +52,7 @@ pub enum Parser {
 
 /// Defines the casing for the attributes long representation.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum NameCasing {
+pub enum CasingStyle {
     /// Indicate word boundaries with uppercase letter, excluding the first word.
     Camel,
     /// Keep all letters lowercase and indicate word boundaries with hyphens.
@@ -61,7 +61,7 @@ pub enum NameCasing {
     Pascal,
     /// Keep all letters uppercase and indicate word boundaries with underscores.
     ScreamingSnake,
-    /// Keep all letters lowercase and indicate word bounardies with underscores.
+    /// Keep all letters lowercase and indicate word boundaries with underscores.
     Snake,
     /// Use the original attribute name defined in the code.
     Verbatim,
@@ -81,32 +81,32 @@ impl ::std::str::FromStr for Parser {
     }
 }
 
-impl NameCasing {
+impl CasingStyle {
     fn translate(&self, input: &str) -> String {
         match *self {
-            NameCasing::Pascal => input.to_camel_case(),
-            NameCasing::Kebab => input.to_kebab_case(),
-            NameCasing::Camel => input.to_mixed_case(),
-            NameCasing::ScreamingSnake => input.to_shouty_snake_case(),
-            NameCasing::Snake => input.to_snake_case(),
-            NameCasing::Verbatim => String::from(input),
+            CasingStyle::Pascal => input.to_camel_case(),
+            CasingStyle::Kebab => input.to_kebab_case(),
+            CasingStyle::Camel => input.to_mixed_case(),
+            CasingStyle::ScreamingSnake => input.to_shouty_snake_case(),
+            CasingStyle::Snake => input.to_snake_case(),
+            CasingStyle::Verbatim => String::from(input),
         }
     }
 }
 
-impl ::std::str::FromStr for NameCasing {
+impl ::std::str::FromStr for CasingStyle {
     type Err = String;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
         let name = name.to_camel_case().to_lowercase();
 
         let case = match name.as_ref() {
-            "camel" | "camelcase" => NameCasing::Camel,
-            "kebab" | "kebabcase" => NameCasing::Kebab,
-            "pascal" | "pascalcase" => NameCasing::Pascal,
-            "screamingsnake" | "screamingsnakecase" => NameCasing::ScreamingSnake,
-            "snake" | "snakecase" => NameCasing::Snake,
-            "verbatim" | "verbatimcase" => NameCasing::Verbatim,
+            "camel" | "camelcase" => CasingStyle::Camel,
+            "kebab" | "kebabcase" => CasingStyle::Kebab,
+            "pascal" | "pascalcase" => CasingStyle::Pascal,
+            "screamingsnake" | "screamingsnakecase" => CasingStyle::ScreamingSnake,
+            "snake" | "snakecase" => CasingStyle::Snake,
+            "verbatim" | "verbatimcase" => CasingStyle::Verbatim,
             _ => return Err(format!("unsupported casing {}", name)),
         };
 
@@ -115,7 +115,7 @@ impl ::std::str::FromStr for NameCasing {
 }
 
 impl Attrs {
-    fn new(name: String, casing: NameCasing) -> Attrs {
+    fn new(name: String, casing: CasingStyle) -> Attrs {
         let cased_name = casing.translate(&name);
 
         Attrs {
@@ -327,7 +327,7 @@ impl Attrs {
             args: quote!(#arg),
         });
     }
-    pub fn from_struct(attrs: &[Attribute], name: String, argument_casing: NameCasing) -> Attrs {
+    pub fn from_struct(attrs: &[Attribute], name: String, argument_casing: CasingStyle) -> Attrs {
         let mut res = Self::new(name, argument_casing);
         let attrs_with_env = [
             ("version", "CARGO_PKG_VERSION"),
@@ -373,7 +373,7 @@ impl Attrs {
             Ty::Other
         }
     }
-    pub fn from_field(field: &syn::Field, struct_casing: NameCasing) -> Attrs {
+    pub fn from_field(field: &syn::Field, struct_casing: CasingStyle) -> Attrs {
         let name = field.ident.as_ref().unwrap().to_string();
         let mut res = Self::new(name, struct_casing);
         res.push_doc_comment(&field.attrs, "help");
@@ -456,7 +456,7 @@ impl Attrs {
     pub fn kind(&self) -> Kind {
         self.kind
     }
-    pub fn casing(&self) -> NameCasing {
+    pub fn casing(&self) -> CasingStyle {
         self.casing
     }
 }

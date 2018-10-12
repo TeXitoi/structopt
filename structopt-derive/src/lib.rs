@@ -19,14 +19,14 @@ extern crate proc_macro2;
 
 mod attrs;
 
-use attrs::{Attrs, Kind, NameCasing, Parser, Ty};
+use attrs::{Attrs, CasingStyle, Kind, Parser, Ty};
 use proc_macro2::{Span, TokenStream};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::*;
 
 /// Default casing style for generated arguments.
-const DEFAULT_CASING: NameCasing = NameCasing::Kebab;
+const DEFAULT_CASING: CasingStyle = CasingStyle::Kebab;
 
 /// Output for the gen_xxx() methods were we need more than a simple stream of tokens.
 ///

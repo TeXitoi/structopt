@@ -27,20 +27,22 @@ struct Opt {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: u8,
 
+    // The standalone parameters `short`and `long` automatically name the
+    // arguments based on the field name (defaults to kebab-case).
     /// Set speed
-    #[structopt(short = "s", long = "speed", default_value = "42")]
+    #[structopt(short, long, default_value = "42")]
     speed: f64,
 
     /// Output file
-    #[structopt(short = "o", long = "output", parse(from_os_str))]
+    #[structopt(short, long, parse(from_os_str))]
     output: PathBuf,
 
     /// Number of cars
-    #[structopt(short = "c", long = "nb-cars")]
+    #[structopt(short = "c", long)]
     nb_cars: Option<i32>,
 
     /// admin_level to consider
-    #[structopt(short = "l", long = "level")]
+    #[structopt(short, long)]
     level: Vec<String>,
 
     /// Files to process
