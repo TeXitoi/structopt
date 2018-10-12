@@ -147,7 +147,7 @@ fn test_standalone_short_ignores_afterwards_defined_custom_name() {
 fn test_standalone_long_uses_previous_defined_casing() {
     #[derive(StructOpt, Debug, PartialEq)]
     struct Opt {
-        #[structopt(rename_all = "shouty_snake", long)]
+        #[structopt(rename_all = "screaming_snake", long)]
         foo_option: bool,
     }
 
@@ -161,7 +161,7 @@ fn test_standalone_long_uses_previous_defined_casing() {
 fn test_standalone_short_uses_previous_defined_casing() {
     #[derive(StructOpt, Debug, PartialEq)]
     struct Opt {
-        #[structopt(rename_all = "shouty_snake", short)]
+        #[structopt(rename_all = "screaming_snake", short)]
         foo_option: bool,
     }
 

@@ -53,14 +53,14 @@ pub enum Parser {
 /// Defines the casing for the attributes long representation.
 #[derive(Debug)]
 pub enum NameCasing {
-    /// Indicate word boundaries with uppercase letter, including the first word.
+    /// Indicate word boundaries with uppercase letter, excluding the first word.
     Camel,
     /// Keep all letters lowercase and indicate word boundaries with hyphens.
     Kebab,
-    /// Indicate word boundaries with uppercase letter, excluding the first word.
-    Mixed,
+    /// Indicate word boundaries with uppercase letter, including the first word.
+    Pascal,
     /// Keep all letters uppercase and indicate word boundaries with underscores.
-    ShoutySnake,
+    ScreamingSnake,
     /// Keep all letters lowercase and indicate word bounardies with underscores.
     Snake,
     /// Use the original attribute name defined in the code.
@@ -84,10 +84,10 @@ impl ::std::str::FromStr for Parser {
 impl NameCasing {
     fn translate(&self, input: &str) -> String {
         match *self {
-            NameCasing::Camel => input.to_camel_case(),
+            NameCasing::Pascal => input.to_camel_case(),
             NameCasing::Kebab => input.to_kebab_case(),
-            NameCasing::Mixed => input.to_mixed_case(),
-            NameCasing::ShoutySnake => input.to_shouty_snake_case(),
+            NameCasing::Camel => input.to_mixed_case(),
+            NameCasing::ScreamingSnake => input.to_shouty_snake_case(),
             NameCasing::Snake => input.to_snake_case(),
             NameCasing::Verbatim => String::from(input),
         }
@@ -103,8 +103,8 @@ impl ::std::str::FromStr for NameCasing {
         let case = match name.as_ref() {
             "camel" | "camelcase" => NameCasing::Camel,
             "kebab" | "kebabcase" => NameCasing::Kebab,
-            "mixed" | "mixedcase" => NameCasing::Mixed,
-            "shoutysnake" | "shoutysnakecase" => NameCasing::ShoutySnake,
+            "pascal" | "pascalcase" => NameCasing::Pascal,
+            "screamingsnake" | "screamingsnakecase" => NameCasing::ScreamingSnake,
             "snake" | "snakecase" => NameCasing::Snake,
             "verbatim" | "verbatimcase" => NameCasing::Verbatim,
             _ => return Err(format!("unsupported casing {}", name)),
