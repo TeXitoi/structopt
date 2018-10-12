@@ -143,7 +143,8 @@ fn gen_augmentation(fields: &Punctuated<Field, Comma>, app_var: &Ident) -> Token
                     }
                 };
                 let methods = attrs.methods();
-                let name = attrs.name();
+                let name = attrs.cased_name();
+
                 Some(quote!{
                     let #app_var = #app_var.arg(
                         ::structopt::clap::Arg::with_name(#name)
@@ -198,7 +199,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>) -> TokenStream {
                 };
 
                 let occurences = attrs.parser().0 == Parser::FromOccurrences;
-                let name = attrs.name();
+                let name = attrs.cased_name();
                 let field_value = match ty {
                     Ty::Bool => quote!(matches.is_present(#name)),
                     Ty::Option => quote! {
@@ -246,7 +247,7 @@ fn gen_clap(attrs: &[Attribute]) -> TokenStream {
         .ok()
         .unwrap_or_else(String::default);
     let attrs = Attrs::from_struct(attrs, name);
-    let name = attrs.name();
+    let name = attrs.cased_name();
     let methods = attrs.methods();
     quote!(::structopt::clap::App::new(#name)#methods)
 }
@@ -312,7 +313,7 @@ fn gen_augment_clap_enum(variants: &Punctuated<Variant, Comma>) -> TokenStream {
             Unnamed(..) => panic!("{}: tuple enum are not supported", variant.ident),
         };
 
-        let name = attrs.name();
+        let name = attrs.cased_name();
         let from_attrs = attrs.methods();
         quote! {
             .subcommand({
@@ -346,7 +347,7 @@ fn gen_from_subcommand(name: &Ident, variants: &Punctuated<Variant, Comma>) -> T
 
     let match_arms = variants.iter().map(|variant| {
         let attrs = Attrs::from_struct(&variant.attrs, variant.ident.to_string());
-        let sub_name = attrs.name();
+        let sub_name = attrs.cased_name();
         let variant_name = &variant.ident;
         let constructor_block = match variant.fields {
             Named(ref fields) => gen_constructor(&fields.named),

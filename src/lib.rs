@@ -156,8 +156,11 @@
 //! `short` or `long` will use the new name.
 //!
 //! ```
-//! # #[macro_use]
-//! # extern crate structopt;
+//! #[macro_use]
+//! extern crate structopt;
+//!
+//! use structopt::StructOpt;
+//!
 //! #[derive(StructOpt)]
 //! struct Opt {
 //!     /// This option can be specified with something like `--foo-option
@@ -181,8 +184,10 @@
 //!
 //!     /// This option is positional, meaning it is the first unadorned string
 //!     /// you provide (multiple others could follow).
-//!     my_positional: string,
+//!     my_positional: String,
 //! }
+//!
+//! # fn main() {}
 //! ```
 //!
 //! ## Help messages

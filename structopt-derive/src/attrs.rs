@@ -8,7 +8,7 @@
 
 use std::{env, mem};
 
-use heck::KebabCase;
+use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use syn::Type::Path;
 use syn::{self, Attribute, Ident, LitStr, MetaList, MetaNameValue, TypePath};
@@ -29,6 +29,8 @@ pub enum Ty {
 #[derive(Debug)]
 pub struct Attrs {
     name: String,
+    cased_name: String,
+    casing: NameCasing,
     methods: Vec<Method>,
     parser: (Parser, TokenStream),
     has_custom_parser: bool,
@@ -51,8 +53,18 @@ pub enum Parser {
 /// Defines the casing for the attributes long representation.
 #[derive(Debug)]
 pub enum NameCasing {
+    /// Indicate word boundaries with uppercase letter, including the first word.
+    Camel,
     /// Keep all letters lowercase and indicate word boundaries with hyphens.
     Kebab,
+    /// Indicate word boundaries with uppercase letter, excluding the first word.
+    Mixed,
+    /// Keep all letters uppercase and indicate word boundaries with underscores.
+    ShoutySnake,
+    /// Keep all letters lowercase and indicate word bounardies with underscores.
+    Snake,
+    /// Use the original attribute name defined in the code.
+    Verbatim,
 }
 
 impl ::std::str::FromStr for Parser {
@@ -71,17 +83,46 @@ impl ::std::str::FromStr for Parser {
 
 impl NameCasing {
     fn translate(&self, input: &str) -> String {
-        match self {
+        match *self {
+            NameCasing::Camel => input.to_camel_case(),
             NameCasing::Kebab => input.to_kebab_case(),
+            NameCasing::Mixed => input.to_mixed_case(),
+            NameCasing::ShoutySnake => input.to_shouty_snake_case(),
+            NameCasing::Snake => input.to_snake_case(),
+            NameCasing::Verbatim => String::from(input),
         }
+    }
+}
+
+impl ::std::str::FromStr for NameCasing {
+    type Err = String;
+
+    fn from_str(name: &str) -> Result<Self, Self::Err> {
+        let name = name.to_camel_case().to_lowercase();
+
+        let case = match name.as_ref() {
+            "camel" | "camelcase" => NameCasing::Camel,
+            "kebab" | "kebabcase" => NameCasing::Kebab,
+            "mixed" | "mixedcase" => NameCasing::Mixed,
+            "shoutysnake" | "shoutysnakecase" => NameCasing::ShoutySnake,
+            "snake" | "snakecase" => NameCasing::Snake,
+            "verbatim" | "verbatimcase" => NameCasing::Verbatim,
+            _ => return Err(format!("unsupported casing {}", name)),
+        };
+
+        Ok(case)
     }
 }
 
 impl Attrs {
     fn new(name: String) -> Attrs {
-        let name = name.to_kebab_case();
+        let casing = NameCasing::Kebab;
+        let cased_name = casing.translate(&name);
+
         Attrs {
-            name: name,
+            name,
+            cased_name,
+            casing,
             methods: vec![],
             parser: (Parser::TryFromStr, quote!(::std::str::FromStr::from_str)),
             has_custom_parser: false,
@@ -94,7 +135,10 @@ impl Attrs {
                 let methods = mem::replace(&mut self.methods, vec![]);
                 self.methods = methods.into_iter().filter(|m| m.name != name).collect();
             }
-            ("name", new_name) => self.name = new_name.into(),
+            ("name", new_name) => {
+                self.name = new_name.into();
+                self.cased_name = self.casing.translate(new_name);
+            }
             (name, arg) => self.methods.push(Method {
                 name: name.to_string(),
                 args: quote!(#arg),
@@ -106,26 +150,39 @@ impl Attrs {
         use Meta::*;
         use NestedMeta::*;
 
-        let iter = attrs
+        let structopt_attrs = attrs
             .iter()
             .filter_map(|attr| {
                 let path = &attr.path;
-                match quote!(#path).to_string() == "structopt" {
-                    true => Some(
+                match quote!(#path).to_string().as_ref() {
+                    "structopt" => Some(
                         attr.interpret_meta()
                             .expect(&format!("invalid structopt syntax: {}", quote!(attr))),
                     ),
-                    false => None,
+                    _ => None,
                 }
-            }).flat_map(|m| match m {
+            }).filter(|meta| meta.name() == "structopt")
+            .flat_map(|m| match m {
                 List(l) => l.nested,
                 tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
             }).map(|m| match m {
                 Meta(m) => m,
                 ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
             });
-        for attr in iter {
+
+        for attr in structopt_attrs {
             match attr {
+                NameValue(MetaNameValue {
+                    ref ident,
+                    lit: Str(ref value),
+                    ..
+                })
+                    if ident == "rename_all" =>
+                {
+                    if let Ok(casing) = ::std::str::FromStr::from_str(&value.value()) {
+                        self.casing = casing;
+                    }
+                }
                 NameValue(MetaNameValue {
                     ident,
                     lit: Str(value),
@@ -198,11 +255,11 @@ impl Attrs {
                     self.set_kind(Kind::FlattenStruct);
                 }
                 Word(ref w) if w == "long" => {
-                    let translation = NameCasing::Kebab.translate(self.name());
+                    let translation = self.casing.translate(&self.name);
                     self.push_str_method("long", &translation);
                 }
                 Word(ref w) if w == "short" => {
-                    let short_name = self.name()[0..1].to_kebab_case();
+                    let short_name = self.casing.translate(&self.name[0..1]);
                     self.push_str_method("short", &short_name);
                 }
                 ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
@@ -390,8 +447,8 @@ impl Attrs {
         });
         quote!( #(#methods)* )
     }
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn cased_name(&self) -> &str {
+        &self.cased_name
     }
     pub fn parser(&self) -> &(Parser, TokenStream) {
         &self.parser
