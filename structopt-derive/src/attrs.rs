@@ -201,6 +201,10 @@ impl Attrs {
                     let translation = NameCasing::Kebab.translate(self.name());
                     self.push_str_method("long", &translation);
                 }
+                Word(ref w) if w == "short" => {
+                    let short_name = self.name()[0..1].to_kebab_case();
+                    self.push_str_method("short", &short_name);
+                }
                 ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
             }
         }

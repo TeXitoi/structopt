@@ -4,7 +4,7 @@ extern crate structopt;
 use structopt::StructOpt;
 
 #[test]
-fn test_single_word_enum_variant_is_renamed() {
+fn test_single_word_enum_variant_is_default_renamed_into_kebab_case() {
     #[derive(StructOpt, Debug, PartialEq)]
     enum Opt {
         #[structopt()]
@@ -34,13 +34,14 @@ fn test_multi_word_enum_variant_is_renamed() {
 #[test]
 fn test_standalone_long_generates_kebab_case() {
     #[derive(StructOpt, Debug, PartialEq)]
+    #[allow(non_snake_case)]
     struct Opt {
         #[structopt(long)]
-        foo_option: bool,
+        FOO_OPTION: bool,
     }
 
     assert_eq!(
-        Opt { foo_option: true },
+        Opt { FOO_OPTION: true },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--foo-option"]))
     );
 }
@@ -84,5 +85,62 @@ fn test_standalone_long_ignores_afterwards_defined_custom_name() {
     assert_eq!(
         Opt { foo_option: true },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--foo-option"]))
+    );
+}
+
+#[test]
+fn test_standalone_short_generates_kebab_case() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[allow(non_snake_case)]
+    struct Opt {
+        #[structopt(short)]
+        FOO_OPTION: bool,
+    }
+
+    assert_eq!(
+        Opt { FOO_OPTION: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-f"]))
+    );
+}
+
+#[test]
+fn test_custom_short_overwrites_default_name() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Opt {
+        #[structopt(short = "o")]
+        foo_option: bool,
+    }
+
+    assert_eq!(
+        Opt { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-o"]))
+    );
+}
+
+#[test]
+fn test_standalone_short_uses_previous_defined_custom_name() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Opt {
+        #[structopt(name = "option", short)]
+        foo_option: bool,
+    }
+
+    assert_eq!(
+        Opt { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-o"]))
+    );
+}
+
+#[test]
+fn test_standalone_short_ignores_afterwards_defined_custom_name() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Opt {
+        #[structopt(short, name = "option")]
+        foo_option: bool,
+    }
+
+    assert_eq!(
+        Opt { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-f"]))
     );
 }
