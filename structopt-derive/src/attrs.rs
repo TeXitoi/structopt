@@ -76,6 +76,13 @@ impl Attrs {
                 self.methods = methods.into_iter().filter(|m| m.name != name).collect();
             }
             ("name", new_name) => self.name = new_name.into(),
+            ("validator", _) => {
+                use quote::ToTokens;
+                self.methods.push(Method {
+                    name: name.to_string(),
+                    args: Ident::new(arg, Span::call_site()).into_token_stream(),
+                });
+            },
             (name, arg) => self.methods.push(Method {
                 name: name.to_string(),
                 args: quote!(#arg),
@@ -86,16 +93,19 @@ impl Attrs {
         use Lit::*;
         use Meta::*;
         use NestedMeta::*;
+        let name = self.name.clone();
 
         let iter = attrs
             .iter()
             .filter_map(|attr| {
                 let path = &attr.path;
                 match quote!(#path).to_string() == "structopt" {
-                    true => Some(
-                        attr.interpret_meta()
-                            .expect(&format!("invalid structopt syntax: {}", quote!(attr))),
-                    ),
+                    true => {
+                        let meta = attr
+                            .interpret_meta()
+                            .expect(&format!("invalid structopt attribute syntax for `{}`", name));
+                        Some(meta)
+                    },
                     false => None,
                 }
             }).flat_map(|m| match m {
