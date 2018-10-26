@@ -194,7 +194,7 @@ impl Attrs {
         })
     }
     fn push_doc_comment(&mut self, attrs: &[Attribute], name: &str) {
-        let doc_comments: Vec<_> = attrs
+        let doc_comments = attrs
             .iter()
             .filter_map(|attr| {
                 let path = &attr.path;
@@ -228,20 +228,50 @@ impl Attrs {
                 } else {
                     None
                 }
-            }).collect();
+            }).collect::<Vec<_>>();
+
         if doc_comments.is_empty() {
             return;
         }
-        let arg = doc_comments
+
+        let merged_lines = doc_comments
             .join(" ")
             .split('\n')
-            .map(|l| l.trim().to_string())
+            .map(str::trim)
+            .map(str::to_string)
             .collect::<Vec<_>>()
             .join("\n");
-        self.methods.push(Method {
-            name: name.to_string(),
-            args: quote!(#arg),
-        });
+
+        let expected_doc_comment_split = if let Some(content) = doc_comments.get(1) {
+            (doc_comments.len() > 2) && (content == &"\n\n")
+        } else {
+            false
+        };
+
+        if expected_doc_comment_split {
+            let long_name = String::from("long_") + name;
+
+            self.methods.push(Method {
+                name: long_name,
+                args: quote!(#merged_lines),
+            });
+
+            let short_arg = doc_comments
+                .first()
+                .map(String::as_ref)
+                .map(str::trim)
+                .unwrap_or("");
+
+            self.methods.push(Method {
+                name: name.to_string(),
+                args: quote!(#short_arg),
+            });
+        } else {
+            self.methods.push(Method {
+                name: name.to_string(),
+                args: quote!(#merged_lines),
+            });
+        }
     }
     pub fn from_struct(attrs: &[Attribute], name: String) -> Attrs {
         let mut res = Self::new(name);
