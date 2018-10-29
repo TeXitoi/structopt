@@ -217,7 +217,7 @@ fn flatten_enum() {
 
     assert!(Opt::from_iter_safe(&["test"]).is_err());
     assert_eq!(
-        Opt::from_iter(&["test", "foo"]),
+        Opt::from_iter(&["test", "Foo"]),
         Opt {
             sub_cmd: SubCmd::Foo
         }

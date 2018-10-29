@@ -7,7 +7,6 @@
 // except according to those terms.
 
 use std::{env, mem};
-
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use syn::Type::Path;
@@ -107,7 +106,7 @@ impl ::std::str::FromStr for CasingStyle {
             "screamingsnake" | "screamingsnakecase" => CasingStyle::ScreamingSnake,
             "snake" | "snakecase" => CasingStyle::Snake,
             "verbatim" | "verbatimcase" => CasingStyle::Verbatim,
-            _ => return Err(format!("unsupported casing {}", name)),
+            _ => return Err(format!("unsupported casing: {}", name)),
         };
 
         Ok(case)
@@ -160,7 +159,7 @@ impl Attrs {
                     ),
                     _ => None,
                 }
-            }).filter(|meta| meta.name() == "structopt")
+            })
             .flat_map(|m| match m {
                 List(l) => l.nested,
                 tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
@@ -178,10 +177,12 @@ impl Attrs {
                 })
                     if ident == "rename_all" =>
                 {
-                    if let Ok(casing) = ::std::str::FromStr::from_str(&value.value()) {
-                        self.casing = casing;
-                        self.cased_name = self.casing.translate(&self.name)
-                    }
+                    self.casing = {
+                        let input = value.value();
+                        ::std::str::FromStr::from_str(&input)
+                            .unwrap_or_else(|error| panic!("{}", error))
+                    };
+                    self.cased_name = self.casing.translate(&self.name);
                 }
                 NameValue(MetaNameValue {
                     ident,
@@ -255,12 +256,12 @@ impl Attrs {
                     self.set_kind(Kind::FlattenStruct);
                 }
                 Word(ref w) if w == "long" => {
-                    let translation = self.casing.translate(&self.name);
-                    self.push_str_method("long", &translation);
+                    let cased_name = &self.cased_name.clone();
+                    self.push_str_method("long", cased_name);
                 }
                 Word(ref w) if w == "short" => {
-                    let short_name = self.casing.translate(&self.name[0..1]);
-                    self.push_str_method("short", &short_name);
+                    let cased_named = &self.cased_name.clone();
+                    self.push_str_method("short", cased_named);
                 }
                 ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
             }

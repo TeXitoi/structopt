@@ -1,7 +1,7 @@
 //! Example on how the `rename_all` parameter works.
 //!
 //! `rename_all` can be used to override the casing style used during argument
-//! generation. Default the `kebab-case` style will be used but there is a wide
+//! generation. Default the `verbatim-case` style will be used but there is a wide
 //! variety of other styles available.
 //!
 //! ## Supported styles overview:
@@ -45,7 +45,7 @@ enum Opt {
         #[structopt(rename_all = "snake_case", long)]
         bar_option: bool,
 
-        // Renaming will not be propapageted into subcommand flagged enums. If
+        // Renaming will not be propagated into subcommand flagged enums. If
         // a non default casing style is required it must be defined on the
         // enum itself.
         #[structopt(subcommand)]
@@ -59,7 +59,7 @@ enum Opt {
 
 #[derive(StructOpt, Debug)]
 enum Subcommands {
-    // This one will be available as `first-subcommand`.
+    // This one will be available as `FirstSubcommand`.
     FirstSubcommand,
 }
 

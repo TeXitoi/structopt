@@ -26,7 +26,7 @@ use syn::token::Comma;
 use syn::*;
 
 /// Default casing style for generated arguments.
-const DEFAULT_CASING: CasingStyle = CasingStyle::Kebab;
+const DEFAULT_CASING: CasingStyle = CasingStyle::Verbatim;
 
 /// Output for the gen_xxx() methods were we need more than a simple stream of tokens.
 ///
