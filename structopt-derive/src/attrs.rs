@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::{env, mem};
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
+use std::{env, mem};
 use syn::Type::Path;
 use syn::{self, Attribute, Ident, LitStr, MetaList, MetaNameValue, TypePath};
 
@@ -159,8 +159,7 @@ impl Attrs {
                     ),
                     _ => None,
                 }
-            })
-            .flat_map(|m| match m {
+            }).flat_map(|m| match m {
                 List(l) => l.nested,
                 tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
             }).map(|m| match m {

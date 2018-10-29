@@ -14,9 +14,9 @@ use structopt::StructOpt;
 
 /// An example of raw attributes
 #[derive(StructOpt, Debug)]
-#[structopt(
-    raw(global_settings = "&[AppSettings::ColoredHelp, AppSettings::VersionlessSubcommands]")
-)]
+#[structopt(raw(
+    global_settings = "&[AppSettings::ColoredHelp, AppSettings::VersionlessSubcommands]"
+))]
 struct Opt {
     /// Output file
     #[structopt(short = "o", long = "output")]
