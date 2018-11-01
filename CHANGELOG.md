@@ -1,3 +1,7 @@
+# v0.2.13 (2018-11-01)
+
+* Automatic naming of fields and subcommands by [@0ndorio](https://github.com/0ndorio)
+
 # v0.2.12 (2018-10-11)
 
 * Fix minimal clap version by [@TeXitoi](https://github.com/TeXitoi)
