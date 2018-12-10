@@ -155,7 +155,7 @@ impl Attrs {
                 match quote!(#path).to_string().as_ref() {
                     "structopt" => Some(
                         attr.interpret_meta()
-                            .expect(&format!("invalid structopt syntax: {}", quote!(attr))),
+                            .expect(&format!("invalid structopt syntax: {}", quote!(#attr))),
                     ),
                     _ => None,
                 }
