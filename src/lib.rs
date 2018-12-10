@@ -217,6 +217,43 @@
 //! # fn main() {}
 //! ```
 //!
+//! If it is necessary or wanted to provide a more complex help message then the
+//! previous used ones, it could still be a good idea to distinguish between the
+//! actual help message a short summary. In this case `about` and `help` should
+//! only contain the short and concise form while the two additional arguments
+//! `long_about` and `long_help` can be used to store a descriptive and more in
+//! depth message.
+//!
+//! If both - the short and the long version of the argument - are present,
+//! the user can later chose between the short summary (`-h`) and the long
+//! descriptive version (`--help`) of the help message. Also in case
+//! of subcommands the short help message will automatically be used for the
+//! command description inside the parents help message and the long version
+//! as command description if help is requested on the actual subcommand.
+//!
+//! This feature can also be used with doc comments instead of arguments through
+//! proper comment formatting. To be activated it requires, that the first line
+//! of the comment is separated from the rest of the comment through an empty line.
+//! In this case the first line is used as summary and the whole comment represents
+//! the long descriptive message.
+//!
+//! ```
+//! # #[macro_use] extern crate structopt;
+//! #[derive(StructOpt)]
+//! #[structopt(name = "foo")]
+//! /// The help message that will be displayed when passing `--help`.
+//! struct Foo {
+//!   #[structopt(short = "b")]
+//!   /// Only this summary is visible when passing `-h`.
+//!   ///
+//!   /// But the whole comment will be displayed when passing `--help`.
+//!   /// This could be quite useful to provide further hints are usage
+//!   /// examples.
+//!   bar: String
+//! }
+//! # fn main() {}
+//! ```
+//!
 //! ## Subcommands
 //!
 //! Some applications, especially large ones, split their functionality
