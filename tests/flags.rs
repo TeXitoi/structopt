@@ -32,21 +32,15 @@ fn unique_flag() {
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--alice"]))
     );
     assert!(Opt::clap().get_matches_from_safe(&["test", "-i"]).is_err());
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a", "foo"])
-            .is_err()
-    );
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a", "-a"])
-            .is_err()
-    );
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a", "--alice"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a", "foo"])
+        .is_err());
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a", "-a"])
+        .is_err());
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a", "--alice"])
+        .is_err());
 }
 
 #[test]
@@ -80,11 +74,9 @@ fn multiple_flag() {
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-aaa", "--bob"]))
     );
     assert!(Opt::clap().get_matches_from_safe(&["test", "-i"]).is_err());
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a", "foo"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a", "foo"])
+        .is_err());
 }
 
 #[test]

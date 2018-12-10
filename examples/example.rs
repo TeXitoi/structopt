@@ -19,12 +19,7 @@ struct Opt {
     debug: bool,
 
     /// An argument of type float, with a default value.
-    #[structopt(
-        short = "s",
-        long = "speed",
-        help = "Set speed",
-        default_value = "42"
-    )]
+    #[structopt(short = "s", long = "speed", help = "Set speed", default_value = "42")]
     speed: f64,
 
     /// Needed parameter, the first on the command line.

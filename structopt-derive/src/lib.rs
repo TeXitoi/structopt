@@ -59,9 +59,7 @@ fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
             arguments:
                 PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }),
             ..
-        }
-            if args.len() == 1 =>
-        {
+        } if args.len() == 1 => {
             if let GenericArgument::Type(ref ty) = args[0] {
                 Some(ty)
             } else {
@@ -98,14 +96,15 @@ fn gen_augmentation(
                     }
                 };
 
-                Some(quote!{
+                Some(quote! {
                     let #app_var = <#subcmd_type>::augment_clap( #app_var );
                     #required
                 })
             } else {
                 None
             }
-        }).collect();
+        })
+        .collect();
 
     assert!(
         subcmds.len() <= 1,
@@ -162,7 +161,7 @@ fn gen_augmentation(
                 let methods = attrs.methods();
                 let name = attrs.cased_name();
 
-                Some(quote!{
+                Some(quote! {
                     let #app_var = #app_var.arg(
                         ::structopt::clap::Arg::with_name(#name)
                             #modifier

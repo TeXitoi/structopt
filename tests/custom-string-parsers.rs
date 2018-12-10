@@ -178,11 +178,7 @@ struct Occurrences {
     #[structopt(short = "r", parse(from_occurrences))]
     little_unsigned: u8,
 
-    #[structopt(
-        short = "c",
-        long = "custom",
-        parse(from_occurrences = "foo")
-    )]
+    #[structopt(short = "c", long = "custom", parse(from_occurrences = "foo"))]
     custom: Foo,
 }
 
@@ -229,11 +225,9 @@ fn test_custom_bool() {
 
     assert!(Opt::clap().get_matches_from_safe(&["test"]).is_err());
     assert!(Opt::clap().get_matches_from_safe(&["test", "-d"]).is_err());
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-dfoo"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-dfoo"])
+        .is_err());
     assert_eq!(
         Opt {
             debug: false,

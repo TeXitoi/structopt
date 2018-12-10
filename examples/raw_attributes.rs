@@ -23,11 +23,7 @@ struct Opt {
     output: String,
 
     /// admin_level to consider
-    #[structopt(
-        short = "l",
-        long = "level",
-        raw(aliases = r#"&["set-level", "lvl"]"#)
-    )]
+    #[structopt(short = "l", long = "level", raw(aliases = r#"&["set-level", "lvl"]"#))]
     level: Vec<String>,
 
     /// Files to process

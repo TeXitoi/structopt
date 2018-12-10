@@ -159,10 +159,12 @@ impl Attrs {
                     ),
                     _ => None,
                 }
-            }).flat_map(|m| match m {
+            })
+            .flat_map(|m| match m {
                 List(l) => l.nested,
                 tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-            }).map(|m| match m {
+            })
+            .map(|m| match m {
                 Meta(m) => m,
                 ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
             });
@@ -173,9 +175,7 @@ impl Attrs {
                     ref ident,
                     lit: Str(ref value),
                     ..
-                })
-                    if ident == "rename_all" =>
-                {
+                }) if ident == "rename_all" => {
                     self.casing = {
                         let input = value.value();
                         ::std::str::FromStr::from_str(&input)
@@ -196,9 +196,7 @@ impl Attrs {
                     ref ident,
                     ref nested,
                     ..
-                })
-                    if ident == "parse" =>
-                {
+                }) if ident == "parse" => {
                     if nested.len() != 1 {
                         panic!("parse must have exactly one argument");
                     }
@@ -234,9 +232,7 @@ impl Attrs {
                     ref ident,
                     ref nested,
                     ..
-                })
-                    if ident == "raw" =>
-                {
+                }) if ident == "raw" => {
                     for method in nested {
                         match *method {
                             Meta(NameValue(MetaNameValue {
@@ -286,7 +282,8 @@ impl Attrs {
                     true => attr.interpret_meta(),
                     false => None,
                 }
-            }).filter_map(|attr| {
+            })
+            .filter_map(|attr| {
                 use Lit::*;
                 use Meta::*;
                 if let NameValue(MetaNameValue {
@@ -312,7 +309,8 @@ impl Attrs {
                 } else {
                     None
                 }
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         if doc_comments.is_empty() {
             return;

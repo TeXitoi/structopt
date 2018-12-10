@@ -31,11 +31,9 @@ fn required_option() {
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--arg", "42"]))
     );
     assert!(Opt::clap().get_matches_from_safe(&["test"]).is_err());
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a42", "-a24"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a42", "-a24"])
+        .is_err());
 }
 
 #[test]
@@ -53,11 +51,9 @@ fn optional_option() {
         Opt { arg: None },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
     );
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a42", "-a24"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a42", "-a24"])
+        .is_err());
 }
 
 #[test]
@@ -75,11 +71,9 @@ fn option_with_default() {
         Opt { arg: 42 },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
     );
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a42", "-a24"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a42", "-a24"])
+        .is_err());
 }
 
 #[test]
@@ -97,11 +91,9 @@ fn option_with_raw_default() {
         Opt { arg: 42 },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
     );
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "-a42", "-a24"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a42", "-a24"])
+        .is_err());
 }
 
 #[test]

@@ -30,11 +30,9 @@ fn flatten() {
         Opt::from_iter(&["test", "42"])
     );
     assert!(Opt::clap().get_matches_from_safe(&["test"]).is_err());
-    assert!(
-        Opt::clap()
-            .get_matches_from_safe(&["test", "42", "24"])
-            .is_err()
-    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "42", "24"])
+        .is_err());
 }
 
 #[test]
