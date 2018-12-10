@@ -1,3 +1,7 @@
+# v0.2.14 (2018-12-10)
+
+* Introduce smarter parsing of doc comments by [@0ndorio](https://github.com/0ndorio)
+
 # v0.2.13 (2018-11-01)
 
 * Automatic naming of fields and subcommands by [@0ndorio](https://github.com/0ndorio)
