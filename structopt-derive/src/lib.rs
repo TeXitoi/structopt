@@ -132,7 +132,7 @@ fn gen_augmentation(
                     _ => &field.ty,
                 };
 
-                let occurences = attrs.parser().0 == Parser::FromOccurrences;
+                let occurrences = attrs.parser().0 == Parser::FromOccurrences;
 
                 let validator = match *attrs.parser() {
                     (Parser::TryFromStr, ref f) => quote! {
@@ -152,7 +152,7 @@ fn gen_augmentation(
                     Ty::Bool => quote!( .takes_value(false).multiple(false) ),
                     Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
                     Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
-                    Ty::Other if occurences => quote!( .takes_value(false).multiple(true) ),
+                    Ty::Other if occurrences => quote!( .takes_value(false).multiple(true) ),
                     Ty::Other => {
                         let required = !attrs.has_method("default_value");
                         quote!( .takes_value(true).multiple(false).required(#required) #validator )
@@ -214,7 +214,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     (FromOccurrences, ref f) => (quote!(occurrences_of), quote!(), f.clone()),
                 };
 
-                let occurences = attrs.parser().0 == Parser::FromOccurrences;
+                let occurrences = attrs.parser().0 == Parser::FromOccurrences;
                 let name = attrs.cased_name();
                 let field_value = match ty {
                     Ty::Bool => quote!(matches.is_present(#name)),
@@ -228,7 +228,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                             .map(|v| v.map(#parse).collect())
                             .unwrap_or_else(Vec::new)
                     },
-                    Ty::Other if occurences => quote! {
+                    Ty::Other if occurrences => quote! {
                         #parse(matches.#value_of(#name))
                     },
                     Ty::Other => quote! {
