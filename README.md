@@ -32,7 +32,7 @@ struct Opt {
     #[structopt(short = "d", long = "debug")]
     debug: bool,
 
-    // The number of occurences of the `v/verbose` flag
+    // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: u8,
