@@ -61,7 +61,7 @@
 //!
 //! First, define a struct, whatever its name.  This structure will
 //! correspond to a `clap::App`.  Every method of `clap::App` in the
-//! form of `fn function_name(self, &str)` can be use through attributes
+//! form of `fn function_name(self, &str)` can be used through attributes
 //! placed on the struct. In our example above, the `about` attribute
 //! will become an `.about("An example of StructOpt usage.")` call on the
 //! generated `clap::App`. There are a few attributes that will default
