@@ -8,7 +8,7 @@
 
 #![deny(missing_docs)]
 
-//! This crate defines the `StructOpt` trait and its custom derrive.
+//! This crate defines the `StructOpt` trait and its custom derive.
 //!
 //! ## Features
 //!
