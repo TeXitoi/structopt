@@ -338,10 +338,14 @@ impl Attrs {
                 args: quote!(#merged_lines),
             });
 
+            // Remove trailing whitespace and period from short help, as rustdoc
+            // best practice is to use complete sentences, but command-line help
+            // typically omits the trailing period.
             let short_arg = doc_comments
                 .first()
                 .map(String::as_ref)
                 .map(str::trim)
+                .map(|s| s.trim_right_matches('.'))
                 .unwrap_or("");
 
             self.methods.push(Method {
