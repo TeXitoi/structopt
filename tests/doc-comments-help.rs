@@ -100,7 +100,6 @@ fn splits_flag_doc_comment_between_short_and_long() {
         String::from_utf8(buffer).unwrap()
     };
 
-
     assert!(short_help.contains("CIRCUMSTANCES"));
     assert!(!short_help.contains("CIRCUMSTANCES."));
     assert!(!short_help.contains("Or something else"));
