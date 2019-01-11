@@ -77,7 +77,7 @@ fn splits_flag_doc_comment_between_short_and_long() {
     #[derive(StructOpt, PartialEq, Debug)]
     #[structopt(name = "lorem-ipsum", about = "Dolor sit amet")]
     struct LoremIpsum {
-        /// DO NOT PASS A BAR UNDER ANY CIRCUMSTANCES
+        /// DO NOT PASS A BAR UNDER ANY CIRCUMSTANCES.
         ///
         /// Or something else
         #[structopt(long = "foo")]
@@ -100,6 +100,8 @@ fn splits_flag_doc_comment_between_short_and_long() {
         String::from_utf8(buffer).unwrap()
     };
 
+    assert!(short_help.contains("CIRCUMSTANCES"));
+    assert!(!short_help.contains("CIRCUMSTANCES."));
     assert!(!short_help.contains("Or something else"));
     assert!(long_help.contains("DO NOT PASS A BAR UNDER ANY CIRCUMSTANCES"));
     assert!(long_help.contains("Or something else"));
