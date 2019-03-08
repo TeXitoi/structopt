@@ -130,3 +130,24 @@ fn empy_default_value() {
         Opt::from_iter(&["test", "-afoo"])
     );
 }
+
+#[test]
+fn option_from_str() {
+    #[derive(Debug, PartialEq)]
+    struct A;
+
+    impl<'a> From<&'a str> for A {
+        fn from(_: &str) -> A {
+            A
+        }
+    }
+
+    #[derive(Debug, StructOpt, PartialEq)]
+    struct Opt {
+        #[structopt(parse(from_str))]
+        a: Option<A>,
+    }
+
+    assert_eq!(Opt { a: None }, Opt::from_iter(&["test"]));
+    assert_eq!(Opt { a: Some(A) }, Opt::from_iter(&["test", "foo"]));
+}

@@ -1,3 +1,7 @@
+# v0.2.15 (2018-03-08)
+
+* Fix [#168](https://github.com/TeXitoi/structopt/issues/168) by [@TeXitoi](https://github.com/TeXitoi)
+
 # v0.2.14 (2018-12-10)
 
 * Introduce smarter parsing of doc comments by [@0ndorio](https://github.com/0ndorio)
