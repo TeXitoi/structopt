@@ -215,7 +215,7 @@ impl Attrs {
                             use Parser::*;
                             let parser = i.to_string().parse().unwrap();
                             let function = match parser {
-                                FromStr | FromOsStr=> quote!(::std::convert::From::from),
+                                FromStr | FromOsStr => quote!(::std::convert::From::from),
                                 TryFromStr => quote!(::std::str::FromStr::from_str),
                                 TryFromOsStr => panic!(
                                     "cannot omit parser function name with `try_from_os_str`"
