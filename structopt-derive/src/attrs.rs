@@ -302,11 +302,11 @@ impl Attrs {
                     }
                     let value = s.value();
                     let text = value
-                        .trim_left_matches("//!")
-                        .trim_left_matches("///")
-                        .trim_left_matches("/*!")
-                        .trim_left_matches("/**")
-                        .trim_right_matches("*/")
+                        .trim_start_matches("//!")
+                        .trim_start_matches("///")
+                        .trim_start_matches("/*!")
+                        .trim_start_matches("/**")
+                        .trim_end_matches("*/")
                         .trim();
                     if text.is_empty() {
                         Some("\n\n".to_string())
@@ -352,7 +352,7 @@ impl Attrs {
                 .first()
                 .map(String::as_ref)
                 .map(str::trim)
-                .map(|s| s.trim_right_matches('.'))
+                .map(|s| s.trim_end_matches('.'))
                 .unwrap_or("");
 
             self.methods.push(Method {
