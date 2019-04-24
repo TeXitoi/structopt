@@ -1,3 +1,8 @@
+# v0.2.16 (2019-04-24)
+
+* 1.33.0 is the minimum rustc version by
+  [@owenthewizard](https://github.com/owenthewizard)
+
 # v0.2.15 (2018-03-08)
 
 * Fix [#168](https://github.com/TeXitoi/structopt/issues/168) by [@TeXitoi](https://github.com/TeXitoi)

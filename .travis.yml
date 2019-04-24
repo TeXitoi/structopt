@@ -2,7 +2,7 @@ language: rust
 cache: cargo
 matrix:
   include:
-    - rust: 1.21.0
+    - rust: 1.33.0
       # `examples/enum_in_args.rs` cannot be compiled because of `clap::arg_enum!`.
       env: TARGETS=--tests
     - rust: stable
