@@ -105,7 +105,7 @@ Opt { debug: true, verbose: 3, speed: 1337, output: "foo.txt", nb_cars: Some(4),
 ## StructOpt rustc version policy
 
 - Minimum rustc version modification must be specified in the [changelog](https://github.com/TeXitoi/structopt/blob/master/CHANGELOG.md) and in the [travis configuration](https://github.com/TeXitoi/structopt/blob/master/.travis.yml).
-- Contributors can increment minimum rustc version without any justification if the new version is required by the latest version of one of StructOpt's depedencies (`cargo update` will not fail on StructOpt).
+- Contributors can increment minimum rustc version without any justification if the new version is required by the latest version of one of StructOpt's dependencies (`cargo update` will not fail on StructOpt).
 - Contributors can increment minimum rustc version if the library user experience is improved.
 
 ## Why
