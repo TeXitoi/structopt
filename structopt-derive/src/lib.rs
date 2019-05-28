@@ -19,7 +19,7 @@ extern crate proc_macro2;
 
 mod attrs;
 
-use attrs::{Attrs, CasingStyle, Kind, Parser, Ty};
+use attrs::{Attrs, CasingStyle, Kind, Parser, Ty, sub_type};
 use proc_macro2::{Span, TokenStream};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
@@ -44,30 +44,6 @@ pub fn structopt(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input: DeriveInput = syn::parse(input).unwrap();
     let gen = impl_structopt(&input);
     gen.into()
-}
-
-fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
-    let segs = match *t {
-        syn::Type::Path(TypePath {
-            path: syn::Path { ref segments, .. },
-            ..
-        }) => segments,
-        _ => return None,
-    };
-    match *segs.iter().last().unwrap() {
-        PathSegment {
-            arguments:
-                PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }),
-            ..
-        } if args.len() == 1 => {
-            if let GenericArgument::Type(ref ty) = args[0] {
-                Some(ty)
-            } else {
-                None
-            }
-        }
-        _ => None,
-    }
 }
 
 /// Generate a block of code to add arguments/subcommands corresponding to
@@ -129,6 +105,7 @@ fn gen_augmentation(
             Kind::Arg(ty) => {
                 let convert_type = match ty {
                     Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
+                    Ty::OptionOption => sub_type(&field.ty).and_then(sub_type).unwrap_or(&field.ty),
                     _ => &field.ty,
                 };
 
@@ -158,6 +135,9 @@ fn gen_augmentation(
                 let modifier = match ty {
                     Ty::Bool => quote!( .takes_value(false).multiple(false) ),
                     Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
+                    Ty::OptionOption => {
+                        quote! ( .takes_value(true).multiple(false).min_values(0).max_values(1) #validator )
+                    }
                     Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
                     Ty::Other if occurrences => quote!( .takes_value(false).multiple(true) ),
                     Ty::Other => {
@@ -228,6 +208,13 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     Ty::Option => quote! {
                         matches.#value_of(#name)
                             .map(#parse)
+                    },
+                    Ty::OptionOption => quote! {
+                        if matches.is_present(#name) {
+                            Some(matches.#value_of(#name).map(#parse))
+                        } else {
+                            None
+                        }
                     },
                     Ty::Vec => quote! {
                         matches.#values_of(#name)
