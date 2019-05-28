@@ -151,3 +151,63 @@ fn option_from_str() {
     assert_eq!(Opt { a: None }, Opt::from_iter(&["test"]));
     assert_eq!(Opt { a: Some(A) }, Opt::from_iter(&["test", "foo"]));
 }
+
+#[test]
+fn optional_argument_for_optional_option() {
+    #[derive(StructOpt, PartialEq, Debug)]
+    struct Opt {
+        #[structopt(short = "a")]
+        arg: Option<Option<i32>>,
+    }
+    assert_eq!(
+        Opt { arg: Some(Some(42)) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42"]))
+    );
+    assert_eq!(
+        Opt { arg: Some(None) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a"]))
+    );
+    assert_eq!(
+        Opt { arg: None },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
+    );
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "-a42", "-a24"])
+        .is_err());
+}
+
+#[test]
+fn two_option_options() {
+    #[derive(StructOpt, PartialEq, Debug)]
+    struct Opt {
+        #[structopt(short = "a")]
+        arg: Option<Option<i32>>,
+
+        #[structopt(long = "field")]
+        field: Option<Option<String>>,
+    }
+    assert_eq!(
+        Opt { arg: Some(Some(42)), field: Some(Some("f".into())) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42", "--field", "f"]))
+    );
+    assert_eq!(
+        Opt { arg: Some(Some(42)), field: Some(None) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42", "--field"]))
+    );
+    assert_eq!(
+        Opt { arg: Some(None), field: Some(None) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a", "--field"]))
+    );
+    assert_eq!(
+        Opt { arg: Some(None), field: Some(Some("f".into())) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a", "--field", "f"]))
+    );
+    assert_eq!(
+        Opt { arg: None, field: Some(None) },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--field"]))
+    );
+    assert_eq!(
+        Opt { arg: None, field: None },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
+    );
+}
