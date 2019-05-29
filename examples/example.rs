@@ -30,6 +30,17 @@ struct Opt {
     /// command line.
     #[structopt(help = "Output file, stdout if not present")]
     output: Option<String>,
+
+    /// An optional parameter with optional value, will be `None` if
+    /// not present on the command line, will be `Some(None)` if no
+    /// argument is provided (i.e. `--log`) and will be
+    /// `Some(Some(String))` if argument is provided (e.g. `--log
+    /// log.txt`).
+    #[structopt(
+        long = "log",
+        help = "Log file, stdout if no file, no logging if not present"
+    )]
+    log: Option<Option<String>>,
 }
 
 fn main() {

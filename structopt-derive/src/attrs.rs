@@ -10,7 +10,10 @@ use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
 use syn::Type::Path;
-use syn::{self, Attribute, Ident, LitStr, MetaList, MetaNameValue, TypePath};
+use syn::{
+    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, LitStr, MetaList,
+    MetaNameValue, PathArguments, PathSegment, TypePath,
+};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
@@ -23,6 +26,7 @@ pub enum Ty {
     Bool,
     Vec,
     Option,
+    OptionOption,
     Other,
 }
 #[derive(Debug)]
@@ -400,7 +404,10 @@ impl Attrs {
         {
             match segments.iter().last().unwrap().ident.to_string().as_str() {
                 "bool" => Ty::Bool,
-                "Option" => Ty::Option,
+                "Option" => match sub_type(ty).map(Attrs::ty_from_field) {
+                    Some(Ty::Option) => Ty::OptionOption,
+                    _ => Ty::Option,
+                },
                 "Vec" => Ty::Vec,
                 _ => Ty::Other,
             }
@@ -430,7 +437,11 @@ impl Attrs {
                 if !res.methods.iter().all(|m| m.name == "help") {
                     panic!("methods in attributes is not allowed for subcommand");
                 }
-                res.kind = Kind::Subcommand(Self::ty_from_field(&field.ty));
+                let ty = Self::ty_from_field(&field.ty);
+                if ty == Ty::OptionOption {
+                    panic!("Option<Option<T>> type is not allowed for subcommand")
+                }
+                res.kind = Kind::Subcommand(ty);
             }
             Kind::Arg(_) => {
                 let mut ty = Self::ty_from_field(&field.ty);
@@ -455,6 +466,12 @@ impl Attrs {
                         }
                         if res.has_method("required") {
                             panic!("required is meaningless for Option")
+                        }
+                    }
+                    Ty::OptionOption => {
+                        // If it's a positional argument.
+                        if !(res.has_method("long") || res.has_method("short")) {
+                            panic!("Option<Option<T>> type is meaningless for positional argument")
                         }
                     }
                     _ => (),
@@ -493,5 +510,29 @@ impl Attrs {
     }
     pub fn casing(&self) -> CasingStyle {
         self.casing
+    }
+}
+
+pub fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
+    let segs = match *t {
+        syn::Type::Path(TypePath {
+            path: syn::Path { ref segments, .. },
+            ..
+        }) => segments,
+        _ => return None,
+    };
+    match *segs.iter().last().unwrap() {
+        PathSegment {
+            arguments:
+                PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }),
+            ..
+        } if args.len() == 1 => {
+            if let GenericArgument::Type(ref ty) = args[0] {
+                Some(ty)
+            } else {
+                None
+            }
+        }
+        _ => None,
     }
 }

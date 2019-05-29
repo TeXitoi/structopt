@@ -1,3 +1,6 @@
+* Support `Option<Option<T>>` type for fields by [@sphynx](https://github.com/sphynx)
+  ([#188](https://github.com/TeXitoi/structopt/issues/188))
+
 # v0.2.15 (2018-03-08)
 
 * Fix [#168](https://github.com/TeXitoi/structopt/issues/168) by [@TeXitoi](https://github.com/TeXitoi)
