@@ -21,6 +21,7 @@ lints = ["clap/lints"]
 debug = ["clap/debug"]
 no_cargo = ["clap/no_cargo"]
 doc = ["clap/doc"]
+paw = ["structopt-derive/paw"]
 
 [badges]
 travis-ci = { repository = "TeXitoi/structopt" }
