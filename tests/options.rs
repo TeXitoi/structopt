@@ -160,7 +160,9 @@ fn optional_argument_for_optional_option() {
         arg: Option<Option<i32>>,
     }
     assert_eq!(
-        Opt { arg: Some(Some(42)) },
+        Opt {
+            arg: Some(Some(42))
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42"]))
     );
     assert_eq!(
@@ -187,27 +189,45 @@ fn two_option_options() {
         field: Option<Option<String>>,
     }
     assert_eq!(
-        Opt { arg: Some(Some(42)), field: Some(Some("f".into())) },
+        Opt {
+            arg: Some(Some(42)),
+            field: Some(Some("f".into()))
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42", "--field", "f"]))
     );
     assert_eq!(
-        Opt { arg: Some(Some(42)), field: Some(None) },
+        Opt {
+            arg: Some(Some(42)),
+            field: Some(None)
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a42", "--field"]))
     );
     assert_eq!(
-        Opt { arg: Some(None), field: Some(None) },
+        Opt {
+            arg: Some(None),
+            field: Some(None)
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a", "--field"]))
     );
     assert_eq!(
-        Opt { arg: Some(None), field: Some(Some("f".into())) },
+        Opt {
+            arg: Some(None),
+            field: Some(Some("f".into()))
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "-a", "--field", "f"]))
     );
     assert_eq!(
-        Opt { arg: None, field: Some(None) },
+        Opt {
+            arg: None,
+            field: Some(None)
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--field"]))
     );
     assert_eq!(
-        Opt { arg: None, field: None },
+        Opt {
+            arg: None,
+            field: None
+        },
         Opt::from_clap(&Opt::clap().get_matches_from(&["test"]))
     );
 }

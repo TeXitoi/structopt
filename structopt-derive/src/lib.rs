@@ -19,7 +19,7 @@ extern crate proc_macro2;
 
 mod attrs;
 
-use attrs::{Attrs, CasingStyle, Kind, Parser, Ty, sub_type};
+use attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
 use proc_macro2::{Span, TokenStream};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
