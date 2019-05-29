@@ -404,12 +404,9 @@ impl Attrs {
         {
             match segments.iter().last().unwrap().ident.to_string().as_str() {
                 "bool" => Ty::Bool,
-                "Option" => match sub_type(ty) {
-                    Some(t) => match Attrs::ty_from_field(t) {
-                        Ty::Option => Ty::OptionOption,
-                        _ => Ty::Option,
-                    },
-                    None => Ty::Option,
+                "Option" => match sub_type(ty).map(Attrs::ty_from_field) {
+                    Some(Ty::Option) => Ty::OptionOption,
+                    _ => Ty::Option,
                 },
                 "Vec" => Ty::Vec,
                 _ => Ty::Other,
