@@ -27,6 +27,7 @@ pub enum Ty {
     Vec,
     Option,
     OptionOption,
+    OptionVec,
     Other,
 }
 #[derive(Debug)]
@@ -406,6 +407,7 @@ impl Attrs {
                 "bool" => Ty::Bool,
                 "Option" => match sub_type(ty).map(Attrs::ty_from_field) {
                     Some(Ty::Option) => Ty::OptionOption,
+                    Some(Ty::Vec) => Ty::OptionVec,
                     _ => Ty::Option,
                 },
                 "Vec" => Ty::Vec,
@@ -437,10 +439,18 @@ impl Attrs {
                 if !res.methods.iter().all(|m| m.name == "help") {
                     panic!("methods in attributes is not allowed for subcommand");
                 }
+
                 let ty = Self::ty_from_field(&field.ty);
-                if ty == Ty::OptionOption {
-                    panic!("Option<Option<T>> type is not allowed for subcommand")
+                match ty {
+                    Ty::OptionOption => {
+                        panic!("Option<Option<T>> type is not allowed for subcommand");
+                    }
+                    Ty::OptionVec => {
+                        panic!("Option<Vec<T>> type is not allowed for subcommand");
+                    }
+                    _ => (),
                 }
+
                 res.kind = Kind::Subcommand(ty);
             }
             Kind::Arg(_) => {
@@ -474,6 +484,13 @@ impl Attrs {
                             panic!("Option<Option<T>> type is meaningless for positional argument")
                         }
                     }
+                    Ty::OptionVec => {
+                        // If it's a positional argument.
+                        if !(res.has_method("long") || res.has_method("short")) {
+                            panic!("Option<Vec<T>> type is meaningless for positional argument")
+                        }
+                    }
+
                     _ => (),
                 }
                 res.kind = Kind::Arg(ty);
