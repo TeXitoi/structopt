@@ -105,7 +105,7 @@ fn gen_augmentation(
             Kind::Arg(ty) => {
                 let convert_type = match ty {
                     Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
-                    Ty::OptionOption => sub_type(&field.ty).and_then(sub_type).unwrap_or(&field.ty),
+                    Ty::OptionOption | Ty::OptionVec => sub_type(&field.ty).and_then(sub_type).unwrap_or(&field.ty),
                     _ => &field.ty,
                 };
 
@@ -137,6 +137,9 @@ fn gen_augmentation(
                     Ty::Option => quote!( .takes_value(true).multiple(false) #validator ),
                     Ty::OptionOption => {
                         quote! ( .takes_value(true).multiple(false).min_values(0).max_values(1) #validator )
+                    }
+                    Ty::OptionVec => {
+                        quote! ( .takes_value(true).multiple(true).min_values(0) #validator )
                     }
                     Ty::Vec => quote!( .takes_value(true).multiple(true) #validator ),
                     Ty::Other if occurrences => quote!( .takes_value(false).multiple(true) ),
@@ -212,6 +215,15 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     Ty::OptionOption => quote! {
                         if matches.is_present(#name) {
                             Some(matches.#value_of(#name).map(#parse))
+                        } else {
+                            None
+                        }
+                    },
+                    Ty::OptionVec => quote! {
+                        if matches.is_present(#name) {
+                            Some(matches.#values_of(#name)
+                                 .map(|v| v.map(#parse).collect())
+                                 .unwrap_or_else(Vec::new))
                         } else {
                             None
                         }

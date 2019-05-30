@@ -110,7 +110,14 @@
 //! `Option<T: FromStr>`         | optional positional argument or option            | `.takes_value(true).multiple(false)`
 //! `Option<Option<T: FromStr>>` | optional option with optional value               | `.takes_value(true).multiple(false).min_values(0).max_values(1)`
 //! `Vec<T: FromStr>`            | list of options or the other positional arguments | `.takes_value(true).multiple(true)`
+//! `Option<Vec<T: FromStr>`     | optional list of options                          | `.takes_values(true).multiple(true).min_values(0)`
 //! `T: FromStr`                 | required option or positional argument            | `.takes_value(true).multiple(false).required(!has_default)`
+//!
+//! Note that `Option<Option<T>>` allows to express options like
+//! `[--opt=[val]]` which can have three values: `None` if `--opt` was
+//! not mentioned, `Some(None)` if it was mentioned, but didn't have
+//! value (`--opt`) and `Some(Some(val))` for `--opt=val` case.
+//! Similar reasoning also applies to `Option<Vec<T>>`.
 //!
 //! The `FromStr` trait is used to convert the argument to the given
 //! type, and the `Arg::validator` method is set to a method using
