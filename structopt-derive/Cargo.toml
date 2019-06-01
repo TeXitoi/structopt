@@ -13,7 +13,7 @@ license = "Apache-2.0/MIT"
 travis-ci = { repository = "TeXitoi/structopt" }
 
 [dependencies]
-syn = "0.15"
+syn = "0.15.10"
 quote = "0.6"
 proc-macro2 = "0.4"
 heck = "^0.3.0"
