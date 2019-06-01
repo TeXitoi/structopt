@@ -1,3 +1,8 @@
+# v0.2.18 (2019-06-26)
+
+* Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
+  ([#187](https://github.com/TeXitoi/structopt/issues/187))
+
 # v0.2.16 (2019-05-29)
 
 * Support `Option<Option<T>>` type for fields by [@sphynx](https://github.com/sphynx)

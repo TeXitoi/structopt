@@ -21,6 +21,18 @@
 //! structopt = { version = "0.2", default-features = false }
 //! ```
 //!
+//!
+//! Support for [`paw`](https://github.com/rust-cli/paw) (the
+//! `Command line argument paw-rser abstraction for main`) is disabled
+//! by default, but can be enabled in the `structopt` dependency
+//! with the feature `paw`:
+//!
+//! ```toml
+//! [dependencies]
+//! structopt = { version = "0.2", features = [ "paw" ] }
+//! paw = "1.0"
+//! ```
+//!
 //! ## How to `derive(StructOpt)`
 //!
 //! First, let's look at an example:
