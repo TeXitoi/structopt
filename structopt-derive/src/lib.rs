@@ -433,6 +433,23 @@ fn gen_from_subcommand(
     }
 }
 
+#[cfg(feature = "paw")]
+fn gen_paw_impl(name: &Ident) -> TokenStream {
+    quote! {
+        impl paw::ParseArgs for #name {
+            type Error = std::io::Error;
+
+            fn parse_args() -> Result<Self, Self::Error> {
+                Ok(<#name as ::structopt::StructOpt>::from_args())
+            }
+        }
+    }
+}
+#[cfg(not(feature = "paw"))]
+fn gen_paw_impl(_: &Ident) -> TokenStream {
+    TokenStream::new()
+}
+
 fn impl_structopt_for_struct(
     name: &Ident,
     fields: &Punctuated<Field, Comma>,
@@ -441,6 +458,7 @@ fn impl_structopt_for_struct(
     let basic_clap_app_gen = gen_clap_struct(attrs);
     let augment_clap = gen_augment_clap(fields, &basic_clap_app_gen.attrs);
     let from_clap = gen_from_clap(name, fields, &basic_clap_app_gen.attrs);
+    let paw_impl = gen_paw_impl(name);
 
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
@@ -456,6 +474,8 @@ fn impl_structopt_for_struct(
             #augment_clap
             pub fn is_subcommand() -> bool { false }
         }
+
+        #paw_impl
     }
 }
 
@@ -469,6 +489,7 @@ fn impl_structopt_for_enum(
     let augment_clap = gen_augment_clap_enum(variants, &basic_clap_app_gen.attrs);
     let from_clap = gen_from_clap_enum(name);
     let from_subcommand = gen_from_subcommand(name, variants, &basic_clap_app_gen.attrs);
+    let paw_impl = gen_paw_impl(name);
 
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
@@ -484,6 +505,8 @@ fn impl_structopt_for_enum(
             #from_subcommand
             pub fn is_subcommand() -> bool { true }
         }
+
+        #paw_impl
     }
 }
 
