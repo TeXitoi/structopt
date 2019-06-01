@@ -85,8 +85,13 @@
 //!   - `author`: Defaults to the crate author name given by Cargo.
 //!   - `about`: Defaults to the crate description given by Cargo.
 //!
-//! Methods from `clap::App` that don't take an `&str` can be called by
-//! wrapping them in `raw()`, e.g. to activate colored help text:
+//! This approach also works for booleans and numbers which can be
+//! used as values of the attributes for corresponding `clap::App`
+//! methods (e.g. for `fn function(self, bool)` and so on).
+//!
+//! Methods from `clap::App` that don't take an atomic literal
+//! argument (`&str`, `bool` or numbers) can be called by wrapping
+//! them in `raw()`, e.g. to activate colored help text:
 //!
 //! ```
 //! #[macro_use]
@@ -105,14 +110,17 @@
 //! # fn main() {}
 //! ```
 //!
-//! Then, each field of the struct not marked as a subcommand corresponds
-//! to a `clap::Arg`. As with the struct attributes, every method of
-//! `clap::Arg` in the form of `fn function_name(self, &str)` can be used
-//! through specifying it as an attribute. The `name` attribute can be used
-//! to customize the `Arg::with_name()` call (defaults to the field name in
-//! kebab-case).
-//! For functions that do not take a `&str` as argument, the attribute can be
-//! wrapped in `raw()`, e. g. `raw(aliases = r#"&["alias"]"#, next_line_help = "true")`.
+//! Then, each field of the struct not marked as a subcommand
+//! corresponds to a `clap::Arg`. As with the struct attributes, every
+//! method of `clap::Arg` in the form of `fn function_name(self,
+//! &str)`, `fn function_name(self, bool)` or `fn function_name(self,
+//! usize)` can be used through specifying it as an attribute with a
+//! literal value. The `name` attribute can be used to customize the
+//! `Arg::with_name()` call (defaults to the field name in
+//! kebab-case). For functions that do not take an atomic literal as
+//! argument, the attribute can be wrapped in `raw()`, e. g.
+//! `raw(aliases = r#"&["alias"]"#, possible_values = r#"&["fast",
+//! "slow"]"#)`.
 //!
 //! The type of the field gives the kind of argument:
 //!
