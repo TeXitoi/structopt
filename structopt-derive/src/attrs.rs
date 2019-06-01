@@ -153,26 +153,25 @@ impl Attrs {
         use Meta::*;
         use NestedMeta::*;
 
-        let structopt_attrs =
-            attrs
-                .iter()
-                .filter_map(|attr| {
-                    let path = &attr.path;
-                    match quote!(#path).to_string().as_ref() {
-                        "structopt" => Some(attr.interpret_meta().unwrap_or_else(|| {
-                            panic!("invalid structopt syntax: {}", quote!(#attr))
-                        })),
-                        _ => None,
-                    }
-                })
-                .flat_map(|m| match m {
-                    List(l) => l.nested,
-                    tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-                })
-                .map(|m| match m {
-                    Meta(m) => m,
-                    ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-                });
+        let structopt_attrs = attrs
+            .iter()
+            .filter_map(|attr| {
+                let path = &attr.path;
+                match quote!(#path).to_string().as_ref() {
+                    "structopt" => Some(attr.parse_meta().unwrap_or_else(|e| {
+                        panic!("invalid structopt syntax: {}: {}", e, quote!(#attr))
+                    })),
+                    _ => None,
+                }
+            })
+            .flat_map(|m| match m {
+                List(l) => l.nested,
+                tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
+            })
+            .map(|m| match m {
+                Meta(m) => m,
+                ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
+            });
 
         for attr in structopt_attrs {
             match attr {
