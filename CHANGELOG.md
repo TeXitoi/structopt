@@ -1,3 +1,5 @@
+# v0.2.17 (2019-06-01)
+
 * Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
   ([#187](https://github.com/TeXitoi/structopt/issues/187))
 * Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all
