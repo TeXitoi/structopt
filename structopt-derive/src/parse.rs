@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{Attribute, Expr, Ident, LitStr, Token};
+use syn::{self, Attribute, Expr, Ident, LitStr};
 
 pub struct StructOptAttributes {
     pub paren_token: syn::token::Paren,
@@ -11,7 +11,7 @@ impl Parse for StructOptAttributes {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         Ok(StructOptAttributes {
-            paren_token: syn::parenthesized!(content in input),
+            paren_token: parenthesized!(content in input),
             attrs: content.parse_terminated(StructOptAttr::parse)?,
         })
     }
@@ -61,7 +61,7 @@ impl Parse for StructOptAttr {
             match name_str.as_ref() {
                 "parse" => {
                     let nested;
-                    syn::parenthesized!(nested in input);
+                    parenthesized!(nested in input);
 
                     let parser_specs: Punctuated<ParserSpec, Token![,]> =
                         nested.parse_terminated(ParserSpec::parse)?;
@@ -75,7 +75,7 @@ impl Parse for StructOptAttr {
 
                 "raw" => {
                     let nested;
-                    syn::parenthesized!(nested in input);
+                    parenthesized!(nested in input);
                     let raw_entries = nested.parse_terminated(RawEntry::parse)?;
                     Ok(Raw(raw_entries))
                 }

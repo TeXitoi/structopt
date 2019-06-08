@@ -9,6 +9,7 @@
 #[macro_use]
 extern crate structopt;
 
+use std::num::ParseIntError;
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
@@ -122,4 +123,31 @@ fn test_bool() {
     );
     let result = Opt::clap().get_matches_from_safe(&["test", "-l", "1", "--x", "1"]);
     assert!(result.is_err());
+}
+
+fn parse_hex(input: &str) -> Result<u64, ParseIntError> {
+    u64::from_str_radix(input, 16)
+}
+
+#[derive(StructOpt, PartialEq, Debug)]
+struct HexOpt {
+    #[structopt(short = "n", parse(try_from_str = parse_hex))]
+    number: u64,
+}
+
+#[test]
+fn test_parse_hex_function_path() {
+    assert_eq!(
+        HexOpt { number: 5 },
+        HexOpt::from_clap(&HexOpt::clap().get_matches_from(&["test", "-n", "5"]))
+    );
+    assert_eq!(
+        HexOpt { number: 0xabcdef },
+        HexOpt::from_clap(&HexOpt::clap().get_matches_from(&["test", "-n", "abcdef"]))
+    );
+
+    let err = HexOpt::clap()
+        .get_matches_from_safe(&["test", "-n", "gg"])
+        .unwrap_err();
+    assert!(err.message.contains("invalid digit found in string"), err);
 }
