@@ -6,16 +6,18 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #![allow(deprecated)]
-#![allow(dead_code)]
 
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
 
-// TODO: improve those syn imports
+// TODO: move new parsing stuff to a separate package
+
+// TODO: improve those syn imports, group better?
 use syn::parse::{Parse, ParseStream};
 use syn::token::Paren;
 use syn::Token;
+use syn::LitStr;
 use syn::Type::Path;
 use syn::{
     self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
@@ -50,22 +52,57 @@ pub struct Attrs {
     kind: Kind,
 }
 
-#[allow(dead_code)]
+// FIXME: use a better name
 pub enum ParsedAttr {
     Short,
     Long,
     Flatten,
     Subcommand,
-    Parse(Parser, Option<syn::Path>),
-    RenameAll(CasingStyle),
-    Literal(String, syn::Lit),
-    Raw(String, syn::Expr),
+    Parse(ParserSpec),
+    RenameAll(CasingStyle), // FIXME: return more low-level stuff, and convert to Casing style later?
+    Raw(String, syn::Expr), // use Ident instead of String?
+    OldRaw(Punctuated<RawEntry, Token![,]>),
 }
 
 // FIXME: use a better name to distinguish from Rust attributes...
 pub struct ParsedAttributes {
+    #[allow(dead_code)]
     paren_token: Paren,
     attrs: Punctuated<ParsedAttr, Token![,]>,
+}
+
+#[derive(Clone)]
+pub struct ParserSpec {
+    kind: Ident,
+    eq_token: Option<Token![=]>,
+    parse_func: Option<syn::LitStr>,
+}
+
+impl Parse for ParserSpec {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(ParserSpec {
+            kind: input.parse()?,
+            eq_token: input.parse()?,
+            parse_func: input.parse()?,
+        })
+    }
+}
+
+#[derive(Clone)]
+pub struct RawEntry {
+    name: Ident,
+    eq_token: Token![=],
+    value: LitStr,
+}
+
+impl Parse for RawEntry {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(RawEntry {
+            name: input.parse()?,
+            eq_token: input.parse()?,
+            value: input.parse()?,
+        })
+    }
 }
 
 impl Parse for ParsedAttributes {
@@ -78,46 +115,12 @@ impl Parse for ParsedAttributes {
     }
 }
 
-
-    //             }) if ident == "parse" => {
-    //                 if nested.len() != 1 {
-    //                     panic!("parse must have exactly one argument");
-    //                 }
-    //                 self.has_custom_parser = true;
-    //                 self.parser = match nested[0] {
-    //                     Meta(NameValue(MetaNameValue {
-    //                         ref ident,
-    //                         lit: Str(ref v),
-    //                         ..
-    //                     })) => {
-    //                         let function: syn::Path = v.parse().expect("parser function path");
-    //                         let parser = ident.to_string().parse().unwrap();
-    //                         (parser, quote!(#function))
-    //                     }
-    //                     Meta(Word(ref i)) => {
-    //                         use Parser::*;
-    //                         let parser = i.to_string().parse().unwrap();
-    //                         let function = match parser {
-    //                             FromStr => quote!(::std::convert::From::from),
-    //                             TryFromStr => quote!(::std::str::FromStr::from_str),
-    //                             FromOsStr => quote!(::std::convert::From::from),
-    //                             TryFromOsStr => panic!(
-    //                                 "cannot omit parser function name with `try_from_os_str`"
-    //                             ),
-    //                             FromOccurrences => quote!({ |v| v as _ }),
-    //                         };
-    //                         (parser, function)
-    //                     }
-    //                     ref l => panic!("unknown value parser specification: {}", quote!(#l)),
-    //                 };
-    //             }
-
-
 impl Parse for ParsedAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         use self::ParsedAttr::*;
 
-        // dbg!(input);
+        // FIXME: do we really need lookahead here?
+        // Should just expect identifier.
         let lookahead = input.lookahead1();
         if lookahead.peek(Ident) {
             let name: Ident = input.parse()?;
@@ -141,14 +144,45 @@ impl Parse for ParsedAttr {
                         return Ok(Raw(name.to_string(), value));
                     }
                 }
-            }
+            } else if input.peek(Paren) {
+                match name_str.as_ref() {
+                    "parse" => {
+                        let nested;
+                        // FIXME: just skip parens? will it work?
+                        syn::parenthesized!(nested in input);
 
-            match name_str.as_ref() {
-                "long" => return Ok(Long),
-                "short" => return Ok(Short),
-                "flatten" => return Ok(Flatten),
-                "subcommand" => return Ok(Subcommand),
-                _ => {}
+                        let parser_specs: Punctuated<ParserSpec, Token![,]> =
+                            nested.parse_terminated(ParserSpec::parse)?;
+
+                        if parser_specs.len() != 1 {
+                            // FIXME: use parsing error, not panic
+                            panic!("parse should have one argument");
+                        }
+
+                        return Ok(Parse(parser_specs[0].clone()));
+                    }
+
+                    "raw" => {
+                        let nested;
+                        syn::parenthesized!(nested in input);
+                        let raw_entries = nested.parse_terminated(RawEntry::parse)?;
+                        return Ok(OldRaw(raw_entries));
+                    }
+
+                    _ => {
+                        // FIXME: throw error
+                        return Ok(Long);
+                    }
+                }
+            } else {
+                // Treat it as just a word.
+                match name_str.as_ref() {
+                    "long" => return Ok(Long),
+                    "short" => return Ok(Short),
+                    "flatten" => return Ok(Flatten),
+                    "subcommand" => return Ok(Subcommand),
+                    _ => {} // FIXME: throw an error
+                }
             }
         } else {
             return Err(lookahead.error());
@@ -161,11 +195,9 @@ impl Parse for ParsedAttr {
 }
 
 pub fn parse_attributes(all_attrs: &[Attribute]) -> Vec<ParsedAttr> {
-    // dbg!(all_attrs.len());
     let mut v: Vec<ParsedAttr> = vec![];
     for attr in all_attrs {
         let path = &attr.path;
-        //dbg!(quote!(#path).to_string());
         match quote!(#path).to_string().as_ref() {
             "structopt" => {
                 let tokens = attr.tts.clone();
@@ -294,14 +326,14 @@ impl Attrs {
         let parsed_attrs = parse_attributes(attrs);
         for attr in parsed_attrs {
             match attr {
-                Long => {
-                    let cased_name = &self.cased_name.clone();
-                    self.push_str_method("long", cased_name);
-                }
-
                 Short => {
                     let cased_name = &self.cased_name.clone();
                     self.push_str_method("short", cased_name);
+                }
+
+                Long => {
+                    let cased_name = &self.cased_name.clone();
+                    self.push_str_method("long", cased_name);
                 }
 
                 Subcommand => {
@@ -321,11 +353,47 @@ impl Attrs {
                     self.cased_name = self.casing.translate(&self.name);
                 }
 
+                Parse(spec) => {
+                    self.has_custom_parser = true;
+                    self.parser = match spec.parse_func {
+                        None => {
+                            use Parser::*;
+                            let parser = spec.kind.to_string().parse().unwrap();
+                            let function = match parser {
+                                FromStr => quote!(::std::convert::From::from),
+                                TryFromStr => quote!(::std::str::FromStr::from_str),
+                                FromOsStr => quote!(::std::convert::From::from),
+                                TryFromOsStr => panic!(
+                                    "cannot omit parser function name with `try_from_os_str`"
+                                ),
+                                FromOccurrences => quote!({ |v| v as _ }),
+                            };
+                            (parser, function)
+                        }
 
-                _ => panic!("unsupported yet"),
+                        Some(func) => {
+                            // FIXME: allow using this path directly, without quotes
+                            let function: syn::Path = func.parse().expect("parser function path");
+                            let parser = spec.kind.to_string().parse().unwrap();
+                            (parser, quote!(#function))
+                        }
+                    }
+                }
+
+                OldRaw(entries) => {
+                    for entry in entries {
+                        // self.push_raw_method(entry.name.to_string(), v),
+                        let x = entry.value; // FIXME: check if it generate a string or no?
+                        self.methods.push(Method {
+                            name: entry.name.to_string(),
+                            args: quote!(#x),
+                        });
+                    }
+                },
             }
         }
     }
+
     // fn push_attrs(&mut self, attrs: &[Attribute]) {
     //     use Lit::*;
     //     use Meta::*;
