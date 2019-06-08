@@ -25,6 +25,7 @@ pub enum Kind {
     Subcommand(Ty),
     FlattenStruct,
 }
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Ty {
     Bool,
@@ -34,6 +35,7 @@ pub enum Ty {
     OptionVec,
     Other,
 }
+
 #[derive(Debug)]
 pub struct Attrs {
     name: String,
@@ -215,10 +217,18 @@ impl Attrs {
                         }
 
                         Some(func) => {
-                            // FIXME: allow using this path directly, without quotes
-                            let function: syn::Path = func.parse().expect("parser function path");
                             let parser = spec.kind.to_string().parse().unwrap();
-                            (parser, quote!(#function))
+                            match func {
+                                syn::Expr::Lit(e) => {
+                                    if let syn::Lit::Str(lit_str) = e.lit {
+                                        let function: syn::Path = lit_str.parse().expect("parser function path");
+                                        (parser, quote!(#function))
+                                    } else {
+                                        panic!("`parse` argument must be a string literals or function path")
+                                    }
+                                }
+                                _ => (parser, quote!(#func))
+                            }
                         }
                     }
                 }

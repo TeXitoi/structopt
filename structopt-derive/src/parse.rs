@@ -1,11 +1,9 @@
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::token::Paren;
 use syn::{Attribute, Expr, Ident, LitStr, Token};
 
 pub struct StructOptAttributes {
-    #[allow(dead_code)]
-    pub paren_token: Paren,
+    pub paren_token: syn::token::Paren,
     pub attrs: Punctuated<StructOptAttr, Token![,]>,
 }
 
@@ -35,78 +33,71 @@ impl Parse for StructOptAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         use self::StructOptAttr::*;
 
-        // FIXME: do we really need lookahead here?
-        // Should just expect identifier.
-        let lookahead = input.lookahead1();
-        if lookahead.peek(Ident) {
-            let name: Ident = input.parse()?;
-            let name_str = name.to_string();
+        let name: Ident = input.parse()?;
+        let name_str = name.to_string();
 
-            if input.peek(Token![=]) {
-                input.parse::<Token![=]>()?; // skip '='
+        if input.peek(Token![=]) {
+            // `name = value` attributes.
+            input.parse::<Token![=]>()?; // skip '='
 
-                match name_str.as_ref() {
-                    "rename_all" => {
-                        let casing_lit: syn::LitStr = input.parse()?;
-                        return Ok(RenameAll(casing_lit));
-                    }
+            match name_str.as_ref() {
+                "rename_all" => {
+                    let casing_lit: LitStr = input.parse()?;
+                    Ok(RenameAll(casing_lit))
+                }
 
-                    _ => {
-                        if input.peek(LitStr) {
-                            let lit: LitStr = input.parse()?;
-                            return Ok(NameLitStr(name, lit));
-                        } else {
-                            let expr: Expr = input.parse()?;
-                            return Ok(NameExpr(name, expr));
-                        }
+                _ => {
+                    if input.peek(LitStr) {
+                        let lit: LitStr = input.parse()?;
+                        Ok(NameLitStr(name, lit))
+                    } else {
+                        let expr: Expr = input.parse()?;
+                        Ok(NameExpr(name, expr))
                     }
                 }
-            } else if input.peek(Paren) {
-                match name_str.as_ref() {
-                    "parse" => {
-                        let nested;
-                        syn::parenthesized!(nested in input);
+            }
+        } else if input.peek(syn::token::Paren) {
+            // `name(...)` attributes.
+            match name_str.as_ref() {
+                "parse" => {
+                    let nested;
+                    syn::parenthesized!(nested in input);
 
-                        let parser_specs: Punctuated<ParserSpec, Token![,]> =
-                            nested.parse_terminated(ParserSpec::parse)?;
+                    let parser_specs: Punctuated<ParserSpec, Token![,]> =
+                        nested.parse_terminated(ParserSpec::parse)?;
 
-                        if parser_specs.len() != 1 {
-                            // FIXME: use parsing error, not panic
-                            panic!("parse should have one argument");
-                        }
-
-                        return Ok(Parse(parser_specs[0].clone()));
-                    }
-
-                    "raw" => {
-                        let nested;
-                        syn::parenthesized!(nested in input);
-                        let raw_entries = nested.parse_terminated(RawEntry::parse)?;
-                        return Ok(Raw(raw_entries));
-                    }
-
-                    _ => {
-                        // FIXME: throw error
-                        return Ok(Long);
+                    if parser_specs.len() == 1 {
+                        Ok(Parse(parser_specs[0].clone()))
+                    } else {
+                        Err(input.error("parse must have one argument"))
                     }
                 }
-            } else {
-                // Treat it as just a word.
-                match name_str.as_ref() {
-                    "long" => return Ok(Long),
-                    "short" => return Ok(Short),
-                    "flatten" => return Ok(Flatten),
-                    "subcommand" => return Ok(Subcommand),
-                    _ => {} // FIXME: throw an error
+
+                "raw" => {
+                    let nested;
+                    syn::parenthesized!(nested in input);
+                    let raw_entries = nested.parse_terminated(RawEntry::parse)?;
+                    Ok(Raw(raw_entries))
+                }
+
+                _ => {
+                    let msg = format!("unexpected group attribute: {}", name_str);
+                    Err(input.error(&msg))
                 }
             }
         } else {
-            return Err(lookahead.error());
+            // Attributes represented with a sole identifier.
+            match name_str.as_ref() {
+                "long" => Ok(Long),
+                "short" => Ok(Short),
+                "flatten" => Ok(Flatten),
+                "subcommand" => Ok(Subcommand),
+                _ => {
+                    let msg = format!("unexpected attribute: {}", name_str);
+                    Err(input.error(&msg))
+                }
+            }
         }
-
-        // FIXME: this error assumes that it's end of input,
-        // use a more appropriate error message
-        Err(input.error("expected structopt attribute"))
     }
 }
 
@@ -114,20 +105,23 @@ impl Parse for StructOptAttr {
 pub struct ParserSpec {
     pub kind: Ident,
     pub eq_token: Option<Token![=]>,
-    pub parse_func: Option<syn::LitStr>,
+    pub parse_func: Option<Expr>,
 }
 
 impl Parse for ParserSpec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(ParserSpec {
-            kind: input.parse()?,
-            eq_token: input.parse()?,
-            parse_func: input.parse()?,
-        })
+        let kind = input.parse()?;
+        let eq_token = input.parse()?;
+        let parse_func = match eq_token {
+            None => None,
+            Some(_) => {
+                Some(input.parse()?)
+            }
+        };
+        Ok(ParserSpec {kind, eq_token, parse_func})
     }
 }
 
-#[derive(Clone)]
 pub struct RawEntry {
     pub name: Ident,
     pub eq_token: Token![=],
@@ -151,9 +145,9 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
         match quote!(#path).to_string().as_ref() {
             "structopt" => {
                 let tokens = attr.tts.clone();
-                // FIXME: propagate errors further?
-                let pa: StructOptAttributes = syn::parse2(tokens).expect("hoho");
-                v.extend(pa.attrs);
+                let error_msg = format!("cannot parse structopt attributes: {}", tokens);
+                let so_attrs: StructOptAttributes = syn::parse2(tokens).expect(&error_msg);
+                v.extend(so_attrs.attrs);
             }
             _ => {}
         }
