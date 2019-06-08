@@ -78,6 +78,41 @@ impl Parse for ParsedAttributes {
     }
 }
 
+
+    //             }) if ident == "parse" => {
+    //                 if nested.len() != 1 {
+    //                     panic!("parse must have exactly one argument");
+    //                 }
+    //                 self.has_custom_parser = true;
+    //                 self.parser = match nested[0] {
+    //                     Meta(NameValue(MetaNameValue {
+    //                         ref ident,
+    //                         lit: Str(ref v),
+    //                         ..
+    //                     })) => {
+    //                         let function: syn::Path = v.parse().expect("parser function path");
+    //                         let parser = ident.to_string().parse().unwrap();
+    //                         (parser, quote!(#function))
+    //                     }
+    //                     Meta(Word(ref i)) => {
+    //                         use Parser::*;
+    //                         let parser = i.to_string().parse().unwrap();
+    //                         let function = match parser {
+    //                             FromStr => quote!(::std::convert::From::from),
+    //                             TryFromStr => quote!(::std::str::FromStr::from_str),
+    //                             FromOsStr => quote!(::std::convert::From::from),
+    //                             TryFromOsStr => panic!(
+    //                                 "cannot omit parser function name with `try_from_os_str`"
+    //                             ),
+    //                             FromOccurrences => quote!({ |v| v as _ }),
+    //                         };
+    //                         (parser, function)
+    //                     }
+    //                     ref l => panic!("unknown value parser specification: {}", quote!(#l)),
+    //                 };
+    //             }
+
+
 impl Parse for ParsedAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         use self::ParsedAttr::*;
@@ -269,9 +304,23 @@ impl Attrs {
                     self.push_str_method("short", cased_name);
                 }
 
+                Subcommand => {
+                    self.set_kind(Kind::Subcommand(Ty::Other));
+                }
+
+                Flatten => {
+                    self.set_kind(Kind::FlattenStruct);
+                }
+
                 Raw(name, expr) => {
                     self.push_raw_method(name, expr);
                 }
+
+                RenameAll(casing) => {
+                    self.casing = casing;
+                    self.cased_name = self.casing.translate(&self.name);
+                }
+
 
                 _ => panic!("unsupported yet"),
             }
