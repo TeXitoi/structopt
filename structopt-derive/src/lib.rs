@@ -18,6 +18,7 @@ extern crate heck;
 extern crate proc_macro2;
 
 mod attrs;
+mod parse;
 
 use attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
 use proc_macro2::{Span, TokenStream};

@@ -11,20 +11,13 @@ use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
 
-// TODO: move new parsing stuff to a separate package
-
-// TODO: improve those syn imports, group better?
-use syn::parse::{Parse, ParseStream};
-use syn::token::Paren;
-use syn::LitStr;
-use syn::Token;
 use syn::Type::Path;
 use syn::{
     self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
-    PathArguments, PathSegment, TypePath,
+    PathArguments, PathSegment, TypePath, LitStr
 };
 
-use syn::punctuated::Punctuated;
+use crate::parse::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
@@ -52,170 +45,6 @@ pub struct Attrs {
     kind: Kind,
 }
 
-// FIXME: use a better name
-pub enum ParsedAttr {
-    Short,
-    Long,
-    Flatten,
-    Subcommand,
-    Parse(ParserSpec),
-    RenameAll(CasingStyle), // FIXME: return more low-level stuff, and convert to Casing style later?
-    NameLitStr(String, syn::LitStr),
-    NameExpr(String, syn::Expr), // use Ident instead of String?
-    OldRaw(Punctuated<RawEntry, Token![,]>),
-}
-
-// FIXME: use a better name to distinguish from Rust attributes...
-pub struct ParsedAttributes {
-    #[allow(dead_code)]
-    paren_token: Paren,
-    attrs: Punctuated<ParsedAttr, Token![,]>,
-}
-
-#[derive(Clone)]
-pub struct ParserSpec {
-    kind: Ident,
-    eq_token: Option<Token![=]>,
-    parse_func: Option<syn::LitStr>,
-}
-
-impl Parse for ParserSpec {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(ParserSpec {
-            kind: input.parse()?,
-            eq_token: input.parse()?,
-            parse_func: input.parse()?,
-        })
-    }
-}
-
-#[derive(Clone)]
-pub struct RawEntry {
-    name: Ident,
-    eq_token: Token![=],
-    value: LitStr,
-}
-
-impl Parse for RawEntry {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(RawEntry {
-            name: input.parse()?,
-            eq_token: input.parse()?,
-            value: input.parse()?,
-        })
-    }
-}
-
-impl Parse for ParsedAttributes {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        Ok(ParsedAttributes {
-            paren_token: syn::parenthesized!(content in input),
-            attrs: content.parse_terminated(ParsedAttr::parse)?,
-        })
-    }
-}
-
-impl Parse for ParsedAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        use self::ParsedAttr::*;
-
-        // FIXME: do we really need lookahead here?
-        // Should just expect identifier.
-        let lookahead = input.lookahead1();
-        if lookahead.peek(Ident) {
-            let name: Ident = input.parse()?;
-            let name_str = name.to_string();
-
-            if input.peek(Token![=]) {
-                input.parse::<Token![=]>()?; // skip '='
-
-                match name_str.as_ref() {
-                    "rename_all" => {
-                        let casing_lit: syn::LitStr = input.parse()?;
-                        let casing: CasingStyle = {
-                            ::std::str::FromStr::from_str(&casing_lit.value())
-                                .unwrap_or_else(|error| panic!("{}", error))
-                        };
-                        return Ok(RenameAll(casing));
-                    }
-
-                    _ => {
-                        if input.peek(LitStr) {
-                            let lit: LitStr = input.parse()?;
-                            return Ok(NameLitStr(name.to_string(), lit));
-                        } else {
-                            let value: syn::Expr = input.parse()?;
-                            return Ok(NameExpr(name.to_string(), value));
-                        }
-                    }
-                }
-            } else if input.peek(Paren) {
-                match name_str.as_ref() {
-                    "parse" => {
-                        let nested;
-                        // FIXME: just skip parens? will it work?
-                        syn::parenthesized!(nested in input);
-
-                        let parser_specs: Punctuated<ParserSpec, Token![,]> =
-                            nested.parse_terminated(ParserSpec::parse)?;
-
-                        if parser_specs.len() != 1 {
-                            // FIXME: use parsing error, not panic
-                            panic!("parse should have one argument");
-                        }
-
-                        return Ok(Parse(parser_specs[0].clone()));
-                    }
-
-                    "raw" => {
-                        let nested;
-                        syn::parenthesized!(nested in input);
-                        let raw_entries = nested.parse_terminated(RawEntry::parse)?;
-                        return Ok(OldRaw(raw_entries));
-                    }
-
-                    _ => {
-                        // FIXME: throw error
-                        return Ok(Long);
-                    }
-                }
-            } else {
-                // Treat it as just a word.
-                match name_str.as_ref() {
-                    "long" => return Ok(Long),
-                    "short" => return Ok(Short),
-                    "flatten" => return Ok(Flatten),
-                    "subcommand" => return Ok(Subcommand),
-                    _ => {} // FIXME: throw an error
-                }
-            }
-        } else {
-            return Err(lookahead.error());
-        }
-
-        // FIXME: this error assumes that it's end of input,
-        // use a more appropriate error message
-        Err(input.error("expected structopt attribute"))
-    }
-}
-
-pub fn parse_attributes(all_attrs: &[Attribute]) -> Vec<ParsedAttr> {
-    let mut v: Vec<ParsedAttr> = vec![];
-    for attr in all_attrs {
-        let path = &attr.path;
-        match quote!(#path).to_string().as_ref() {
-            "structopt" => {
-                let tokens = attr.tts.clone();
-                // FIXME: propagate errors further?
-                let pa: ParsedAttributes = syn::parse2(tokens).expect("hoho");
-                v.extend(pa.attrs);
-            }
-            _ => {}
-        }
-    }
-    v
-}
 
 #[derive(Debug)]
 struct Method {
@@ -327,7 +156,7 @@ impl Attrs {
         }
     }
     fn push_attrs(&mut self, attrs: &[Attribute]) {
-        use self::ParsedAttr::*;
+        use parse::ParsedAttr::*;
 
         let parsed_attrs = parse_attributes(attrs);
         for attr in parsed_attrs {
@@ -399,125 +228,6 @@ impl Attrs {
             }
         }
     }
-
-    // fn push_attrs(&mut self, attrs: &[Attribute]) {
-    //     use Lit::*;
-    //     use Meta::*;
-    //     use NestedMeta::*;
-
-    //     let structopt_attrs = attrs
-    //         .iter()
-    //         .filter_map(|attr| {
-    //             let path = &attr.path;
-    //             match quote!(#path).to_string().as_ref() {
-    //                 "structopt" => Some(attr.parse_meta().unwrap_or_else(|e| {
-    //                     panic!("invalid structopt syntax: {}: {}", e, quote!(#attr))
-    //                 })),
-    //                 _ => None,
-    //             }
-    //         })
-    //         .flat_map(|m| match m {
-    //             List(l) => l.nested,
-    //             tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-    //         })
-    //         .map(|m| match m {
-    //             Meta(m) => m,
-    //             ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-    //         });
-
-    //     for attr in structopt_attrs {
-    //         match attr {
-    //             NameValue(MetaNameValue {
-    //                 ref ident,
-    //                 lit: Str(ref value),
-    //                 ..
-    //             }) if ident == "rename_all" => {
-    //                 self.casing = {
-    //                     let input = value.value();
-    //                     ::std::str::FromStr::from_str(&input)
-    //                         .unwrap_or_else(|error| panic!("{}", error))
-    //                 };
-    //                 self.cased_name = self.casing.translate(&self.name);
-    //             }
-    //             NameValue(MetaNameValue {
-    //                 ident,
-    //                 lit: Str(value),
-    //                 ..
-    //             }) => self.push_str_method(&ident.to_string(), &value.value()),
-    //             NameValue(MetaNameValue { ident, lit, .. }) => self.methods.push(Method {
-    //                 name: ident.to_string(),
-    //                 args: quote!(#lit),
-    //             }),
-    //             List(MetaList {
-    //                 ref ident,
-    //                 ref nested,
-    //                 ..
-    //             }) if ident == "parse" => {
-    //                 if nested.len() != 1 {
-    //                     panic!("parse must have exactly one argument");
-    //                 }
-    //                 self.has_custom_parser = true;
-    //                 self.parser = match nested[0] {
-    //                     Meta(NameValue(MetaNameValue {
-    //                         ref ident,
-    //                         lit: Str(ref v),
-    //                         ..
-    //                     })) => {
-    //                         let function: syn::Path = v.parse().expect("parser function path");
-    //                         let parser = ident.to_string().parse().unwrap();
-    //                         (parser, quote!(#function))
-    //                     }
-    //                     Meta(Word(ref i)) => {
-    //                         use Parser::*;
-    //                         let parser = i.to_string().parse().unwrap();
-    //                         let function = match parser {
-    //                             FromStr => quote!(::std::convert::From::from),
-    //                             TryFromStr => quote!(::std::str::FromStr::from_str),
-    //                             FromOsStr => quote!(::std::convert::From::from),
-    //                             TryFromOsStr => panic!(
-    //                                 "cannot omit parser function name with `try_from_os_str`"
-    //                             ),
-    //                             FromOccurrences => quote!({ |v| v as _ }),
-    //                         };
-    //                         (parser, function)
-    //                     }
-    //                     ref l => panic!("unknown value parser specification: {}", quote!(#l)),
-    //                 };
-    //             }
-    //             List(MetaList {
-    //                 ref ident,
-    //                 ref nested,
-    //                 ..
-    //             }) if ident == "raw" => {
-    //                 for method in nested {
-    //                     match *method {
-    //                         Meta(NameValue(MetaNameValue {
-    //                             ref ident,
-    //                             lit: Str(ref v),
-    //                             ..
-    //                         })) => self.push_raw_method(&ident.to_string(), v),
-    //                         ref mi => panic!("unsupported raw entry: {}", quote!(#mi)),
-    //                     }
-    //                 }
-    //             }
-    //             Word(ref w) if w == "subcommand" => {
-    //                 self.set_kind(Kind::Subcommand(Ty::Other));
-    //             }
-    //             Word(ref w) if w == "flatten" => {
-    //                 self.set_kind(Kind::FlattenStruct);
-    //             }
-    //             Word(ref w) if w == "long" => {
-    //                 let cased_name = &self.cased_name.clone();
-    //                 self.push_str_method("long", cased_name);
-    //             }
-    //             Word(ref w) if w == "short" => {
-    //                 let cased_named = &self.cased_name.clone();
-    //                 self.push_str_method("short", cased_named);
-    //             }
-    //             ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
-    //         }
-    //     }
-    // }
 
     fn push_raw_method(&mut self, name: &str, args: &LitStr) {
         let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
