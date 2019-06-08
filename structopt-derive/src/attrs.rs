@@ -15,7 +15,7 @@ use syn::{
     PathArguments, PathSegment, TypePath,
 };
 
-use crate::parse::*;
+use parse::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
@@ -154,6 +154,21 @@ impl Attrs {
             }),
         }
     }
+
+    fn push_raw_method(&mut self, name: &str, args: &LitStr) {
+        let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
+            panic!(
+                "bad parameter {} = {}: the parameter must be valid rust code",
+                name,
+                quote!(#args)
+            )
+        });
+        self.methods.push(Method {
+            name: name.to_string(),
+            args: quote!(#(#ts)*),
+        })
+    }
+
     fn push_attrs(&mut self, attrs: &[Attribute]) {
         use parse::StructOptAttr::*;
 
