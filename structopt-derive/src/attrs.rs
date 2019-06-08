@@ -16,8 +16,8 @@ use std::{env, mem};
 // TODO: improve those syn imports, group better?
 use syn::parse::{Parse, ParseStream};
 use syn::token::Paren;
-use syn::Token;
 use syn::LitStr;
+use syn::Token;
 use syn::Type::Path;
 use syn::{
     self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
@@ -60,7 +60,8 @@ pub enum ParsedAttr {
     Subcommand,
     Parse(ParserSpec),
     RenameAll(CasingStyle), // FIXME: return more low-level stuff, and convert to Casing style later?
-    Raw(String, syn::Expr), // use Ident instead of String?
+    NameLitStr(String, syn::LitStr),
+    NameExpr(String, syn::Expr), // use Ident instead of String?
     OldRaw(Punctuated<RawEntry, Token![,]>),
 }
 
@@ -140,8 +141,13 @@ impl Parse for ParsedAttr {
                     }
 
                     _ => {
-                        let value: syn::Expr = input.parse()?;
-                        return Ok(Raw(name.to_string(), value));
+                        if input.peek(LitStr) {
+                            let lit: LitStr = input.parse()?;
+                            return Ok(NameLitStr(name.to_string(), lit));
+                        } else {
+                            let value: syn::Expr = input.parse()?;
+                            return Ok(NameExpr(name.to_string(), value));
+                        }
                     }
                 }
             } else if input.peek(Paren) {
@@ -344,9 +350,14 @@ impl Attrs {
                     self.set_kind(Kind::FlattenStruct);
                 }
 
-                Raw(name, expr) => {
-                    self.push_raw_method(name, expr);
+                NameLitStr(name, lit) => {
+                    self.push_str_method(&name, &lit.value());
                 }
+
+                NameExpr(name, expr) => self.methods.push(Method {
+                    name,
+                    args: quote!(#expr),
+                }),
 
                 RenameAll(casing) => {
                     self.casing = casing;
@@ -382,14 +393,9 @@ impl Attrs {
 
                 OldRaw(entries) => {
                     for entry in entries {
-                        // self.push_raw_method(entry.name.to_string(), v),
-                        let x = entry.value; // FIXME: check if it generate a string or no?
-                        self.methods.push(Method {
-                            name: entry.name.to_string(),
-                            args: quote!(#x),
-                        });
+                        self.push_raw_method(&entry.name.to_string(), &entry.value);
                     }
-                },
+                }
             }
         }
     }
@@ -513,24 +519,17 @@ impl Attrs {
     //     }
     // }
 
-    // fn push_raw_method(&mut self, name: &str, args: &LitStr) {
-    //     let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
-    //         panic!(
-    //             "bad parameter {} = {}: the parameter must be valid rust code",
-    //             name,
-    //             quote!(#args)
-    //         )
-    //     });
-    //     self.methods.push(Method {
-    //         name: name.to_string(),
-    //         args: quote!(#(#ts)*),
-    //     })
-    // }
-
-    fn push_raw_method(&mut self, name: String, args: syn::Expr) {
+    fn push_raw_method(&mut self, name: &str, args: &LitStr) {
+        let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
+            panic!(
+                "bad parameter {} = {}: the parameter must be valid rust code",
+                name,
+                quote!(#args)
+            )
+        });
         self.methods.push(Method {
-            name,
-            args: quote!(#args),
+            name: name.to_string(),
+            args: quote!(#(#ts)*),
         })
     }
 
