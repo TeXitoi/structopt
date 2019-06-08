@@ -5,8 +5,6 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-#![allow(deprecated)]
-
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
@@ -241,20 +239,6 @@ impl Attrs {
                 }
             }
         }
-    }
-
-    fn push_raw_method(&mut self, name: &str, args: &LitStr) {
-        let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
-            panic!(
-                "bad parameter {} = {}: the parameter must be valid rust code",
-                name,
-                quote!(#args)
-            )
-        });
-        self.methods.push(Method {
-            name: name.to_string(),
-            args: quote!(#(#ts)*),
-        })
     }
 
     fn push_doc_comment(&mut self, attrs: &[Attribute], name: &str) {
@@ -509,7 +493,7 @@ impl Attrs {
 
 pub fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
     let segs = match *t {
-        syn::Type::Path(TypePath {
+        Path(TypePath {
             path: syn::Path { ref segments, .. },
             ..
         }) => segments,
