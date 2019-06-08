@@ -60,7 +60,7 @@ fn parse_hex(input: &str) -> Result<u64, ParseIntError> {
 
 #[derive(StructOpt, PartialEq, Debug)]
 struct HexOpt {
-    #[structopt(short = "n", parse(try_from_str = "parse_hex"))]
+    #[structopt(short = "n", parse(try_from_str = parse_hex))]
     number: u64,
 }
 
@@ -96,9 +96,9 @@ fn custom_parser_4(_: &OsStr) -> Result<&'static str, OsString> {
 
 #[derive(StructOpt, PartialEq, Debug)]
 struct NoOpOpt {
-    #[structopt(short = "a", parse(from_str = "custom_parser_1"))]
+    #[structopt(short = "a", parse(from_str = custom_parser_1))]
     a: &'static str,
-    #[structopt(short = "b", parse(try_from_str = "custom_parser_2"))]
+    #[structopt(short = "b", parse(try_from_str = custom_parser_2))]
     b: &'static str,
     #[structopt(short = "c", parse(from_os_str = "custom_parser_3"))]
     c: &'static str,
@@ -217,7 +217,7 @@ fn test_custom_bool() {
             parse(try_from_str = "parse_bool")
         )]
         verbose: bool,
-        #[structopt(short = "t", parse(try_from_str = "parse_bool"))]
+        #[structopt(short = "t", parse(try_from_str = parse_bool))]
         tribool: Option<bool>,
         #[structopt(short = "b", parse(try_from_str = "parse_bool"))]
         bitset: Vec<bool>,

@@ -221,13 +221,14 @@ impl Attrs {
                             match func {
                                 syn::Expr::Lit(e) => {
                                     if let syn::Lit::Str(lit_str) = e.lit {
-                                        let function: syn::Path = lit_str.parse().expect("parser function path");
+                                        let function: syn::Path =
+                                            lit_str.parse().expect("parser function path");
                                         (parser, quote!(#function))
                                     } else {
                                         panic!("`parse` argument must be a string literals or function path")
                                     }
                                 }
-                                _ => (parser, quote!(#func))
+                                _ => (parser, quote!(#func)),
                             }
                         }
                     }

@@ -114,11 +114,13 @@ impl Parse for ParserSpec {
         let eq_token = input.parse()?;
         let parse_func = match eq_token {
             None => None,
-            Some(_) => {
-                Some(input.parse()?)
-            }
+            Some(_) => Some(input.parse()?),
         };
-        Ok(ParserSpec {kind, eq_token, parse_func})
+        Ok(ParserSpec {
+            kind,
+            eq_token,
+            parse_func,
+        })
     }
 }
 
@@ -139,7 +141,7 @@ impl Parse for RawEntry {
 }
 
 pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr> {
-    let mut v: Vec<StructOptAttr> = vec![];
+    let mut s_opt_attrs: Vec<StructOptAttr> = vec![];
     for attr in all_attrs {
         let path = &attr.path;
         match quote!(#path).to_string().as_ref() {
@@ -147,10 +149,10 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
                 let tokens = attr.tts.clone();
                 let error_msg = format!("cannot parse structopt attributes: {}", tokens);
                 let so_attrs: StructOptAttributes = syn::parse2(tokens).expect(&error_msg);
-                v.extend(so_attrs.attrs);
+                s_opt_attrs.extend(so_attrs.attrs);
             }
             _ => {}
         }
     }
-    v
+    s_opt_attrs
 }
