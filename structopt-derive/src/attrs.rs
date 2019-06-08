@@ -13,8 +13,8 @@ use std::{env, mem};
 
 use syn::Type::Path;
 use syn::{
-    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
-    PathArguments, PathSegment, TypePath, LitStr
+    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, LitStr, MetaNameValue,
+    PathArguments, PathSegment, TypePath,
 };
 
 use crate::parse::*;
@@ -44,7 +44,6 @@ pub struct Attrs {
     has_custom_parser: bool,
     kind: Kind,
 }
-
 
 #[derive(Debug)]
 struct Method {
@@ -156,10 +155,9 @@ impl Attrs {
         }
     }
     fn push_attrs(&mut self, attrs: &[Attribute]) {
-        use parse::ParsedAttr::*;
+        use parse::StructOptAttr::*;
 
-        let parsed_attrs = parse_attributes(attrs);
-        for attr in parsed_attrs {
+        for attr in parse_structopt_attributes(attrs) {
             match attr {
                 Short => {
                     let cased_name = &self.cased_name.clone();
@@ -180,15 +178,20 @@ impl Attrs {
                 }
 
                 NameLitStr(name, lit) => {
-                    self.push_str_method(&name, &lit.value());
+                    self.push_str_method(&name.to_string(), &lit.value());
                 }
 
                 NameExpr(name, expr) => self.methods.push(Method {
-                    name,
+                    name: name.to_string(),
                     args: quote!(#expr),
                 }),
 
-                RenameAll(casing) => {
+                RenameAll(casing_lit) => {
+                    let casing: CasingStyle = {
+                        ::std::str::FromStr::from_str(&casing_lit.value())
+                            .unwrap_or_else(|error| panic!("{}", error))
+                    };
+
                     self.casing = casing;
                     self.cased_name = self.casing.translate(&self.name);
                 }
@@ -220,7 +223,7 @@ impl Attrs {
                     }
                 }
 
-                OldRaw(entries) => {
+                Raw(entries) => {
                     for entry in entries {
                         self.push_raw_method(&entry.name.to_string(), &entry.value);
                     }
