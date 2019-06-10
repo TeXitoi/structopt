@@ -1,10 +1,19 @@
-# v0.2.17 (2019-06-01)
+# v0.3.0 (2019-06-XX)
+
+## Breaking changes
+
+* Bump minimum rust version to 1.34 by [@TeXitoi](https://github.com/TeXitoi)
+* Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all
+  by [@sphynx](https://github.com/sphynx)
+  ([#180](https://github.com/TeXitoi/structopt/issues/188)). This is a breaking change
+  as `Option<Vec<T>>` is handled differently. If you need to have a `Option<Vec<T>>`
+  handled the old was, you can `type Something = Vec<T>;` and then use `Option<Something>`
+  as your structopt field.
+
+## improvements
 
 * Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
   ([#187](https://github.com/TeXitoi/structopt/issues/187))
-* Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all
-  by [@sphynx](https://github.com/sphynx)
-  ([#180](https://github.com/TeXitoi/structopt/issues/188))
 
 # v0.2.16 (2019-05-29)
 

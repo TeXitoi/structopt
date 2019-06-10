@@ -2,9 +2,7 @@ language: rust
 cache: cargo
 matrix:
   include:
-    - rust: 1.21.0
-      # `examples/enum_in_args.rs` cannot be compiled because of `clap::arg_enum!`.
-      env: TARGETS=--tests
+    - rust: 1.34.0
     - rust: stable
     - rust: beta
     - rust: nightly
@@ -15,4 +13,4 @@ matrix:
       before_script: rustup component add rustfmt-preview
       script: cargo fmt --all -- --check
 script:
-  - cargo test $FEATURES $TARGETS
+  - cargo test $FEATURES

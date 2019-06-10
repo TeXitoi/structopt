@@ -33,7 +33,7 @@ fn use_env() {
     let mut output = Vec::new();
     Opt::clap().write_long_help(&mut output).unwrap();
     let output = String::from_utf8(output).unwrap();
-    assert!(output.starts_with("structopt 0.2."));
+    assert!(output.starts_with("structopt 0."));
     assert!(output.contains("Guillaume Pinot <texitoi@texitoi.eu>, others"));
     assert!(output.contains("Parse command line argument by defining a struct."));
 }
