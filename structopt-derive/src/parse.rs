@@ -26,7 +26,6 @@ pub enum StructOptAttr {
     RenameAll(LitStr),
     NameLitStr(Ident, LitStr),
     NameExpr(Ident, Expr),
-    Raw(Punctuated<RawEntry, Token![,]>),
     MethodCall(Ident, Punctuated<Expr, Token![,]>),
 }
 
@@ -74,11 +73,6 @@ impl Parse for StructOptAttr {
                     }
                 }
 
-                "raw" => {
-                    let raw_entries = nested.parse_terminated(RawEntry::parse)?;
-                    Ok(Raw(raw_entries))
-                }
-
                 _ => {
                     let method_args = nested.parse_terminated(Expr::parse)?;
                     Ok(MethodCall(name, method_args))
@@ -119,22 +113,6 @@ impl Parse for ParserSpec {
             kind,
             eq_token,
             parse_func,
-        })
-    }
-}
-
-pub struct RawEntry {
-    pub name: Ident,
-    pub eq_token: Token![=],
-    pub value: LitStr,
-}
-
-impl Parse for RawEntry {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(RawEntry {
-            name: input.parse()?,
-            eq_token: input.parse()?,
-            value: input.parse()?,
         })
     }
 }

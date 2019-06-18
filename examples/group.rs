@@ -18,7 +18,7 @@ fn vers_arg_group() -> ArgGroup<'static> {
 }
 
 #[derive(StructOpt, Debug)]
-#[structopt(raw(group = "vers_arg_group()"))]
+#[structopt(group = vers_arg_group())]
 struct Opt {
     /// set the version manually
     #[structopt(long = "set-ver", group = "vers")]

@@ -80,7 +80,7 @@ fn option_with_default() {
 fn option_with_raw_default() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", raw(default_value = r#""42""#))]
+        #[structopt(short = "a", default_value = "42")]
         arg: i32,
     }
     assert_eq!(

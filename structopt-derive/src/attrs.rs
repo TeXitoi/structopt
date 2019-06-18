@@ -11,7 +11,7 @@ use std::{env, mem};
 
 use syn::Type::Path;
 use syn::{
-    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, LitStr, MetaNameValue,
+    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
     PathArguments, PathSegment, TypePath,
 };
 
@@ -155,20 +155,6 @@ impl Attrs {
         }
     }
 
-    fn push_raw_method(&mut self, name: &str, args: &LitStr) {
-        let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
-            panic!(
-                "bad parameter {} = {}: the parameter must be valid rust code",
-                name,
-                quote!(#args)
-            )
-        });
-        self.methods.push(Method {
-            name: name.to_string(),
-            args: quote!(#(#ts)*),
-        })
-    }
-
     fn push_attrs(&mut self, attrs: &[Attribute]) {
         use parse::StructOptAttr::*;
 
@@ -241,12 +227,6 @@ impl Attrs {
                                 _ => panic!("`parse` argument must be a function path"),
                             }
                         }
-                    }
-                }
-
-                Raw(entries) => {
-                    for entry in entries {
-                        self.push_raw_method(&entry.name.to_string(), &entry.value);
                     }
                 }
             }
