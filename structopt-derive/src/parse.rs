@@ -27,6 +27,7 @@ pub enum StructOptAttr {
     NameLitStr(Ident, LitStr),
     NameExpr(Ident, Expr),
     Raw(Punctuated<RawEntry, Token![,]>),
+    MethodCall(Ident, Punctuated<Expr, Token![,]>),
 }
 
 impl Parse for StructOptAttr {
@@ -58,11 +59,11 @@ impl Parse for StructOptAttr {
             }
         } else if input.peek(syn::token::Paren) {
             // `name(...)` attributes.
+            let nested;
+            parenthesized!(nested in input);
+
             match name_str.as_ref() {
                 "parse" => {
-                    let nested;
-                    parenthesized!(nested in input);
-
                     let parser_specs: Punctuated<ParserSpec, Token![,]> =
                         nested.parse_terminated(ParserSpec::parse)?;
 
@@ -74,15 +75,13 @@ impl Parse for StructOptAttr {
                 }
 
                 "raw" => {
-                    let nested;
-                    parenthesized!(nested in input);
                     let raw_entries = nested.parse_terminated(RawEntry::parse)?;
                     Ok(Raw(raw_entries))
                 }
 
                 _ => {
-                    let msg = format!("unexpected group attribute: {}", name_str);
-                    Err(input.error(&msg))
+                    let method_args = nested.parse_terminated(Expr::parse)?;
+                    Ok(MethodCall(name, method_args))
                 }
             }
         } else {

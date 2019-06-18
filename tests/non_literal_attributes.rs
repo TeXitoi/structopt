@@ -31,12 +31,10 @@ struct Opt {
     #[structopt(short = "l", long = "level", aliases = &["set-level", "lvl"])]
     level: String,
 
-    #[structopt(long = "values")]
+    #[structopt(long("values"))]
     values: Vec<i32>,
 
-    // Note that `raw(...)` is still needed here, for non-convential
-    // methods taking more than one argument.
-    #[structopt(name = "FILE", raw(requires_if = r#""FILE", "values""#))]
+    #[structopt(name = "FILE", requires_if("FILE", "values"))]
     files: Vec<String>,
 }
 

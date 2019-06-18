@@ -201,6 +201,11 @@ impl Attrs {
                     args: quote!(#expr),
                 }),
 
+                MethodCall(name, args) => self.methods.push(Method {
+                    name: name.to_string(),
+                    args: quote!(#args),
+                }),
+
                 RenameAll(casing_lit) => {
                     let casing: CasingStyle = {
                         ::std::str::FromStr::from_str(&casing_lit.value())
