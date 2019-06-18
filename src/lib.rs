@@ -475,7 +475,7 @@
 //!
 //! #[derive(StructOpt)]
 //! struct HexReader {
-//!     #[structopt(short = "n", parse(try_from_str = "parse_hex"))]
+//!     #[structopt(short = "n", parse(try_from_str = parse_hex))]
 //!     number: u32,
 //!     #[structopt(short = "o", parse(from_os_str))]
 //!     output: PathBuf,

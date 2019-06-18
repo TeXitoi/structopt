@@ -232,16 +232,8 @@ impl Attrs {
                         Some(func) => {
                             let parser = spec.kind.to_string().parse().unwrap();
                             match func {
-                                syn::Expr::Lit(e) => {
-                                    if let syn::Lit::Str(lit_str) = e.lit {
-                                        let function: syn::Path =
-                                            lit_str.parse().expect("parser function path");
-                                        (parser, quote!(#function))
-                                    } else {
-                                        panic!("`parse` argument must be a string literals or function path")
-                                    }
-                                }
-                                _ => (parser, quote!(#func)),
+                                syn::Expr::Path(_) => (parser, quote!(#func)),
+                                _ => panic!("`parse` argument must be a function path"),
                             }
                         }
                     }
