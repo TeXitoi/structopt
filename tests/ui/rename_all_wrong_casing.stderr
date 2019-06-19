@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/rename_all_wrong_casing.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: unsupported casing: fail

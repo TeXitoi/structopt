@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/structopt_empty_attr.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: unsupported syntax: structopt

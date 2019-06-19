@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/opt_opt_nonpositional.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: Option<Option<T>> type is meaningless for positional argument

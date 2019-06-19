@@ -30,4 +30,7 @@ travis-ci = { repository = "TeXitoi/structopt" }
 clap = { version = "2.21", default-features = false }
 structopt-derive = { path = "structopt-derive", version = "0.2.17" }
 
+[dev-dependencies]
+trybuild = "1.0.5"
+
 [workspace]

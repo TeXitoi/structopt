@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/bool_required.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: required is meaningless for bool

@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/parse_not_zero_args.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: parse must have exactly one argument
