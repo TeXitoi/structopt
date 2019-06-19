@@ -9,6 +9,10 @@
   as `Option<Vec<T>>` is handled differently. If you need to have a `Option<Vec<T>>`
   handled the old was, you can `type Something = Vec<T>;` and then use `Option<Something>`
   as your structopt field.
+* Change default case from 'Verbatim' into 'Kebab' by [@0ndorio](https://github.com/0ndorio)
+  ([#202](https://github.com/TeXitoi/structopt/issues/202)). This is a breaking change.
+  If you rely on the old behavior you need to add `#[structopt(rename_all = "verbatim")]`
+  as an attribute to each data structure deriving the `StructOpt` trait.
 
 ## improvements
 
