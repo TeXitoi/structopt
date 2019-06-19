@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/bool_default_value.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: default_value is meaningless for bool

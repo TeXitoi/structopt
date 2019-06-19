@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/parse_literal_spec.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: unknown value parser specification: "from_str"

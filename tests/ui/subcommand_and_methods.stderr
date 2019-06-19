@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/subcommand_and_methods.rs:13:10
+   |
+13 | #[derive(StructOpt)]
+   |          ^^^^^^^^^
+   |
+   = help: message: methods in attributes is not allowed for subcommand

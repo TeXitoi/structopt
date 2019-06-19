@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/struct_flatten.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: flatten is only allowed on fields

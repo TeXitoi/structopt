@@ -1,0 +1,42 @@
+error[E0599]: no function or associated item named `augment_clap` found for type `u32` in the current scope
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ function or associated item not found in `u32`
+
+error[E0599]: no function or associated item named `is_subcommand` found for type `u32` in the current scope
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ function or associated item not found in `u32`
+
+error[E0599]: no function or associated item named `augment_clap` found for type `std::string::String` in the current scope
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ function or associated item not found in `std::string::String`
+
+error[E0599]: no function or associated item named `is_subcommand` found for type `std::string::String` in the current scope
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ function or associated item not found in `std::string::String`
+
+error[E0277]: the trait bound `u32: structopt::StructOpt` is not satisfied
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ the trait `structopt::StructOpt` is not implemented for `u32`
+   |
+   = note: required by `structopt::StructOpt::from_clap`
+
+error[E0277]: the trait bound `std::string::String: structopt::StructOpt` is not satisfied
+  --> $DIR/tuple_enum.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^ the trait `structopt::StructOpt` is not implemented for `std::string::String`
+   |
+   = note: required by `structopt::StructOpt::from_clap`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.

@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/flatten_and_parse.rs:21:10
+   |
+21 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: parse attribute is not allowed for flattened entry
