@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/flatten_and_doc.rs:21:10
+   |
+21 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: methods and doc comments are not allowed for flattened entry

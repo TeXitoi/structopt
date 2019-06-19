@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/parse_empty_try_from_os.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: cannot omit parser function name with `try_from_os_str`

@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/literal_list_element.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: unsupported option: test ( 1 , 2 )

@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/non_literal_attr_value.rs:13:10
+   |
+13 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^
+   |
+   = help: message: invalid structopt syntax: expected literal: # [ structopt ( short , aliases = & [ "debug" , "dbg" ] ) ]

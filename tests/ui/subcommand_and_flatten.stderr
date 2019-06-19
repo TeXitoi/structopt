@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+  --> $DIR/subcommand_and_flatten.rs:13:10
+   |
+13 | #[derive(StructOpt)]
+   |          ^^^^^^^^^
+   |
+   = help: message: subcommands cannot be flattened
