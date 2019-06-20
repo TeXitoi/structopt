@@ -33,7 +33,4 @@ structopt-derive = { path = "structopt-derive", version = "0.3.0" }
 [dev-dependencies]
 trybuild = "1.0.5"
 
-[dev-dependencies]
-trybuild = "1.0.5"
-
 [workspace]
