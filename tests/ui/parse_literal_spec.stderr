@@ -4,4 +4,4 @@ error: proc-macro derive panicked
 13 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
-   = help: message: unknown value parser specification: "from_str"
+   = help: message: unknown value parser specification, problematic tokens: ( parse ( "from_str" ) )

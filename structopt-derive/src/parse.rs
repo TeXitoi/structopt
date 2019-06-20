@@ -69,7 +69,15 @@ impl Parse for StructOptAttr {
                     if parser_specs.len() == 1 {
                         Ok(Parse(parser_specs[0].clone()))
                     } else {
-                        Err(input.error("parse must have one argument"))
+                        // Use `Error::new` instead of `input.error(...)`
+                        // because when `input.error` tries to locate current span
+                        // and sees that there is no tokens left to parse it adds
+                        // 'unexpected end of input` to the error message, which is
+                        // undesirable and misleading.
+                        Err(syn::Error::new(
+                            nested.cursor().span(),
+                            "parse must have exactly one argument",
+                        ))
                     }
                 }
 
@@ -103,7 +111,8 @@ pub struct ParserSpec {
 
 impl Parse for ParserSpec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let kind = input.parse()?;
+        let err_msg = "unknown value parser specification";
+        let kind = input.parse().map_err(|_| input.error(err_msg))?;
         let eq_token = input.parse()?;
         let parse_func = match eq_token {
             None => None,
@@ -124,8 +133,15 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
         match quote!(#path).to_string().as_ref() {
             "structopt" => {
                 let tokens = attr.tts.clone();
-                let error_msg = format!("cannot parse structopt attributes: {}", tokens);
-                let so_attrs: StructOptAttributes = syn::parse2(tokens).expect(&error_msg);
+                let is_empty = tokens.is_empty();
+                let so_attrs: StructOptAttributes = syn::parse2(tokens).unwrap_or_else(|err| {
+                    let tokens_str = if is_empty {
+                        String::new()
+                    } else {
+                        format!("problematic tokens: {}", &attr.tts)
+                    };
+                    panic!("{}, {}", err.to_string(), tokens_str)
+                });
                 s_opt_attrs.extend(so_attrs.attrs);
             }
             _ => {}
