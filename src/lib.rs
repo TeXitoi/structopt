@@ -185,6 +185,11 @@
 //! If an argument is renamed using `name = $NAME` any following call to
 //! `short` or `long` will use the new name.
 //!
+//! **Attention**: If these arguments are used without an explicit name
+//! the resulting flag is going to be renamed using `kebab-case` if the
+//! `rename_all` attribute was not specified previously. The same is true
+//! for subcommands with implicit naming through the related data structure.
+//!
 //! ```
 //! #[macro_use]
 //! extern crate structopt;

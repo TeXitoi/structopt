@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! This crate is custom derive for StructOpt. It should not be used
+//! This crate is custom derive for `StructOpt`. It should not be used
 //! directly. See [structopt documentation](https://docs.rs/structopt)
 //! for the usage of `#[derive(StructOpt)]`.
 
@@ -28,9 +28,9 @@ use syn::token::Comma;
 use syn::*;
 
 /// Default casing style for generated arguments.
-const DEFAULT_CASING: CasingStyle = CasingStyle::Verbatim;
+const DEFAULT_CASING: CasingStyle = CasingStyle::Kebab;
 
-/// Output for the gen_xxx() methods were we need more than a simple stream of tokens.
+/// Output for the `gen_xxx()` methods were we need more than a simple stream of tokens.
 ///
 /// The output of a generation method is not only the stream of new tokens but also the attribute
 /// information of the current element. These attribute information may contain valuable information
@@ -58,7 +58,7 @@ fn gen_augmentation(
     let subcmds: Vec<_> = fields
         .iter()
         .filter_map(|field| {
-            let attrs = Attrs::from_field(&field, parent_attribute.casing());
+            let attrs = Attrs::from_field(field, parent_attribute.casing());
             if let Kind::Subcommand(ty) = attrs.kind() {
                 let subcmd_type = match (ty, sub_type(&field.ty)) {
                     (Ty::Option, Some(sub_type)) => sub_type,

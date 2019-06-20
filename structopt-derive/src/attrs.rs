@@ -125,10 +125,10 @@ impl ::std::str::FromStr for CasingStyle {
 }
 
 impl Attrs {
-    fn new(name: String, casing: CasingStyle) -> Attrs {
+    fn new(name: String, casing: CasingStyle) -> Self {
         let cased_name = casing.translate(&name);
 
-        Attrs {
+        Self {
             name,
             cased_name,
             casing,
@@ -209,9 +209,8 @@ impl Attrs {
                             use Parser::*;
                             let parser = spec.kind.to_string().parse().unwrap();
                             let function = match parser {
-                                FromStr => quote!(::std::convert::From::from),
+                                FromStr | FromOsStr => quote!(::std::convert::From::from),
                                 TryFromStr => quote!(::std::str::FromStr::from_str),
-                                FromOsStr => quote!(::std::convert::From::from),
                                 TryFromOsStr => panic!(
                                     "cannot omit parser function name with `try_from_os_str`"
                                 ),
@@ -256,11 +255,11 @@ impl Attrs {
                     }
                     let value = s.value();
                     let text = value
-                        .trim_left_matches("//!")
-                        .trim_left_matches("///")
-                        .trim_left_matches("/*!")
-                        .trim_left_matches("/**")
-                        .trim_right_matches("*/")
+                        .trim_start_matches("//!")
+                        .trim_start_matches("///")
+                        .trim_start_matches("/*!")
+                        .trim_start_matches("/**")
+                        .trim_end_matches("*/")
                         .trim();
                     if text.is_empty() {
                         Some("\n\n".to_string())
@@ -306,8 +305,7 @@ impl Attrs {
                 .first()
                 .map(String::as_ref)
                 .map(str::trim)
-                .map(|s| s.trim_right_matches('.'))
-                .unwrap_or("");
+                .map_or("", |s| s.trim_end_matches('.'));
 
             self.methods.push(Method {
                 name: name.to_string(),
@@ -320,7 +318,7 @@ impl Attrs {
             });
         }
     }
-    pub fn from_struct(attrs: &[Attribute], name: String, argument_casing: CasingStyle) -> Attrs {
+    pub fn from_struct(attrs: &[Attribute], name: String, argument_casing: CasingStyle) -> Self {
         let mut res = Self::new(name, argument_casing);
         let attrs_with_env = [
             ("version", "CARGO_PKG_VERSION"),
@@ -370,7 +368,7 @@ impl Attrs {
             Ty::Other
         }
     }
-    pub fn from_field(field: &syn::Field, struct_casing: CasingStyle) -> Attrs {
+    pub fn from_field(field: &syn::Field, struct_casing: CasingStyle) -> Self {
         let name = field.ident.as_ref().unwrap().to_string();
         let mut res = Self::new(name, struct_casing);
         res.push_doc_comment(&field.attrs, "help");
@@ -464,7 +462,7 @@ impl Attrs {
     }
     pub fn methods(&self) -> TokenStream {
         let methods = self.methods.iter().map(|&Method { ref name, ref args }| {
-            let name = Ident::new(&name, Span::call_site());
+            let name = Ident::new(name, Span::call_site());
             quote!( .#name(#args) )
         });
         quote!( #(#methods)* )
@@ -472,13 +470,13 @@ impl Attrs {
     pub fn cased_name(&self) -> &str {
         &self.cased_name
     }
-    pub fn parser(&self) -> &(Parser, TokenStream) {
+    pub const fn parser(&self) -> &(Parser, TokenStream) {
         &self.parser
     }
-    pub fn kind(&self) -> Kind {
+    pub const fn kind(&self) -> Kind {
         self.kind
     }
-    pub fn casing(&self) -> CasingStyle {
+    pub const fn casing(&self) -> CasingStyle {
         self.casing
     }
 }

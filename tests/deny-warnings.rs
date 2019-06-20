@@ -46,6 +46,6 @@ fn warning_never_enum() {
         Opt::Foo {
             s: "foo".to_string()
         },
-        Opt::from_iter(&["test", "Foo", "foo"])
+        Opt::from_iter(&["test", "foo", "foo"])
     );
 }
