@@ -4,4 +4,4 @@ error: proc-macro derive panicked
 13 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
-   = help: message: unsupported syntax: structopt
+   = help: message: unexpected end of input, expected parentheses,

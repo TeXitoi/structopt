@@ -4,4 +4,4 @@ error: proc-macro derive panicked
 13 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
-   = help: message: parser function path: Error("expected identifier")
+   = help: message: `parse` argument must be a function path

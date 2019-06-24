@@ -1,7 +1,0 @@
-error: proc-macro derive panicked
-  --> $DIR/raw_wrong_entry.rs:13:10
-   |
-13 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: unsupported raw entry: 1

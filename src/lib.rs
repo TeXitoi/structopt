@@ -85,13 +85,22 @@
 //!   - `author`: Defaults to the crate author name given by Cargo.
 //!   - `about`: Defaults to the crate description given by Cargo.
 //!
-//! This approach also works for booleans and numbers which can be
-//! used as values of the attributes for corresponding `clap::App`
-//! methods (e.g. for `fn function(self, bool)` and so on).
+//! This approach also works for other literals or expressions which
+//! can be used as values of the attributes for corresponding
+//! `clap::App` methods (e.g. for `fn function(self, bool)` and so
+//! on).
 //!
-//! Methods from `clap::App` that don't take an atomic literal
-//! argument (`&str`, `bool` or numbers) can be called by wrapping
-//! them in `raw()`, e.g. to activate colored help text:
+//! Then, each field of the struct not marked as a subcommand
+//! corresponds to a `clap::Arg`. As with the struct attributes, every
+//! method of `clap::Arg` with one argument can be used through
+//! specifying it as an attribute with a value which is either a
+//! literal or an expression. The `name` attribute can be used to
+//! customize the `Arg::with_name()` call (defaults to the field name
+//! in kebab-case).
+
+//! Some of the rare functions that take more than one argument can be
+//! specified as function calls directly, e.g. `required_if("out",
+//! "file")`. A full example:
 //!
 //! ```
 //! #[macro_use]
@@ -100,27 +109,17 @@
 //! use structopt::StructOpt;
 //!
 //! #[derive(StructOpt, Debug)]
-//! #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 //! struct Opt {
-//!     #[structopt(short = "s")]
-//!     speed: bool,
-//!     #[structopt(short = "d")]
-//!     debug: bool,
+//!    /// Where to write the output: to `stdout` or `file`
+//!    #[structopt(short = "o")]
+//!    out_type: String,
+//!
+//!    /// File name: only required when `out` is set to `file`
+//!    #[structopt(name = "FILE", required_if("out_type", "file"))]
+//!    file_name: String,
 //! }
 //! # fn main() {}
 //! ```
-//!
-//! Then, each field of the struct not marked as a subcommand
-//! corresponds to a `clap::Arg`. As with the struct attributes, every
-//! method of `clap::Arg` in the form of `fn function_name(self,
-//! &str)`, `fn function_name(self, bool)` or `fn function_name(self,
-//! usize)` can be used through specifying it as an attribute with a
-//! literal value. The `name` attribute can be used to customize the
-//! `Arg::with_name()` call (defaults to the field name in
-//! kebab-case). For functions that do not take an atomic literal as
-//! argument, the attribute can be wrapped in `raw()`, e. g.
-//! `raw(aliases = r#"&["alias"]"#, possible_values = r#"&["fast",
-//! "slow"]"#)`.
 //!
 //! The type of the field gives the kind of argument:
 //!
@@ -480,7 +479,7 @@
 //!
 //! #[derive(StructOpt)]
 //! struct HexReader {
-//!     #[structopt(short = "n", parse(try_from_str = "parse_hex"))]
+//!     #[structopt(short = "n", parse(try_from_str = parse_hex))]
 //!     number: u32,
 //!     #[structopt(short = "o", parse(from_os_str))]
 //!     output: PathBuf,

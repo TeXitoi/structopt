@@ -5,15 +5,17 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use std::{env, mem};
+
 use syn::Type::Path;
 use syn::{
-    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, LitStr, MetaList,
-    MetaNameValue, PathArguments, PathSegment, TypePath,
+    self, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident, MetaNameValue,
+    PathArguments, PathSegment, TypePath,
 };
+
+use parse::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
@@ -21,6 +23,7 @@ pub enum Kind {
     Subcommand(Ty),
     FlattenStruct,
 }
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Ty {
     Bool,
@@ -30,6 +33,7 @@ pub enum Ty {
     OptionVec,
     Other,
 }
+
 #[derive(Debug)]
 pub struct Attrs {
     name: String,
@@ -40,11 +44,13 @@ pub struct Attrs {
     has_custom_parser: bool,
     kind: Kind,
 }
+
 #[derive(Debug)]
 struct Method {
     name: String,
     args: TokenStream,
 }
+
 #[derive(Debug, PartialEq)]
 pub enum Parser {
     FromStr,
@@ -148,76 +154,60 @@ impl Attrs {
             }),
         }
     }
+
     fn push_attrs(&mut self, attrs: &[Attribute]) {
-        use Lit::*;
-        use Meta::*;
-        use NestedMeta::*;
+        use parse::StructOptAttr::*;
 
-        let structopt_attrs = attrs
-            .iter()
-            .filter_map(|attr| {
-                let path = &attr.path;
-                match quote!(#path).to_string().as_ref() {
-                    "structopt" => Some(attr.parse_meta().unwrap_or_else(|e| {
-                        panic!("invalid structopt syntax: {}: {}", e, quote!(#attr))
-                    })),
-                    _ => None,
-                }
-            })
-            .flat_map(|m| match m {
-                List(l) => l.nested,
-                tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-            })
-            .map(|m| match m {
-                Meta(m) => m,
-                ref tokens => panic!("unsupported syntax: {}", quote!(#tokens).to_string()),
-            });
-
-        for attr in structopt_attrs {
+        for attr in parse_structopt_attributes(attrs) {
             match attr {
-                NameValue(MetaNameValue {
-                    ref ident,
-                    lit: Str(ref value),
-                    ..
-                }) if ident == "rename_all" => {
-                    self.casing = {
-                        let input = value.value();
-                        ::std::str::FromStr::from_str(&input)
+                Short => {
+                    let cased_name = &self.cased_name.clone();
+                    self.push_str_method("short", cased_name);
+                }
+
+                Long => {
+                    let cased_name = &self.cased_name.clone();
+                    self.push_str_method("long", cased_name);
+                }
+
+                Subcommand => {
+                    self.set_kind(Kind::Subcommand(Ty::Other));
+                }
+
+                Flatten => {
+                    self.set_kind(Kind::FlattenStruct);
+                }
+
+                NameLitStr(name, lit) => {
+                    self.push_str_method(&name.to_string(), &lit.value());
+                }
+
+                NameExpr(name, expr) => self.methods.push(Method {
+                    name: name.to_string(),
+                    args: quote!(#expr),
+                }),
+
+                MethodCall(name, args) => self.methods.push(Method {
+                    name: name.to_string(),
+                    args: quote!(#args),
+                }),
+
+                RenameAll(casing_lit) => {
+                    let casing: CasingStyle = {
+                        ::std::str::FromStr::from_str(&casing_lit.value())
                             .unwrap_or_else(|error| panic!("{}", error))
                     };
+
+                    self.casing = casing;
                     self.cased_name = self.casing.translate(&self.name);
                 }
-                NameValue(MetaNameValue {
-                    ident,
-                    lit: Str(value),
-                    ..
-                }) => self.push_str_method(&ident.to_string(), &value.value()),
-                NameValue(MetaNameValue { ident, lit, .. }) => self.methods.push(Method {
-                    name: ident.to_string(),
-                    args: quote!(#lit),
-                }),
-                List(MetaList {
-                    ref ident,
-                    ref nested,
-                    ..
-                }) if ident == "parse" => {
-                    if nested.len() != 1 {
-                        panic!("parse must have exactly one argument");
-                    }
+
+                Parse(spec) => {
                     self.has_custom_parser = true;
-                    self.parser = match nested[0] {
-                        Meta(NameValue(MetaNameValue {
-                            ref ident,
-                            lit: Str(ref v),
-                            ..
-                        })) => {
-                            let function: syn::Path = v.parse().expect("parser function path");
-                            let parser = ident.to_string().parse().unwrap();
-                            (parser, quote!(#function))
-                        }
-                        Meta(Word(ref i)) => {
+                    self.parser = match spec.parse_func {
+                        None => {
                             use Parser::*;
-                            let parser = i.to_string().parse().unwrap();
+                            let parser = spec.kind.to_string().parse().unwrap();
                             let function = match parser {
                                 FromStr | FromOsStr => quote!(::std::convert::From::from),
                                 TryFromStr => quote!(::std::str::FromStr::from_str),
@@ -228,56 +218,20 @@ impl Attrs {
                             };
                             (parser, function)
                         }
-                        ref l => panic!("unknown value parser specification: {}", quote!(#l)),
-                    };
-                }
-                List(MetaList {
-                    ref ident,
-                    ref nested,
-                    ..
-                }) if ident == "raw" => {
-                    for method in nested {
-                        match *method {
-                            Meta(NameValue(MetaNameValue {
-                                ref ident,
-                                lit: Str(ref v),
-                                ..
-                            })) => self.push_raw_method(&ident.to_string(), v),
-                            ref mi => panic!("unsupported raw entry: {}", quote!(#mi)),
+
+                        Some(func) => {
+                            let parser = spec.kind.to_string().parse().unwrap();
+                            match func {
+                                syn::Expr::Path(_) => (parser, quote!(#func)),
+                                _ => panic!("`parse` argument must be a function path"),
+                            }
                         }
                     }
                 }
-                Word(ref w) if w == "subcommand" => {
-                    self.set_kind(Kind::Subcommand(Ty::Other));
-                }
-                Word(ref w) if w == "flatten" => {
-                    self.set_kind(Kind::FlattenStruct);
-                }
-                Word(ref w) if w == "long" => {
-                    let cased_name = &self.cased_name.clone();
-                    self.push_str_method("long", cased_name);
-                }
-                Word(ref w) if w == "short" => {
-                    let cased_named = &self.cased_name.clone();
-                    self.push_str_method("short", cased_named);
-                }
-                ref i @ List(..) | ref i @ Word(..) => panic!("unsupported option: {}", quote!(#i)),
             }
         }
     }
-    fn push_raw_method(&mut self, name: &str, args: &LitStr) {
-        let ts: TokenStream = args.value().parse().unwrap_or_else(|_| {
-            panic!(
-                "bad parameter {} = {}: the parameter must be valid rust code",
-                name,
-                quote!(#args)
-            )
-        });
-        self.methods.push(Method {
-            name: name.to_string(),
-            args: quote!(#(#ts)*),
-        })
-    }
+
     fn push_doc_comment(&mut self, attrs: &[Attribute], name: &str) {
         let doc_comments = attrs
             .iter()
@@ -529,7 +483,7 @@ impl Attrs {
 
 pub fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
     let segs = match *t {
-        syn::Type::Path(TypePath {
+        Path(TypePath {
             path: syn::Path { ref segments, .. },
             ..
         }) => segments,

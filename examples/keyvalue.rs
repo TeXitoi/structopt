@@ -19,7 +19,7 @@ where
 
 #[derive(StructOpt, Debug)]
 struct Opt {
-    #[structopt(short = "D", parse(try_from_str = "parse_key_val"))]
+    #[structopt(short = "D", parse(try_from_str = parse_key_val))]
     defines: Vec<(String, i32)>,
 }
 

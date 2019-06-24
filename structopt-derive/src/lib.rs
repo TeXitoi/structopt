@@ -11,6 +11,7 @@
 //! for the usage of `#[derive(StructOpt)]`.
 
 extern crate proc_macro;
+#[macro_use]
 extern crate syn;
 #[macro_use]
 extern crate quote;
@@ -18,6 +19,7 @@ extern crate heck;
 extern crate proc_macro2;
 
 mod attrs;
+mod parse;
 
 use attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
 use proc_macro2::{Span, TokenStream};

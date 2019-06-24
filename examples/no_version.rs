@@ -10,7 +10,7 @@ use structopt::StructOpt;
     about = "",
     version = "",
     author = "",
-    raw(global_settings = "&[AppSettings::DisableVersion]")
+    global_settings = &[AppSettings::DisableVersion]
 )]
 struct Opt {}
 
