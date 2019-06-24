@@ -10,8 +10,6 @@
 #![cfg(feature = "nightly")] // TODO: remove that when never is stable
 #![feature(never_type)]
 
-extern crate structopt;
-
 use structopt::StructOpt;
 
 fn try_str(s: &str) -> Result<String, !> {

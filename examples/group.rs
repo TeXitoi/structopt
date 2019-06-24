@@ -1,9 +1,6 @@
 // A functional translation of the example at
 // https://docs.rs/clap/2.31.2/clap/struct.App.html#method.group
 
-#[macro_use]
-extern crate structopt;
-
 use structopt::clap::ArgGroup;
 use structopt::StructOpt;
 

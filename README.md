@@ -16,9 +16,6 @@ structopt = "0.2"
 
 And then, in your rust file:
 ```rust
-#[macro_use]
-extern crate structopt;
-
 use std::path::PathBuf;
 use structopt::StructOpt;
 

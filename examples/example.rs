@@ -6,9 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[macro_use]
-extern crate structopt;
-
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -40,6 +37,7 @@ struct Opt {
         long = "log",
         help = "Log file, stdout if no file, no logging if not present"
     )]
+    #[allow(clippy::option_option)]
     log: Option<Option<String>>,
 
     /// An optional list of values, will be `None` if not present on

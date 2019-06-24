@@ -6,9 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[macro_use]
-extern crate structopt;
-
 use structopt::StructOpt;
 
 #[test]
@@ -157,6 +154,7 @@ fn optional_argument_for_optional_option() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
         #[structopt(short = "a")]
+        #[allow(clippy::option_option)]
         arg: Option<Option<i32>>,
     }
     assert_eq!(
@@ -181,6 +179,7 @@ fn optional_argument_for_optional_option() {
 #[test]
 fn two_option_options() {
     #[derive(StructOpt, PartialEq, Debug)]
+    #[allow(clippy::option_option)]
     struct Opt {
         #[structopt(short = "a")]
         arg: Option<Option<i32>>,
