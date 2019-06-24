@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate structopt;
-
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
 

@@ -6,10 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[macro_use]
-extern crate structopt;
-
-use std::num::ParseIntError;
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
@@ -123,7 +119,7 @@ fn test_bool() {
     assert!(result.is_err());
 }
 
-fn parse_hex(input: &str) -> Result<u64, ParseIntError> {
+fn parse_hex(input: &str) -> Result<u64, std::num::ParseIntError> {
     u64::from_str_radix(input, 16)
 }
 

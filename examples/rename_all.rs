@@ -17,8 +17,6 @@
 //! - **Snake Case**: Keep all letters lowercase and indicate word boundaries
 //!                   with underscores.
 //! - **Verbatim**: Use the original attribute name defined in the code.
-#[macro_use]
-extern crate structopt;
 
 use structopt::StructOpt;
 

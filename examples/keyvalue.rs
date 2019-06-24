@@ -1,10 +1,7 @@
-#[macro_use]
-extern crate structopt;
-
 use std::error::Error;
 use structopt::StructOpt;
 
-fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<Error>>
+fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where
     T: std::str::FromStr,
     T::Err: Error + 'static,

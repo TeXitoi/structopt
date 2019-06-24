@@ -3,9 +3,6 @@
 //! Documentation can be added either through doc comments or the
 //! `about` attribute.
 
-#[macro_use]
-extern crate structopt;
-
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]

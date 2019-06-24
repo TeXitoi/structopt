@@ -13,9 +13,6 @@
 
 #![deny(missing_docs)]
 
-#[macro_use]
-extern crate structopt;
-
 use structopt::StructOpt;
 
 /// The options
