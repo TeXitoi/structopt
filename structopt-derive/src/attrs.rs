@@ -7,6 +7,7 @@
 // except according to those terms.
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
+use quote::quote;
 use std::{env, mem};
 
 use syn::Type::Path;
@@ -15,7 +16,7 @@ use syn::{
     PathArguments, PathSegment, TypePath,
 };
 
-use parse::*;
+use crate::parse::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Kind {
@@ -156,7 +157,7 @@ impl Attrs {
     }
 
     fn push_attrs(&mut self, attrs: &[Attribute]) {
-        use parse::StructOptAttr::*;
+        use crate::parse::StructOptAttr::*;
 
         for attr in parse_structopt_attributes(attrs) {
             match attr {
@@ -206,7 +207,7 @@ impl Attrs {
                     self.has_custom_parser = true;
                     self.parser = match spec.parse_func {
                         None => {
-                            use Parser::*;
+                            use crate::Parser::*;
                             let parser = spec.kind.to_string().parse().unwrap();
                             let function = match parser {
                                 FromStr | FromOsStr => quote!(::std::convert::From::from),
@@ -244,8 +245,8 @@ impl Attrs {
                 }
             })
             .filter_map(|attr| {
-                use Lit::*;
-                use Meta::*;
+                use crate::Lit::*;
+                use crate::Meta::*;
                 if let NameValue(MetaNameValue {
                     ident, lit: Str(s), ..
                 }) = attr

@@ -11,18 +11,13 @@
 //! for the usage of `#[derive(StructOpt)]`.
 
 extern crate proc_macro;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-extern crate heck;
-extern crate proc_macro2;
 
 mod attrs;
 mod parse;
 
-use attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
+use crate::attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
 use proc_macro2::{Span, TokenStream};
+use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::*;
@@ -189,7 +184,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
             }
             Kind::FlattenStruct => quote!(#field_name: ::structopt::StructOpt::from_clap(matches)),
             Kind::Arg(ty) => {
-                use Parser::*;
+                use crate::Parser::*;
                 let (value_of, values_of, parse) = match *attrs.parser() {
                     (FromStr, ref f) => (quote!(value_of), quote!(values_of), f.clone()),
                     (TryFromStr, ref f) => (

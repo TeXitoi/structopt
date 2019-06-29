@@ -1,6 +1,7 @@
+use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{self, Attribute, Expr, Ident, LitStr};
+use syn::{self, parenthesized, Attribute, Expr, Ident, LitStr, Token};
 
 pub struct StructOptAttributes {
     pub paren_token: syn::token::Paren,
@@ -8,7 +9,7 @@ pub struct StructOptAttributes {
 }
 
 impl Parse for StructOptAttributes {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let content;
         Ok(StructOptAttributes {
             paren_token: parenthesized!(content in input),
@@ -30,7 +31,7 @@ pub enum StructOptAttr {
 }
 
 impl Parse for StructOptAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         use self::StructOptAttr::*;
 
         let name: Ident = input.parse()?;
@@ -110,7 +111,7 @@ pub struct ParserSpec {
 }
 
 impl Parse for ParserSpec {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let err_msg = "unknown value parser specification";
         let kind = input.parse().map_err(|_| input.error(err_msg))?;
         let eq_token = input.parse()?;
