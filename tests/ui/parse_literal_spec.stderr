@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/parse_literal_spec.rs:13:10
+  --> $DIR/parse_literal_spec.rs:11:10
    |
-13 | #[derive(StructOpt, Debug)]
+11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
    = help: message: unknown value parser specification, problematic tokens: ( parse ( "from_str" ) )

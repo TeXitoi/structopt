@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/parse_not_zero_args.rs:13:10
+  --> $DIR/parse_not_zero_args.rs:11:10
    |
-13 | #[derive(StructOpt, Debug)]
+11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
    = help: message: parse must have exactly one argument, problematic tokens: ( parse ( from_str , from_str ) )

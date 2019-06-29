@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/opt_vec_nonpositional.rs:13:10
+  --> $DIR/opt_vec_nonpositional.rs:11:10
    |
-13 | #[derive(StructOpt, Debug)]
+11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
    = help: message: Option<Vec<T>> type is meaningless for positional argument

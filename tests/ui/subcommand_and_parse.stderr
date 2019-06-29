@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/subcommand_and_parse.rs:13:10
+  --> $DIR/subcommand_and_parse.rs:11:10
    |
-13 | #[derive(StructOpt)]
+11 | #[derive(StructOpt)]
    |          ^^^^^^^^^
    |
    = help: message: parse attribute is not allowed for subcommand

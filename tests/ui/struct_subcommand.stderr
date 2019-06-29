@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/struct_subcommand.rs:13:10
+  --> $DIR/struct_subcommand.rs:11:10
    |
-13 | #[derive(StructOpt, Debug)]
+11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
    = help: message: subcommand is only allowed on fields

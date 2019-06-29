@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/structopt_name_value_attr.rs:13:10
+  --> $DIR/structopt_name_value_attr.rs:11:10
    |
-13 | #[derive(StructOpt, Debug)]
+11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
    |
    = help: message: expected parentheses, problematic tokens: = "short"

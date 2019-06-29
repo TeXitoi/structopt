@@ -1,7 +1,7 @@
 error: proc-macro derive panicked
-  --> $DIR/subcommand_opt_opt.rs:13:10
+  --> $DIR/subcommand_opt_opt.rs:11:10
    |
-13 | #[derive(StructOpt)]
+11 | #[derive(StructOpt)]
    |          ^^^^^^^^^
    |
    = help: message: Option<Option<T>> type is not allowed for subcommand
