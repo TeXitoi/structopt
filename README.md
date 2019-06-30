@@ -11,7 +11,7 @@ Find it on [Docs.rs](https://docs.rs/structopt).  You can also check the [exampl
 Add `structopt` to your dependencies of your `Cargo.toml`:
 ```toml
 [dependencies]
-structopt = "0.2"
+structopt = "0.3"
 ```
 
 And then, in your rust file:
@@ -24,30 +24,33 @@ use structopt::StructOpt;
 #[structopt(name = "basic")]
 struct Opt {
     // A flag, true if used in the command line. Note doc comment will
-    // be used for the help message of the flag.
+    // be used for the help message of the flag. The name of the
+    // argument will be, by default, based on the name of the field.
     /// Activate debug mode
-    #[structopt(short = "d", long = "debug")]
+    #[structopt(short, long)]
     debug: bool,
 
     // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
 
     /// Set speed
-    #[structopt(short = "s", long = "speed", default_value = "42")]
+    #[structopt(short, long, default_value = "42")]
     speed: f64,
 
     /// Output file
-    #[structopt(short = "o", long = "output", parse(from_os_str))]
+    #[structopt(short, long, parse(from_os_str))]
     output: PathBuf,
 
+    // the long option will be translated by default to kebab case,
+    // i.e. `--nb-cars`.
     /// Number of cars
-    #[structopt(short = "c", long = "nb-cars")]
+    #[structopt(short = "c", long)]
     nb_cars: Option<i32>,
 
     /// admin_level to consider
-    #[structopt(short = "l", long = "level")]
+    #[structopt(short, long)]
     level: Vec<String>,
 
     /// Files to process
@@ -57,7 +60,7 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    println!("{:?}", opt);
+    println!("{:#?}", opt);
 }
 ```
 
@@ -72,31 +75,55 @@ USAGE:
 
 For more information try --help
 $ ./basic --help
-basic 0.2.0
-Guillaume Pinot <texitoi@texitoi.eu>
+basic 0.3.0
+Guillaume Pinot <texitoi@texitoi.eu>, others
 A basic example
 
 USAGE:
-    basic [FLAGS] [OPTIONS] --output <output> [--] [FILE]...
+    basic [FLAGS] [OPTIONS] --output <output> [--] [file]...
 
 FLAGS:
     -d, --debug      Activate debug mode
     -h, --help       Prints help information
     -V, --version    Prints version information
-    -v, --verbose    Verbose mode
+    -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
 
 OPTIONS:
-    -c, --nb-cars <nb_cars>   Number of cars
-    -l, --level <level>...    admin_level to consider
-    -o, --output <output>     Output file
-    -s, --speed <speed>       Set speed [default: 42]
+    -l, --level <level>...     admin_level to consider
+    -c, --nb-cars <nb-cars>    Number of cars
+    -o, --output <output>      Output file
+    -s, --speed <speed>        Set speed [default: 42]
 
 ARGS:
-    <FILE>...    Files to process
+    <file>...    Files to process
 $ ./basic -o foo.txt
-Opt { debug: false, verbose: 0, speed: 42, output: "foo.txt", car: None, level: [], files: [] }
+Opt {
+    debug: false,
+    verbose: 0,
+    speed: 42.0,
+    output: "foo.txt",
+    nb_cars: None,
+    level: [],
+    files: [],
+}
 $ ./basic -o foo.txt -dvvvs 1337 -l alice -l bob --nb-cars 4 bar.txt baz.txt
-Opt { debug: true, verbose: 3, speed: 1337, output: "foo.txt", nb_cars: Some(4), level: ["alice", "bob"], files: ["bar.txt", "baz.txt"] }
+Opt {
+    debug: true,
+    verbose: 3,
+    speed: 1337.0,
+    output: "foo.txt",
+    nb_cars: Some(
+        4,
+    ),
+    level: [
+        "alice",
+        "bob",
+    ],
+    files: [
+        "bar.txt",
+        "baz.txt",
+    ],
+}
 ```
 
 ## StructOpt rustc version policy
@@ -104,14 +131,6 @@ Opt { debug: true, verbose: 3, speed: 1337, output: "foo.txt", nb_cars: Some(4),
 - Minimum rustc version modification must be specified in the [changelog](https://github.com/TeXitoi/structopt/blob/master/CHANGELOG.md) and in the [travis configuration](https://github.com/TeXitoi/structopt/blob/master/.travis.yml).
 - Contributors can increment minimum rustc version without any justification if the new version is required by the latest version of one of StructOpt's dependencies (`cargo update` will not fail on StructOpt).
 - Contributors can increment minimum rustc version if the library user experience is improved.
-
-## Why
-
-I use [docopt](https://crates.io/crates/docopt) since a long time (pre rust 1.0). I really like the fact that you have a structure with the parsed argument: no need to convert `String` to `f64`, no useless `unwrap`. But on the other hand, I don't like to write by hand the usage string. That's like going back to the golden age of WYSIWYG editors.  Field naming is also a bit artificial.
-
-Today, the new standard to read command line arguments in Rust is [clap](https://crates.io/crates/clap).  This library is so feature full! But I think there is one downside: even if you can validate argument and expressing that an argument is required, you still need to transform something looking like a hashmap of string vectors to something useful for your application.
-
-Now, there is stable custom derive. Thus I can add to clap the automatic conversion that I miss. Here is the result.
 
 ## License
 
@@ -127,4 +146,3 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
-
