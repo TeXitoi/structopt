@@ -466,7 +466,7 @@ impl Attrs {
         if let Kind::Arg(_) = self.kind {
             self.kind = kind;
         } else {
-            panic!("subcommands cannot be flattened");
+            panic!("subcommand, flatten and skip cannot be used together");
         }
     }
     pub fn has_method(&self, method: &str) -> bool {
