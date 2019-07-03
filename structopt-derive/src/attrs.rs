@@ -23,6 +23,7 @@ pub enum Kind {
     Arg(Ty),
     Subcommand(Ty),
     FlattenStruct,
+    Skip,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -177,6 +178,10 @@ impl Attrs {
 
                 Flatten => {
                     self.set_kind(Kind::FlattenStruct);
+                }
+
+                Skip => {
+                    self.set_kind(Kind::Skip);
                 }
 
                 NameLitStr(name, lit) => {
@@ -346,6 +351,7 @@ impl Attrs {
         match res.kind {
             Kind::Subcommand(_) => panic!("subcommand is only allowed on fields"),
             Kind::FlattenStruct => panic!("flatten is only allowed on fields"),
+            Kind::Skip => panic!("skip is only allowed on fields"),
             Kind::Arg(_) => res,
         }
     }
@@ -404,6 +410,11 @@ impl Attrs {
                 }
 
                 res.kind = Kind::Subcommand(ty);
+            }
+            Kind::Skip => {
+                if !res.methods.iter().all(|m| m.name == "help") {
+                    panic!("methods are not allowed for skipped fields");
+                }
             }
             Kind::Arg(_) => {
                 let mut ty = Self::ty_from_field(&field.ty);

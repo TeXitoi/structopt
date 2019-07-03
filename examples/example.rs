@@ -46,6 +46,11 @@ struct Opt {
     /// argument list is provided (e.g. `--optv a b c`).
     #[structopt(long = "optv")]
     optv: Option<Vec<String>>,
+
+    /// Skipped option: it won't be parsed and will be filled with the
+    /// default value for its type (in this case '').
+    #[structopt(skip)]
+    skipped: String,
 }
 
 fn main() {

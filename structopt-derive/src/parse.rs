@@ -23,6 +23,7 @@ pub enum StructOptAttr {
     Long,
     Flatten,
     Subcommand,
+    Skip,
     Parse(ParserSpec),
     RenameAll(LitStr),
     NameLitStr(Ident, LitStr),
@@ -94,6 +95,7 @@ impl Parse for StructOptAttr {
                 "short" => Ok(Short),
                 "flatten" => Ok(Flatten),
                 "subcommand" => Ok(Subcommand),
+                "skip" => Ok(Skip),
                 _ => {
                     let msg = format!("unexpected attribute: {}", name_str);
                     Err(input.error(&msg))

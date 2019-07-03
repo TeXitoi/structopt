@@ -87,7 +87,7 @@ fn gen_augmentation(
     let args = fields.iter().filter_map(|field| {
         let attrs = Attrs::from_field(field, parent_attribute.casing());
         match attrs.kind() {
-            Kind::Subcommand(_) => None,
+            Kind::Subcommand(_) | Kind::Skip => None,
             Kind::FlattenStruct => {
                 let ty = &field.ty;
                 Some(quote! {
@@ -183,6 +183,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 quote!(#field_name: <#subcmd_type>::from_subcommand(matches.subcommand())#unwrapper)
             }
             Kind::FlattenStruct => quote!(#field_name: ::structopt::StructOpt::from_clap(matches)),
+            Kind::Skip => quote!(#field_name: Default::default()),
             Kind::Arg(ty) => {
                 use crate::Parser::*;
                 let (value_of, values_of, parse) = match *attrs.parser() {
