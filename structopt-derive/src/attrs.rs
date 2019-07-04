@@ -389,7 +389,7 @@ impl Attrs {
                     panic!("parse attribute is not allowed for subcommand");
                 }
                 if !res.methods.iter().all(|m| m.name == "help") {
-                    panic!("methods in attributes is not allowed for subcommand");
+                    panic!("methods in attributes are not allowed for subcommand");
                 }
 
                 let ty = Self::ty_from_field(&field.ty);

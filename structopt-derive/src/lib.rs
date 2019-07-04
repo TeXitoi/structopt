@@ -355,7 +355,7 @@ fn gen_augment_clap_enum(
                     }
                 }
             }
-            Unnamed(..) => panic!("{}: tuple enum are not supported", variant.ident),
+            Unnamed(..) => panic!("{}: tuple enums are not supported", variant.ident),
         };
 
         let name = attrs.cased_name();
@@ -409,7 +409,7 @@ fn gen_from_subcommand(
                 let ty = &fields.unnamed[0];
                 quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
             }
-            Unnamed(..) => panic!("{}: tuple enum are not supported", variant.ident),
+            Unnamed(..) => panic!("{}: tuple enums are not supported", variant.ident),
         };
 
         quote! {

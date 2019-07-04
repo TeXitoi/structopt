@@ -4,4 +4,4 @@ error: proc-macro derive panicked
 11 | #[derive(StructOpt)]
    |          ^^^^^^^^^
    |
-   = help: message: methods in attributes is not allowed for subcommand
+   = help: message: methods in attributes are not allowed for subcommand
