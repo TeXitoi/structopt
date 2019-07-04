@@ -16,6 +16,9 @@
 
 ## improvements
 
+* Support skipping struct fields by [@sphynx](https://github.com/sphynx)
+ ([#174](https://github.com/TeXitoi/structopt/issues/174))
+
 * Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
   ([#187](https://github.com/TeXitoi/structopt/issues/187))
 

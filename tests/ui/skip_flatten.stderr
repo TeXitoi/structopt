@@ -1,5 +1,5 @@
 error: proc-macro derive panicked
-  --> $DIR/subcommand_and_flatten.rs:11:10
+  --> $DIR/skip_flatten.rs:11:10
    |
 11 | #[derive(StructOpt)]
    |          ^^^^^^^^^

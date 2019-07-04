@@ -179,6 +179,11 @@
 //! If an argument is renamed using `name = $NAME` any following call to
 //! `short` or `long` will use the new name.
 //!
+//! If you want to omit a struct field from the parsing process
+//! altogether and just use a default value for it, you can annotate
+//! the field with `#[structopt(skip)]`. Note that the field type has
+//! to implement `std::default::Default` then.
+//!
 //! **Attention**: If these arguments are used without an explicit name
 //! the resulting flag is going to be renamed using `kebab-case` if the
 //! `rename_all` attribute was not specified previously. The same is true
@@ -212,6 +217,12 @@
 //!     /// This option is positional, meaning it is the first unadorned string
 //!     /// you provide (multiple others could follow).
 //!     my_positional: String,
+//!
+//!     /// This option is skipped and will be filled with the default value
+//!     /// for its type (in this case 0).
+//!     #[structopt(skip)]
+//!     skipped: u32,
+//!
 //! }
 //!
 //! # fn main() {
