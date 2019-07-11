@@ -437,7 +437,7 @@ fn gen_paw_impl(name: &Ident) -> TokenStream {
         impl paw::ParseArgs for #name {
             type Error = std::io::Error;
 
-            fn parse_args() -> Result<Self, Self::Error> {
+            fn parse_args() -> std::result::Result<Self, Self::Error> {
                 Ok(<#name as ::structopt::StructOpt>::from_args())
             }
         }
