@@ -290,6 +290,23 @@
 //! # fn main() {}
 //! ```
 //!
+//! ## Environment Variable Fallback
+//!
+//! It is possible to specify an environment variable fallback option for an arguments, so that its value is taken
+//! from the specified environment variable if not given through the command-line:
+//!
+//! ```
+//! # use structopt::StructOpt;
+//!
+//! #[derive(StructOpt)]
+//! #[structopt(name = "foo")]
+//! struct Foo {
+//!   #[structopt(short = "p", long = "param", env = "PARAMETER_VALUE")]
+//!   param: String
+//! }
+//! # fn main() {}
+//! ```
+//!
 //! ## Subcommands
 //!
 //! Some applications, especially large ones, split their functionality
