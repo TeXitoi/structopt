@@ -307,6 +307,32 @@
 //! # fn main() {}
 //! ```
 //!
+//! By default, values from the environment are shown in the help output (i.e. when invoking
+//! `--help`):
+//!
+//! ```shell
+//! $ cargo run -- --help
+//! ...
+//! OPTIONS:
+//!   -p, --param <param>     [env: PARAMETER_VALUE=env_value]
+//! ```
+//!
+//! In some cases this may be undesirable, for example when being used for passing
+//! credentials or secret tokens. In those cases you can use `hide_env_values` to avoid
+//! having strucopt emit the actual secret values:
+//! ```
+//! # use structopt::StructOpt;
+//!
+//! #[derive(StructOpt)]
+//! #[structopt(name = "foo")]
+//! struct Foo {
+//!   #[structopt(long = "secret", env = "SECRET_VALUE", hide_env_values = true)]
+//!   param: String
+//! }
+//! # fn main() {}
+//! ```
+
+//!
 //! ## Subcommands
 //!
 //! Some applications, especially large ones, split their functionality
