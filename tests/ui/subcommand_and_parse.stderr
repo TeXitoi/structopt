@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/subcommand_and_parse.rs:11:10
+error: parse attribute is not allowed for subcommand
+  --> $DIR/subcommand_and_parse.rs:17:29
    |
-11 | #[derive(StructOpt)]
-   |          ^^^^^^^^^
-   |
-   = help: message: parse attribute is not allowed for subcommand
+17 |     #[structopt(subcommand, parse(from_occurrences))]
+   |                             ^^^^^

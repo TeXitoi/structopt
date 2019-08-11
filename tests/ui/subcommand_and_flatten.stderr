@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/subcommand_and_flatten.rs:11:10
+error: subcommand, flatten and skip cannot be used together
+  --> $DIR/subcommand_and_flatten.rs:17:29
    |
-11 | #[derive(StructOpt)]
-   |          ^^^^^^^^^
-   |
-   = help: message: subcommand, flatten and skip cannot be used together
+17 |     #[structopt(subcommand, flatten)]
+   |                             ^^^^^^^

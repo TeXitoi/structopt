@@ -14,7 +14,4 @@ struct Opt {
     n: Option<Vec<u32>>,
 }
 
-fn main() {
-    let opt = Opt::from_args();
-    println!("{:?}", opt);
-}
+fn main() {}

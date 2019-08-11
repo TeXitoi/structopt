@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/parse_literal_spec.rs:11:10
+error: parser specification must start with identifier
+  --> $DIR/parse_literal_spec.rs:14:23
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: unknown value parser specification, problematic tokens: ( parse ( "from_str" ) )
+14 |     #[structopt(parse("from_str"))]
+   |                       ^^^^^^^^^^

@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/struct_parse.rs:11:10
+error: parse attribute is only allowed on fields
+  --> $DIR/struct_parse.rs:12:29
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: parse attribute is only allowed on fields
+12 | #[structopt(name = "basic", parse(from_str))]
+   |                             ^^^^^

@@ -32,11 +32,8 @@ enum Command {
 
 impl Default for Command {
     fn default() -> Self {
-        Pound { acorns: 0 }
+        Command::Pound { acorns: 0 }
     }
 }
 
-fn main() {
-    let opt = Opt::from_args();
-    println!("{:?}", opt);
-}
+fn main() {}

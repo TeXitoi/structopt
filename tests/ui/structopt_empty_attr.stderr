@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
+error: unexpected end of input, expected parentheses
   --> $DIR/structopt_empty_attr.rs:11:10
    |
 11 | #[derive(StructOpt, Debug)]
    |          ^^^^^^^^^
-   |
-   = help: message: unexpected end of input, expected parentheses,

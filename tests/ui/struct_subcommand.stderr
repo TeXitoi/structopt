@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/struct_subcommand.rs:11:10
+error: subcommand is only allowed on fields
+  --> $DIR/struct_subcommand.rs:12:29
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: subcommand is only allowed on fields
+12 | #[structopt(name = "basic", subcommand)]
+   |                             ^^^^^^^^^^
