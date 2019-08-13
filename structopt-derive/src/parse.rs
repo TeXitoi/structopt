@@ -1,6 +1,7 @@
 use proc_macro_error::{span_error, ResultExt};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
 use syn::{self, parenthesized, parse2, Attribute, Expr, Ident, LitStr, Token};
 
 pub struct StructOptAttributes {
@@ -11,6 +12,7 @@ pub struct StructOptAttributes {
 impl Parse for StructOptAttributes {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let content;
+
         Ok(StructOptAttributes {
             paren_token: parenthesized!(content in input),
             attrs: content.parse_terminated(StructOptAttr::parse)?,
@@ -123,10 +125,20 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
     all_attrs
         .iter()
         .filter(|attr| attr.path.is_ident("structopt"))
-        .map(|attr| {
-            let attrs: StructOptAttributes = parse2(attr.tts.clone()).unwrap_or_exit();
+        .flat_map(|attr| {
+            let attrs: StructOptAttributes = parse2(attr.tts.clone())
+                .map_err(|e| match &*e.to_string() {
+                    // this error message is misleading and points to Span::call_site()
+                    // so we patch it with something meaningful
+                    "unexpected end of input, expected parentheses" => {
+                        let span = attr.path.span();
+                        let patch_msg = "expected parentheses after `structopt`";
+                        syn::Error::new(span, patch_msg)
+                    }
+                    _ => e,
+                })
+                .unwrap_or_exit();
             attrs.attrs
         })
-        .flatten()
         .collect()
 }

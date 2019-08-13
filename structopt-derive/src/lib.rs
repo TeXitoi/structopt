@@ -20,7 +20,7 @@ use crate::attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
 use crate::spanned::Sp;
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::{call_site_error, filter_macro_errors, span_error};
-use quote::quote;
+use quote::{quote, quote_spanned};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::Comma;
@@ -179,7 +179,8 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
     let fields = fields.iter().map(|field| {
         let attrs = Attrs::from_field(field, parent_attribute.casing());
         let field_name = field.ident.as_ref().unwrap();
-        match &*attrs.kind() {
+        let kind = attrs.kind();
+        match &*kind {
             Kind::Subcommand(ty) => {
                 let subcmd_type = match (**ty, sub_type(&field.ty)) {
                     (Ty::Option, Some(sub_type)) => sub_type,
@@ -192,7 +193,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 quote!(#field_name: <#subcmd_type>::from_subcommand(matches.subcommand())#unwrapper)
             }
             Kind::FlattenStruct => quote!(#field_name: ::structopt::StructOpt::from_clap(matches)),
-            Kind::Skip => quote!(#field_name: Default::default()),
+            Kind::Skip => quote_spanned!(kind.span()=> #field_name: Default::default()),
             Kind::Arg(ty) => {
                 use crate::attrs::Parser::*;
                 let (parser, f) = attrs.parser();

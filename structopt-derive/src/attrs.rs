@@ -388,14 +388,15 @@ impl Attrs {
         {
             match segments.iter().last().unwrap().ident.to_string().as_str() {
                 "bool" => t(Ty::Bool),
-                "Option" => match sub_type(ty).map(Attrs::ty_from_field) {
-                    Some(ty) => match *ty {
+                "Option" => sub_type(ty)
+                    .map(Attrs::ty_from_field)
+                    .map(|ty| match *ty {
                         Ty::Option => t(Ty::OptionOption),
                         Ty::Vec => t(Ty::OptionVec),
                         _ => t(Ty::Option),
-                    },
-                    None => t(Ty::Option),
-                },
+                    })
+                    .unwrap_or(t(Ty::Option)),
+
                 "Vec" => t(Ty::Vec),
                 _ => t(Ty::Other),
             }
@@ -419,7 +420,7 @@ impl Attrs {
                 }
                 if !res.methods.is_empty() {
                     span_error!(
-                        res.methods[0].name.span(),
+                        res.kind.span(),
                         "methods and doc comments are not allowed for flattened entry"
                     );
                 }
