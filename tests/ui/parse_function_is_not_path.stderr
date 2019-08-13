@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/parse_function_is_not_path.rs:11:10
+error: `parse` argument must be a function path
+  --> $DIR/parse_function_is_not_path.rs:14:34
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: `parse` argument must be a function path
+14 |     #[structopt(parse(from_str = "2"))]
+   |                                  ^^^

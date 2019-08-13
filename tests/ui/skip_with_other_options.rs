@@ -9,7 +9,4 @@ pub struct Opts {
     b: u32,
 }
 
-fn main() {
-    let opts = Opts::from_args();
-    println!("{:?}", opts);
-}
+fn main() {}

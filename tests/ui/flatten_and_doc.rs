@@ -8,7 +8,7 @@
 
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 struct DaemonOpts {
     #[structopt(short)]
     user: String,
@@ -24,7 +24,4 @@ struct Opt {
     opts: DaemonOpts,
 }
 
-fn main() {
-    let opt = Opt::from_args();
-    println!("{:?}", opt);
-}
+fn main() {}

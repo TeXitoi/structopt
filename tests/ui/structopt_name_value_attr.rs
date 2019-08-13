@@ -15,8 +15,5 @@ struct Opt {
     debug: bool,
 }
 
-fn main() {
-    let opt = Opt::from_args();
-    println!("{:?}", opt);
-}
+fn main() {}
 

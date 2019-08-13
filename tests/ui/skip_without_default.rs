@@ -23,7 +23,4 @@ pub struct Opts {
     k: Kind,
 }
 
-fn main() {
-    let opts = Opts::from_args();
-    println!("{:?}", opts);
-}
+fn main() {}

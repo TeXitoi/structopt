@@ -1,7 +1,5 @@
-error: proc-macro derive panicked
-  --> $DIR/structopt_name_value_attr.rs:11:10
+error: expected parentheses
+  --> $DIR/structopt_name_value_attr.rs:14:17
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
-   |
-   = help: message: expected parentheses, problematic tokens: = "short"
+14 |     #[structopt = "short"]
+   |                 ^
