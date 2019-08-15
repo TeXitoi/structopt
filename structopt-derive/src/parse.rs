@@ -126,7 +126,7 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
         .iter()
         .filter(|attr| attr.path.is_ident("structopt"))
         .flat_map(|attr| {
-            let attrs: StructOptAttributes = parse2(attr.tts.clone())
+            let attrs: StructOptAttributes = parse2(attr.tokens.clone())
                 .map_err(|e| match &*e.to_string() {
                     // this error message is misleading and points to Span::call_site()
                     // so we patch it with something meaningful

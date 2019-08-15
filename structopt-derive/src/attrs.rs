@@ -256,7 +256,7 @@ impl Attrs {
             .iter()
             .filter_map(|attr| {
                 if attr.path.is_ident("doc") {
-                    attr.interpret_meta()
+                    attr.parse_meta().ok()
                 } else {
                     None
                 }
@@ -265,10 +265,10 @@ impl Attrs {
                 use crate::Lit::*;
                 use crate::Meta::*;
                 if let NameValue(MetaNameValue {
-                    ident, lit: Str(s), ..
+                    path, lit: Str(s), ..
                 }) = attr
                 {
-                    if ident != "doc" {
+                    if !path.is_ident("doc") {
                         return None;
                     }
                     let value = s.value();
