@@ -6,7 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use structopt::clap;
 use structopt::StructOpt;
 
 #[test]
