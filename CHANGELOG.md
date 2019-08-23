@@ -3,16 +3,27 @@
 ## Breaking changes
 
 * Bump minimum rust version to 1.34 by [@TeXitoi](https://github.com/TeXitoi)
+
 * Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all
   by [@sphynx](https://github.com/sphynx)
   ([#180](https://github.com/TeXitoi/structopt/issues/188)). This is a breaking change
   as `Option<Vec<T>>` is handled differently. If you need to have a `Option<Vec<T>>`
   handled the old was, you can `type Something = Vec<T>;` and then use `Option<Something>`
   as your structopt field.
+
 * Change default case from 'Verbatim' into 'Kebab' by [@0ndorio](https://github.com/0ndorio)
   ([#202](https://github.com/TeXitoi/structopt/issues/202)). This is a breaking change.
   If you rely on the old behavior you need to add `#[structopt(rename_all = "verbatim")]`
   as an attribute to each data structure deriving the `StructOpt` trait.
+
+* Change `version`, `author` and `about` attributes behavior. `version/author/about = ""` is no longer a
+  valid syntax. `author` and `about` are no longer derived from `Cargo.toml` by default, i.e when no
+  attributes mentioned. `version` is still to be derived from `Cargo.toml` by default.
+  Introduced explicit `author` and `about` attributes (with no arguments, i.e `#[structopt(author)]`)
+  for explicit requests to deduce author/about fields from `Cargo.toml`.
+  `version/author/about = "version/author/about"` is still valid syntax.
+  Introduced `no_version` attribute (no args) which prevents version auto deducing by default.
+  Proposed by [@TeXitoi](https://github.com/TeXitoi) [(#217)](https://github.com/TeXitoi/structopt/issues/217), implemented by [@CreepySkeleton](https://github.com/CreepySkeleton) [(#229)](https://github.com/TeXitoi/structopt/pull/229).
 
 ## improvements
 
@@ -21,6 +32,9 @@
 
 * Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
   ([#187](https://github.com/TeXitoi/structopt/issues/187))
+
+* Significantly improve error reporting by [@CreepySkeleton](https://github.com/CreepySkeleton)
+  ([#225](https://github.com/TeXitoi/structopt/pull/225/))
 
 # v0.2.16 (2019-05-29)
 
