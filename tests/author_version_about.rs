@@ -11,7 +11,7 @@ use structopt::StructOpt;
 #[test]
 fn no_author_version_about() {
     #[derive(StructOpt, PartialEq, Debug)]
-    #[structopt(name = "foo", about = "", author = "", version = "")]
+    #[structopt(name = "foo", no_version)]
     struct Opt {}
 
     let mut output = Vec::new();
@@ -24,7 +24,7 @@ fn no_author_version_about() {
 #[test]
 fn use_env() {
     #[derive(StructOpt, PartialEq, Debug)]
-    #[structopt()]
+    #[structopt(author, about)]
     struct Opt {}
 
     let mut output = Vec::new();
