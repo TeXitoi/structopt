@@ -65,6 +65,12 @@ impl From<LitStr> for Sp<String> {
     }
 }
 
+impl<'a> From<Sp<&'a str>> for Sp<String> {
+    fn from(sp: Sp<&'a str>) -> Self {
+        Sp::new(sp.val.into(), sp.span)
+    }
+}
+
 impl<T: PartialEq> PartialEq for Sp<T> {
     fn eq(&self, other: &Sp<T>) -> bool {
         self.val == other.val

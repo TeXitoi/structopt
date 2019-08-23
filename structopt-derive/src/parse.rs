@@ -1,8 +1,14 @@
+use std::iter::FromIterator;
+
 use proc_macro_error::{span_error, ResultExt};
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
-use syn::{self, parenthesized, parse2, Attribute, Expr, Ident, LitStr, Token};
+use syn::{
+    self, parenthesized,
+    parse::{Parse, ParseStream},
+    parse2,
+    punctuated::Punctuated,
+    spanned::Spanned,
+    Attribute, Expr, ExprLit, Ident, Lit, LitBool, LitStr, Token,
+};
 
 pub struct StructOptAttributes {
     pub paren_token: syn::token::Paren,
@@ -21,16 +27,31 @@ impl Parse for StructOptAttributes {
 }
 
 pub enum StructOptAttr {
+    // single-identifier attributes
     Short(Ident),
     Long(Ident),
     Flatten(Ident),
     Subcommand(Ident),
     Skip(Ident),
-    Parse(Ident, ParserSpec),
+    NoVersion(Ident),
+
+    // ident [= "string literal"]
+    About(Ident, Option<LitStr>),
+    Author(Ident, Option<LitStr>),
+
+    // ident = "string literal"
+    Version(Ident, LitStr),
     RenameAll(Ident, LitStr),
     NameLitStr(Ident, LitStr),
+
+    // parse(parser_kind [= parser_func])
+    Parse(Ident, ParserSpec),
+
+    // ident = arbitrary_expr
     NameExpr(Ident, Expr),
-    MethodCall(Ident, Punctuated<Expr, Token![,]>),
+
+    // ident(arbitrary_expr,*)
+    MethodCall(Ident, Vec<Expr>),
 }
 
 impl Parse for StructOptAttr {
@@ -42,22 +63,45 @@ impl Parse for StructOptAttr {
 
         if input.peek(Token![=]) {
             // `name = value` attributes.
-            input.parse::<Token![=]>()?; // skip '='
+            let assign_token = input.parse::<Token![=]>()?; // skip '='
 
-            match name_str.as_ref() {
-                "rename_all" => {
-                    let casing_lit: LitStr = input.parse()?;
-                    Ok(RenameAll(name, casing_lit))
-                }
+            if input.peek(LitStr) {
+                let lit: LitStr = input.parse()?;
+                let lit_str = lit.value();
 
-                _ => {
-                    if input.peek(LitStr) {
-                        let lit: LitStr = input.parse()?;
-                        Ok(NameLitStr(name, lit))
-                    } else {
-                        let expr: Expr = input.parse()?;
-                        Ok(NameExpr(name, expr))
+                let check_empty_lit = |s| {
+                    if lit_str.is_empty() {
+                        span_error!(lit.span(), "`#[structopt({} = \"\") is deprecated in structopt 3.0, now it's default behavior", s);
                     }
+                };
+
+                match &*name_str.to_string() {
+                    "rename_all" => Ok(RenameAll(name, lit)),
+
+                    "version" => {
+                        check_empty_lit("version");
+                        Ok(Version(name, lit))
+                    }
+
+                    "author" => {
+                        check_empty_lit("author");
+                        Ok(Author(name, Some(lit)))
+                    }
+
+                    "about" => {
+                        check_empty_lit("about");
+                        Ok(About(name, Some(lit)))
+                    }
+
+                    _ => Ok(NameLitStr(name, lit)),
+                }
+            } else {
+                match input.parse::<Expr>() {
+                    Ok(expr) => Ok(NameExpr(name, expr)),
+                    Err(_) => span_error! {
+                        assign_token.span(),
+                        "expected `string literal` or `expression` after `=`"
+                    },
                 }
             }
         } else if input.peek(syn::token::Paren) {
@@ -90,6 +134,16 @@ impl Parse for StructOptAttr {
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
                 "skip" => Ok(Skip(name)),
+                "no_version" => Ok(NoVersion(name)),
+
+                "about" => (Ok(About(name, None))),
+                "author" => (Ok(Author(name, None))),
+
+                "version" => {
+                    span_error!(name.span(),
+                    "#[structopt(version)] is invalid attribute, structopt 3.0 inherits version from Cargo.toml by default, no attribute needed")
+                },
+
                 _ => span_error!(name.span(), "unexpected attribute: {}", name_str),
             }
         }

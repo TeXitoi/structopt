@@ -57,7 +57,7 @@ fn empty_line_in_doc_comment_is_double_linefeed() {
     ///
     /// Bar
     #[derive(StructOpt, PartialEq, Debug)]
-    #[structopt(name = "lorem-ipsum", author = "", version = "")]
+    #[structopt(name = "lorem-ipsum", no_version)]
     struct LoremIpsum {}
 
     let mut output = Vec::new();

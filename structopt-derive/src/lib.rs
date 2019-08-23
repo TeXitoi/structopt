@@ -16,15 +16,15 @@ mod attrs;
 mod parse;
 mod spanned;
 
-use crate::attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty};
-use crate::spanned::Sp;
+use crate::{
+    attrs::{sub_type, Attrs, CasingStyle, Kind, Parser, Ty},
+    spanned::Sp,
+};
+
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::{call_site_error, filter_macro_errors, span_error};
 use quote::{quote, quote_spanned};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
-use syn::token::Comma;
-use syn::*;
+use syn::{punctuated::Punctuated, spanned::Spanned, token::Comma, *};
 
 /// Default casing style for generated arguments.
 const DEFAULT_CASING: CasingStyle = CasingStyle::Kebab;
@@ -154,8 +154,9 @@ fn gen_augmentation(
                         quote!( .takes_value(true).multiple(false).required(#required) #validator )
                     }
                 };
-                let methods = attrs.methods();
+
                 let name = attrs.cased_name();
+                let methods = attrs.field_methods();
 
                 Some(quote! {
                     let #app_var = #app_var.arg(
@@ -282,7 +283,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
     let attrs = Attrs::from_struct(attrs, Sp::call_site(name), Sp::call_site(DEFAULT_CASING));
     let tokens = {
         let name = attrs.cased_name();
-        let methods = attrs.methods();
+        let methods = attrs.top_level_methods();
 
         quote!(::structopt::clap::App::new(#name)#methods)
     };
@@ -372,7 +373,8 @@ fn gen_augment_clap_enum(
         };
 
         let name = attrs.cased_name();
-        let from_attrs = attrs.methods();
+        let from_attrs = attrs.top_level_methods();
+
         quote! {
             .subcommand({
                 let #app_var = ::structopt::clap::SubCommand::with_name(#name);

@@ -4,9 +4,7 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(
     name = "no_version",
-    about = "",
-    version = "",
-    author = "",
+    no_version,
     global_settings = &[AppSettings::DisableVersion]
 )]
 struct Opt {}
