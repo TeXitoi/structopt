@@ -121,9 +121,22 @@ impl Parse for StructOptAttr {
                     }
                 }
 
+                "raw" => {
+                    match nested.parse::<LitBool>() {
+                        Ok(bool_token) => {
+                            let expr = ExprLit { attrs: vec![], lit: Lit::Bool(bool_token) };
+                            let expr = Expr::Lit(expr);
+                            Ok(MethodCall(name, vec![expr]))
+                        }
+
+                        Err(_) => span_error!(name.span(),
+                            "`#[structopt(raw(...))` attributes are deprecated in structopt 3.0, only `raw(true)` and `raw(false)` are allowed")
+                    }
+                }
+
                 _ => {
-                    let method_args = nested.parse_terminated(Expr::parse)?;
-                    Ok(MethodCall(name, method_args))
+                    let method_args: Punctuated<_, Token![,]> = nested.parse_terminated(Expr::parse)?;
+                    Ok(MethodCall(name, Vec::from_iter(method_args)))
                 }
             }
         } else {

@@ -244,7 +244,7 @@ impl Attrs {
 
                 MethodCall(name, args) => self.methods.push(Method {
                     name: name.into(),
-                    args: quote!(#args),
+                    args: quote!(#(#args),*),
                 }),
 
                 RenameAll(_, casing_lit) => {
