@@ -18,7 +18,7 @@ where
 #[derive(StructOpt, Debug)]
 struct Opt {
     // number_of_values = 1 forces the user to repeat the -D option for each key-value pair:
-    // my_program -D a=1 -D b=2 
+    // my_program -D a=1 -D b=2
     // Without number_of_values = 1 you can do:
     // my_program -D a=1 b=2
     // but this makes adding an argument after the values impossible:
