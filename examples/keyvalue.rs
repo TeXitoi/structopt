@@ -1,6 +1,7 @@
 use std::error::Error;
 use structopt::StructOpt;
 
+/// Parse a single key-value pair
 fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where
     T: std::str::FromStr,
@@ -16,7 +17,14 @@ where
 
 #[derive(StructOpt, Debug)]
 struct Opt {
-    #[structopt(short = "D", parse(try_from_str = parse_key_val))]
+    // number_of_values = 1 forces the user to repeat the -D option for each key-value pair:
+    // my_program -D a=1 -D b=2
+    // Without number_of_values = 1 you can do:
+    // my_program -D a=1 b=2
+    // but this makes adding an argument after the values impossible:
+    // my_program -D a=1 -D b=2 my_input_file
+    // becomes invalid.
+    #[structopt(short = "D", parse(try_from_str = parse_key_val), number_of_values = 1)]
     defines: Vec<(String, i32)>,
 }
 
