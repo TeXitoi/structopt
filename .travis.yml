@@ -6,8 +6,6 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
-    - rust: nightly
-      env: FEATURES="--features nightly"
     - rust: stable
       env: RUN=FMT
       before_script: rustup component add rustfmt-preview
