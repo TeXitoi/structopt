@@ -21,7 +21,6 @@
 //! structopt = { version = "0.2", default-features = false }
 //! ```
 //!
-//!
 //! Support for [`paw`](https://github.com/rust-cli/paw) (the
 //! `Command line argument paw-rser abstraction for main`) is disabled
 //! by default, but can be enabled in the `structopt` dependency
@@ -35,7 +34,7 @@
 //!
 //! ## How to `derive(StructOpt)`
 //!
-//! First, let's look at an example:
+//! First, let's look at the example:
 //!
 //! ```should_panic
 //! use std::path::PathBuf;
@@ -45,17 +44,29 @@
 //! #[structopt(name = "example", about = "An example of StructOpt usage.")]
 //! struct Opt {
 //!     /// Activate debug mode
-//!     #[structopt(short = "d", long = "debug")]
+//!     // short and long flags (-d, --debug) will be deduced from the field name
+//!     #[structopt(short, long)]
 //!     debug: bool,
+//!
 //!     /// Set speed
 //!     #[structopt(short = "s", long = "speed", default_value = "42")]
 //!     speed: f64,
+//!
 //!     /// Input file
 //!     #[structopt(parse(from_os_str))]
 //!     input: PathBuf,
+//!
 //!     /// Output file, stdout if not present
 //!     #[structopt(parse(from_os_str))]
 //!     output: Option<PathBuf>,
+//!
+//!     /// Where to write the output: to `stdout` or `file`
+//!     #[structopt(short)]
+//!     out_type: String,
+//!
+//!     /// File name: only required when `out` is set to `file`
+//!     #[structopt(name = "FILE", required_if("out_type", "file"))]
+//!     file_name: String,
 //! }
 //!
 //! fn main() {
@@ -68,54 +79,127 @@
 //! and the various `structopt` attributes are simply
 //! used for additional parameters.
 //!
-//! First, define a struct, whatever its name.  This structure will
-//! correspond to a `clap::App`.  Every method of `clap::App` in the
-//! form of `fn function_name(self, &str)` can be used through attributes
-//! placed on the struct. In our example above, the `about` attribute
-//! will become an `.about("An example of StructOpt usage.")` call on the
-//! generated `clap::App`. There are a few attributes that will default
-//! if not specified:
+//! First, define a struct, whatever its name. This structure
+//! corresponds to a `clap::App`, its fields correspond to `clap::Arg`
+//! (unless they're [subcommands](#subcommands)),
+//! and you can adjust these apps and args by `#[structopt(...)]` attributes.
 //!
-//!   - `name`: The binary name displayed in help messages. Defaults
-//!      to the crate name given by Cargo.
-//!   - `version`: Defaults to the crate version given by Cargo.
-//!   - `author`: Defaults to the crate author name given by Cargo.
-//!   - `about`: Defaults to the crate description given by Cargo.
+//! `#[structopt(...)]` attributes fall into two categories:
+//! - `structopt`'s own [magical methods](#magical-methods), they are used by `structopt` itself.
+//!   They come mostly in `attr = ""` form, but some `attr(args...)` also exist.
+//! - [`raw` attributes](#raw-methods) (explicit `#[structopt(raw(...))]` attrs in
+//!   pre-0.3 `structopt`). They represent explicit `clap::Arg/App` method calls.
 //!
-//! This approach also works for other literals or expressions which
-//! can be used as values of the attributes for corresponding
-//! `clap::App` methods (e.g. for `fn function(self, bool)` and so
-//! on).
-//!
-//! Then, each field of the struct not marked as a subcommand
-//! corresponds to a `clap::Arg`. As with the struct attributes, every
-//! method of `clap::Arg` with one argument can be used through
-//! specifying it as an attribute with a value which is either a
-//! literal or an expression. The `name` attribute can be used to
-//! customize the `Arg::with_name()` call (defaults to the field name
-//! in kebab-case).
-
-//! Some of the rare functions that take more than one argument can be
-//! specified as function calls directly, e.g. `required_if("out",
-//! "file")`. A full example:
-//!
-//! ```
-//! use structopt::StructOpt;
-//!
-//! #[derive(StructOpt, Debug)]
-//! struct Opt {
-//!    /// Where to write the output: to `stdout` or `file`
-//!    #[structopt(short = "o")]
-//!    out_type: String,
-//!
-//!    /// File name: only required when `out` is set to `file`
-//!    #[structopt(name = "FILE", required_if("out_type", "file"))]
-//!    file_name: String,
-//! }
-//! # fn main() {}
+//! Every `structopt attribute` looks like comma-separated sequence of methods:
+//! ```rust,ignore
+//! #[structopt(
+//!     short, // method with no arguments - always magical
+//!     long = "--long-option", // method with one argument
+//!     required_if("out", "file"), // method with one or more args
+//!     parse(from_os_str = path::to::parser) // some magical methods have their own syntax
+//! )]
 //! ```
 //!
-//! The type of the field gives the kind of argument:
+//! `#[structopt(...)]` attributes can be placed on top of `struct`, `enum`, `struct` field
+//! or `enum` variant. Attributes on top of `struct` or `enum` represent `clap::App` method calls,
+//! field or variant attributes correspond to `clap::Arg` method calls.
+//!
+//! In other words, the `Opt` struct from the example above
+//! will be turned into this (*details omitted*):
+//!
+//! ```
+//! # use structopt::clap::{Arg, App};
+//! App::new("example")
+//!     .version("0.2.0")
+//!     .about("An example of StructOpt usage.")
+//! .arg(Arg::with_name("debug")
+//!     .help("Activate debug mode")
+//!     .short("debug")
+//!     .long("debug"))
+//! .arg(Arg::with_name("speed")
+//!     .help("Set speed")
+//!     .short("s")
+//!     .long("speed")
+//!     .default_value("42"))
+//! // and so on
+//! # ;
+//! ```
+//!
+//! ## Raw methods
+//!
+//! They are the reason why `structopt` is so flexible.
+//!
+//! Each and every method from `clap::App` and `clap::Arg` can be used directly -
+//! just `#[structopt(method_name = single_arg)]` or  `#[structopt(method_name(arg1, arg2))]`
+//! and it just works. As long as `method_name` is not one of magical methods -
+//! it's just a method call.
+//!
+//! **Note:** the `Arg::raw` method is allowed only with `true` or `false` literals.
+//!
+//! ## Magical methods
+//!
+//! They are the reason why `structopt` is so easy to use and convenient in most cases.
+//! Many of them have defaults, some of them are used even if not mentioned.
+//!
+//! - `name`: `[name = "name"]`
+//!   - On top of a `struct`: `App::new("name")`.
+//!
+//!     The binary name displayed in help messages. Defaults to the crate name given by Cargo.
+//!
+//!   - On top of a field: `Arg::with_name("name")`.
+//!
+//!     The name for the argument the field stands for, this name appears in help messages.
+//!     Defaults to a name, deduced from a field, see also [`rename_all`](#specifying-argument-types).
+//!
+//! - `version`: `[version = "version"]`
+//!
+//!     Usable only on top of a `struct`: `App::version("version" or env!(CARGO_PKG_VERSION))`.
+//!
+//!     The version displayed in help messages.
+//!     Defaults to the crate version given by Cargo.
+//!
+//! - `no_version`: `no_version`
+//!
+//!     Usable only on top of a `struct`. Prevents default `App::version` call, i.e
+//!     when no `version = "version"` mentioned.
+//!
+//! - `author`: `author [= "author"]`
+//!
+//!     Usable only on top of a `struct`: `App::author("author" or env!(CARGO_PKG_AUTHOR))`.
+//!
+//!     Author/maintainer of the binary, this name appears in help messages.
+//!     Defaults to the crate author given by cargo, but only when `author` explicitly mentioned.
+//!
+//! - `about`: `about [= "about"]`
+//!
+//!     Usable only on top of a `struct`: `App::about("about" or env!(CARGO_PKG_DESCRIPTION))`.
+//!     Short description of the binary, appears in help messages.
+//!     Defaults to the crate description given by cargo,
+//!     but only when `about` explicitly mentioned.
+//!
+//! - [`short`](#specifying-argument-types): `short [= "short-opt-name"]`
+//!
+//!     Usable only on top of a field.
+//!
+//! - [`long`](#specifying-argument-types): `long [= "long-opt-name"]`
+//!
+//!     Usable only on top of a field.
+//!
+//! - [`rename_all`](#specifying-argument-types): [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//!
+//!     Usable only on top of a `struct`
+//!
+//! - [`parse`](#custom-string-parsers): `parse(type [= path::to::parser::fn])`
+//!
+//!     Usable only on top of a field.
+//!
+//! ## Type magic
+//!
+//! One of major things that makes `structopt` so awesome is it's type magic.
+//! Do you want optional positional argument? Use `Option<T>`! Or perhaps optional argument
+//! that optionally takes value (`[--opt=[val]]`)? Use `Option<Option<T>>`!
+//!
+//! Here is the table of types and `clap` methods they correspond to:
 //!
 //! Type                         | Effect                                            | Added method call to `clap::Arg`
 //! -----------------------------|---------------------------------------------------|--------------------------------------
@@ -125,12 +209,6 @@
 //! `Vec<T: FromStr>`            | list of options or the other positional arguments | `.takes_value(true).multiple(true)`
 //! `Option<Vec<T: FromStr>`     | optional list of options                          | `.takes_values(true).multiple(true).min_values(0)`
 //! `T: FromStr`                 | required option or positional argument            | `.takes_value(true).multiple(false).required(!has_default)`
-//!
-//! Note that `Option<Option<T>>` allows to express options like
-//! `[--opt=[val]]` which can have three values: `None` if `--opt` was
-//! not mentioned, `Some(None)` if it was mentioned, but didn't have
-//! value (`--opt`) and `Some(Some(val))` for `--opt=val` case.
-//! Similar reasoning also applies to `Option<Vec<T>>`.
 //!
 //! The `FromStr` trait is used to convert the argument to the given
 //! type, and the `Arg::validator` method is set to a method using

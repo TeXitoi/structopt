@@ -2,45 +2,159 @@
 
 ## Breaking changes
 
-* Bump minimum rust version to 1.34 by [@TeXitoi](https://github.com/TeXitoi)
+### Bump minimum rustc version to 1.34 by [@TeXitoi](https://github.com/TeXitoi)
+Now `rustc` 1.34 is the minimum compiler version supported by `structopt`,
+it likely won't work with older compilers.
 
-* Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all
-  by [@sphynx](https://github.com/sphynx)
-  ([#180](https://github.com/TeXitoi/structopt/issues/188)). This is a breaking change
-  as `Option<Vec<T>>` is handled differently. If you need to have a `Option<Vec<T>>`
-  handled the old was, you can `type Something = Vec<T>;` and then use `Option<Something>`
-  as your structopt field.
+### Remove "nightly" feature
+Once upon a time this feature had been used to enable some of improvements
+in `proc-macro2` crate that were available only on nightly. Nowadays this feature doesn't
+mean anything so it's now removed.
 
-* Change default case from 'Verbatim' into 'Kebab' by [@0ndorio](https://github.com/0ndorio)
-  ([#202](https://github.com/TeXitoi/structopt/issues/202)). This is a breaking change.
-  If you rely on the old behavior you need to add `#[structopt(rename_all = "verbatim")]`
-  as an attribute to each data structure deriving the `StructOpt` trait.
+### Support optional vectors of arguments for distinguishing between `-o 1 2`, `-o` and no option provided at all by [@sphynx](https://github.com/sphynx) ([#180](https://github.com/TeXitoi/structopt/issues/188)).
 
-* Change `version`, `author` and `about` attributes behavior. `version/author/about = ""` is no longer a
-  valid syntax. `author` and `about` are no longer derived from `Cargo.toml` by default, i.e when no
-  attributes mentioned. `version` is still to be derived from `Cargo.toml` by default.
-  Introduced explicit `author` and `about` attributes (with no arguments, i.e `#[structopt(author)]`)
-  for explicit requests to deduce author/about fields from `Cargo.toml`.
-  `version/author/about = "version/author/about"` is still valid syntax.
-  Introduced `no_version` attribute (no args) which prevents version auto deducing by default.
-  Proposed by [@TeXitoi](https://github.com/TeXitoi) [(#217)](https://github.com/TeXitoi/structopt/issues/217), implemented by [@CreepySkeleton](https://github.com/CreepySkeleton) [(#229)](https://github.com/TeXitoi/structopt/pull/229).
+```rust
+#[derive(StructOpt)]
+struct Opt {
+  #[structopt(long)]
+  fruit: Option<Vec<String>>,
+}
 
-## improvements
+fn main() {
+  assert_eq!(Opt::from_args(&["test"]), None);
+  assert_eq!(Opt::from_args(&["test", "--fruit"]), Some(vec![]));
+  assert_eq!(Opt::from_args(&["test", "--fruit=apple orange"]), Some(vec!["apple", "orange"]));
+}
+```
 
-* Support skipping struct fields by [@sphynx](https://github.com/sphynx)
- ([#174](https://github.com/TeXitoi/structopt/issues/174))
+If you need to fall back to the old behavior you can use a type alias:
+```rust
+type Something = Vec<String>;
 
-* Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar)
-  ([#187](https://github.com/TeXitoi/structopt/issues/187))
+#[derive(StructOpt)]
+struct Opt {
+  #[structopt(long)]
+  fruit: Option<Vec<String>>,
+}
+```
 
-* Significantly improve error reporting by [@CreepySkeleton](https://github.com/CreepySkeleton)
-  ([#225](https://github.com/TeXitoi/structopt/pull/225/))
+### Change default case from 'Verbatim' into 'Kebab' by [@0ndorio](https://github.com/0ndorio) ([#202](https://github.com/TeXitoi/structopt/issues/202)).
+`structopt` 0.3 uses field renaming to deduce a name for long options and subcommands.
+
+```rust
+#[derive(StructOpt)]
+struct Opt {
+  #[structopt(long)]
+  http_addr: String, // will be renamed to `--http-addr`
+
+  #[structopt(subcommand)]
+  addr_type: AddrType // this adds `addr-type` subcommand
+}
+```
+
+`structopt` 0.2 used to leave things "as is", not renaming anything. If you want to keep old
+behavior add `#[structopt(rename_all = "verbatim")]` on top of a `struct`/`enum`.
+
+### Change `version`, `author` and `about` attributes behavior.
+Proposed by [@TeXitoi](https://github.com/TeXitoi) [(#217)](https://github.com/TeXitoi/structopt/issues/217), implemented by [@CreepySkeleton](https://github.com/CreepySkeleton) [(#229)](https://github.com/TeXitoi/structopt/pull/229).
+
+`structopt` have been deducing `version`, `author`, and `about` properties from `Cargo.toml`
+for a long time (more accurately, from `CARGO_PKG_...` environment variables).
+But many users found this behavior somewhat confusing, and a hack was added to cancel out
+this behavior: `#[structopt(author = "")]`.
+
+In `structopt` 0.3 this has changed.
+* `author` and `about` are no longer deduced by default. You should use `#[structopt(author, about)]`
+  to explicitly request `structopt` to deduce them.
+* Contrary, `version` **is still deduced by default**. You can use `#[structopt(no_version)]` to
+  cancel it out.
+* `#[structopt(author = "", about = "", version = "")]` is no longer a valid syntax
+  and will trigger an error.
+* `#[structopt(version = "version", author = "author", about = "about")]` syntax
+  stays unaffected by this changes.
+
+### Raw attributes are removed ([#198](https://github.com/TeXitoi/structopt/pull/198)) by [@sphynx](https://github.com/sphynx)
+In `structopt` 0.2 you were able to use any method from `clap::App` and `clap::Arg` via
+raw attribute: `#[structopt(raw(method_name = "arg"))]`. This syntax was kind of awkward.
+
+```rust
+#[derive(StructOpt, Debug)]
+#[structopt(raw(
+    global_settings = "&[AppSettings::ColoredHelp, AppSettings::VersionlessSubcommands]"
+))]
+struct Opt {
+    #[structopt(short = "l", long = "level", raw(aliases = r#"&["set-level", "lvl"]"#))]
+    level: Vec<String>,
+}
+```
+
+Raw attributes were removed in 0.3. Now you can use any method from `App` and `Arg` *directly*:
+```rust
+#[derive(StructOpt)]
+#[structopt(global_settings(&[AppSettings::ColoredHelp, AppSettings::VersionlessSubcommands]))]
+struct Opt {
+    #[structopt(short = "l", long = "level", aliases(&["set-level", "lvl"]))]
+    level: Vec<String>,
+}
+```
+
+## Improvements
+
+### Support skipping struct fields
+Proposed by [@Morganamilo](https://github.com/Morganamilo) in ([#174](https://github.com/TeXitoi/structopt/issues/174))
+implemented by [@sphynx](https://github.com/sphynx) in ([#213](https://github.com/TeXitoi/structopt/issues/213)).
+
+Sometimes you want to include some fields in your `StructOpt` `struct` that are not options
+and `clap` should know nothing about them. In `structopt` 0.3 it's possible via the
+`#[structopt(skip)]` attribute. The field in question will be assigned with `Default::default()`
+value.
+
+```rust
+#[derive(StructOpt)]
+struct Opt {
+    #[structopt(short, long)]
+    speed: f32,
+
+    car: String,
+
+    // this field should not generate any arguments
+    #[structopt(skip)]
+    meta: Vec<u64>
+}
+```
+
+### Add optional feature to support `paw` by [@gameldar](https://github.com/gameldar) ([#187](https://github.com/TeXitoi/structopt/issues/187))
+
+### Significantly improve error reporting by [@CreepySkeleton](https://github.com/CreepySkeleton) ([#225](https://github.com/TeXitoi/structopt/pull/225/))
+Now (almost) every error message points to the location it originates from:
+
+```text
+error: default_value is meaningless for bool
+  --> $DIR/bool_default_value.rs:14:24
+   |
+14 |     #[structopt(short, default_value = true)]
+   |                        ^^^^^^^^^^^^^
+```
 
 # v0.2.16 (2019-05-29)
 
-* Support optional options with optional argument, allowing `cmd [--opt[=value]]`
-  by [@sphynx](https://github.com/sphynx)
-  ([#188](https://github.com/TeXitoi/structopt/issues/188))
+### Support optional options with optional argument, allowing `cmd [--opt[=value]]` by [@sphynx](https://github.com/sphynx) ([#188](https://github.com/TeXitoi/structopt/issues/188))
+Sometimes you want to represent an optional option that optionally takes an argument,
+i.e `[--opt[=value]]`. This is represented by `Option<Option<T>>`
+
+```rust
+#[derive(StructOpt)]
+struct Opt {
+  #[structopt(long)]
+  fruit: Option<Option<String>>,
+}
+
+fn main() {
+  assert_eq!(Opt::from_args(&["test"]), None);
+  assert_eq!(Opt::from_args(&["test", "--fruit"]), Some(None));
+  assert_eq!(Opt::from_args(&["test", "--fruit=apple"]), Some("apple"));
+}
+```
 
 # v0.2.15 (2019-03-08)
 
