@@ -13,7 +13,6 @@ readme = "README.md"
 
 [features]
 default = ["clap/default"]
-nightly = ["structopt-derive/nightly"]
 suggestions = ["clap/suggestions"]
 color = ["clap/color"]
 wrap_help = ["clap/wrap_help"]
@@ -33,5 +32,6 @@ structopt-derive = { path = "structopt-derive", version = "0.3.0" }
 
 [dev-dependencies]
 trybuild = "1.0.5"
+version_check = "0.9"
 
 [workspace]
