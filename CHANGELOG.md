@@ -1,9 +1,9 @@
-# v0.3.0 (2019-06-XX)
+# v0.3.0 (2019-08-30)
 
 ## Breaking changes
 
-### Bump minimum rustc version to 1.34 by [@TeXitoi](https://github.com/TeXitoi)
-Now `rustc` 1.34 is the minimum compiler version supported by `structopt`,
+### Bump minimum rustc version to 1.36 by [@TeXitoi](https://github.com/TeXitoi)
+Now `rustc` 1.36 is the minimum compiler version supported by `structopt`,
 it likely won't work with older compilers.
 
 ### Remove "nightly" feature

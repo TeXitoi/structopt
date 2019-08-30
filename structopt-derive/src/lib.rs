@@ -118,18 +118,11 @@ fn gen_augmentation(
 
                 let (parser, f) = attrs.parser();
                 let validator = match **parser {
-                    // clippy v0.0.212 (1fac380 2019-02-20) produces `redundant_closure` warnings
-                    // for `.map_err(|e| e.to_string())` when `e` is a reference
-                    // (e.g. `&'static str`). To suppress the warning, we have to write
-                    // `|e| (&e).to_string()` since `e` may be a reference or non-reference.
-                    // When Rust 1.35 is released, this hack will be obsolete because the next
-                    // stable clippy is going to stop triggering the warning for macros.
-                    // https://github.com/rust-lang/rust-clippy/pull/3816
                     Parser::TryFromStr => quote! {
                         .validator(|s| {
                             #f(&s)
                             .map(|_: #convert_type| ())
-                            .map_err(|e| (&e).to_string())
+                            .map_err(|e| e.to_string())
                         })
                     },
                     Parser::TryFromOsStr => quote! {
