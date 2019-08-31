@@ -71,7 +71,7 @@ impl Parse for StructOptAttr {
 
                 let check_empty_lit = |s| {
                     if lit_str.is_empty() {
-                        span_error!(lit.span(), "`#[structopt({} = \"\") is deprecated in structopt 3.0, now it's default behavior", s);
+                        span_error!(lit.span(), "`#[structopt({} = \"\") is deprecated in structopt 0.3, now it's default behavior", s);
                     }
                 };
 
@@ -130,7 +130,7 @@ impl Parse for StructOptAttr {
                         }
 
                         Err(_) => span_error!(name.span(),
-                            "`#[structopt(raw(...))` attributes are deprecated in structopt 3.0, only `raw(true)` and `raw(false)` are allowed")
+                            "`#[structopt(raw(...))` attributes are deprecated in structopt 0.3, only `raw(true)` and `raw(false)` are allowed")
                     }
                 }
 
@@ -154,7 +154,7 @@ impl Parse for StructOptAttr {
 
                 "version" => {
                     span_error!(name.span(),
-                    "#[structopt(version)] is invalid attribute, structopt 3.0 inherits version from Cargo.toml by default, no attribute needed")
+                    "#[structopt(version)] is invalid attribute, structopt 0.3 inherits version from Cargo.toml by default, no attribute needed")
                 },
 
                 _ => span_error!(name.span(), "unexpected attribute: {}", name_str),
