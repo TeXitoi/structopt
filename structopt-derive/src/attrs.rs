@@ -484,7 +484,11 @@ impl Attrs {
                 res.kind = Sp::new(Kind::Subcommand(ty), res.kind.span());
             }
             Kind::Skip => {
-                if let Some(m) = res.methods.iter().find(|m| m.name != "help") {
+                if let Some(m) = res
+                    .methods
+                    .iter()
+                    .find(|m| m.name != "help" && m.name != "long_help")
+                {
                     span_error!(m.name.span(), "methods are not allowed for skipped fields");
                 }
             }

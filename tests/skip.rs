@@ -92,3 +92,35 @@ fn skip_enum() {
         }
     );
 }
+
+#[test]
+fn skip_help_doc_comments() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    #[structopt(name = "a")]
+    pub struct Opt {
+        #[structopt(skip, help = "internal_stuff")]
+        a: u32,
+
+        #[structopt(skip, long_help = "internal_stuff\ndo not touch")]
+        b: u32,
+
+        /// Not meant to be used by clap.
+        ///
+        /// I want a default here.
+        #[structopt(skip)]
+        c: u32,
+
+        #[structopt(short, parse(try_from_str))]
+        n: u32,
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "-n", "10"]),
+        Opt {
+            n: 10,
+            a: 0,
+            b: 0,
+            c: 0,
+        }
+    );
+}

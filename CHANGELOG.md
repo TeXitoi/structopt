@@ -1,5 +1,6 @@
 # v0.3.1 (2019-08-31)
 * Fix error messages ([#241](https://github.com/TeXitoi/structopt/issues/241))
+* Fix "`skip` plus long doc comment" bug ([#245](https://github.com/TeXitoi/structopt/issues/245))
 
 # v0.3.0 (2019-08-30)
 
