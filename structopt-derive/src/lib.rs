@@ -22,7 +22,7 @@ use crate::{
 };
 
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::{call_site_error, filter_macro_errors, span_error};
+use proc_macro_error::{call_site_error, filter_macro_errors, set_dummy, span_error};
 use quote::{quote, quote_spanned};
 use syn::{punctuated::Punctuated, spanned::Spanned, token::Comma, *};
 
@@ -519,6 +519,18 @@ fn impl_structopt(input: &DeriveInput) -> TokenStream {
     use syn::Data::*;
 
     let struct_name = &input.ident;
+
+    set_dummy(Some(quote! {
+        impl ::structopt::StructOpt for #struct_name {
+            fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
+                unimplemented!()
+            }
+            fn from_clap(_matches: &::structopt::clap::ArgMatches) -> Self {
+                unimplemented!()
+            }
+        }
+    }));
+
     match input.data {
         Struct(DataStruct {
             fields: syn::Fields::Named(ref fields),
