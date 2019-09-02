@@ -23,4 +23,7 @@ struct Opt {
     opts: DaemonOpts,
 }
 
-fn main() {}
+fn main() {
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+}

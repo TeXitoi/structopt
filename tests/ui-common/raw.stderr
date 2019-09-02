@@ -1,0 +1,5 @@
+error: `#[structopt(raw(...))` attributes are deprecated in structopt 0.3, only `raw(true)` and `raw(false)` are allowed
+  --> $DIR/raw.rs:13:17
+   |
+13 |     #[structopt(raw(case_insensitive = "true"))]
+   |                 ^^^

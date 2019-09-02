@@ -12,4 +12,7 @@ use structopt::StructOpt;
 #[structopt(name = "basic")]
 struct Opt(u32);
 
-fn main() {}
+fn main() {
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+}

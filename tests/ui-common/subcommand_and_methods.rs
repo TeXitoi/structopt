@@ -8,7 +8,7 @@
 
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 #[structopt(name = "make-cookie")]
 struct MakeCookie {
     #[structopt(short)]
@@ -18,7 +18,7 @@ struct MakeCookie {
     cmd: Command,
 }
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 enum Command {
     #[structopt(name = "pound")]
     /// Pound acorns into flour for cookie dough.
@@ -30,4 +30,7 @@ enum Command {
     },
 }
 
-fn main() {}
+fn main() {
+    let opt = MakeCookie::from_args();
+    println!("{:?}", opt);
+}
