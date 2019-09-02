@@ -16,11 +16,14 @@ enum Kind {
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "test")]
-pub struct Opts {
+pub struct Opt {
     #[structopt(short)]
     number: u32,
     #[structopt(skip)]
     k: Kind,
 }
 
-fn main() {}
+fn main() {
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+}

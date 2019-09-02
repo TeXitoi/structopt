@@ -15,4 +15,7 @@ struct Opt {
     b: bool,
 }
 
-fn main() {}
+fn main() {
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+}
