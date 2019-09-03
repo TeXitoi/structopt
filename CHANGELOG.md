@@ -40,7 +40,7 @@ type Something = Vec<String>;
 #[derive(StructOpt)]
 struct Opt {
   #[structopt(long)]
-  fruit: Option<Vec<String>>,
+  fruit: Option<Something>,
 }
 ```
 
