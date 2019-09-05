@@ -44,12 +44,13 @@
 //! #[structopt(name = "example", about = "An example of StructOpt usage.")]
 //! struct Opt {
 //!     /// Activate debug mode
-//!     // short and long flags (-d, --debug) will be deduced from the field name
+//!     // short and long flags (-d, --debug) will be deduced from the field's name
 //!     #[structopt(short, long)]
 //!     debug: bool,
 //!
 //!     /// Set speed
-//!     #[structopt(short = "s", long = "speed", default_value = "42")]
+//!     // we don't want to name it "speed", need to look smart
+//!     #[structopt(short = "v", long = "velocity", default_value = "42")]
 //!     speed: f64,
 //!
 //!     /// Input file
@@ -82,27 +83,35 @@
 //! First, define a struct, whatever its name. This structure
 //! corresponds to a `clap::App`, its fields correspond to `clap::Arg`
 //! (unless they're [subcommands](#subcommands)),
-//! and you can adjust these apps and args by `#[structopt(...)]` attributes.
+//! and you can adjust these apps and args by `#[structopt(...)]` [attributes](#attributes).
+//!
+//! ## Attributes
 //!
 //! `#[structopt(...)]` attributes fall into two categories:
-//! - `structopt`'s own [magical methods](#magical-methods), they are used by `structopt` itself.
-//!   They come mostly in `attr = ""` form, but some `attr(args...)` also exist.
-//! - [`raw` attributes](#raw-methods) (explicit `#[structopt(raw(...))]` attrs in
-//!   pre-0.3 `structopt`). They represent explicit `clap::Arg/App` method calls.
+//! - `structopt`'s own [magical methods](#magical-methods).
+//!
+//!    They are used by `structopt` itself. They come mostly in
+//!    `attr = ["whatever"]` form, but some `attr(args...)` also exist.
+//!
+//! - [`raw` attributes](#raw-methods).
+//!
+//!     They represent explicit `clap::Arg/App` method calls.
+//!     They are what used to be explicit `#[structopt(raw(...))]` attrs in pre-0.3 `structopt`
 //!
 //! Every `structopt attribute` looks like comma-separated sequence of methods:
 //! ```rust,ignore
 //! #[structopt(
 //!     short, // method with no arguments - always magical
 //!     long = "--long-option", // method with one argument
-//!     required_if("out", "file"), // method with one or more args
+//!     required_if("out", "file"), // method with one and more args
 //!     parse(from_os_str = path::to::parser) // some magical methods have their own syntax
 //! )]
 //! ```
 //!
-//! `#[structopt(...)]` attributes can be placed on top of `struct`, `enum`, `struct` field
-//! or `enum` variant. Attributes on top of `struct` or `enum` represent `clap::App` method calls,
-//! field or variant attributes correspond to `clap::Arg` method calls.
+//! `#[structopt(...)]` attributes can be placed on top of `struct`, `enum`,
+//! `struct` field or `enum` variant. Attributes on top of `struct` or `enum`
+//! represent `clap::App` method calls, field or variant attributes correspond
+//! to `clap::Arg` method calls.
 //!
 //! In other words, the `Opt` struct from the example above
 //! will be turned into this (*details omitted*):
@@ -130,8 +139,8 @@
 //! They are the reason why `structopt` is so flexible.
 //!
 //! Each and every method from `clap::App` and `clap::Arg` can be used directly -
-//! just `#[structopt(method_name = single_arg)]` or  `#[structopt(method_name(arg1, arg2))]`
-//! and it just works. As long as `method_name` is not one of magical methods -
+//! just `#[structopt(method_name = single_arg)]` or `#[structopt(method_name(arg1, arg2))]`
+//! and it just works. As long as `method_name` is not one of the magical methods -
 //! it's just a method call.
 //!
 //! **Note:** the `Arg::raw` method is allowed only with `true` or `false` literals.
@@ -139,59 +148,98 @@
 //! ## Magical methods
 //!
 //! They are the reason why `structopt` is so easy to use and convenient in most cases.
-//! Many of them have defaults, some of them are used even if not mentioned.
+//! Many of them have defaults, some of them get used even if not mentioned.
+//!
+//! Methods may be used on "top level" (on top of a `struct`, `enum` or `enum` variant)
+//! and/or on "field-level" (on top of a `struct` field or *inside* of an enum variant).
+//! Top level (non-magical) methods correspond to `App::method` calls, field-level methods
+//! are `Arg::method` calls.
+//!
+//! ```ignore
+//! #[structopt(top_level)]
+//! struct Foo {
+//!     #[structopt(field_level)]
+//!     field: u32
+//! }
+//!
+//! #[structopt(top_level)]
+//! enum Bar {
+//!     #[structopt(top_level)]
+//!     Pineapple {
+//!         #[structopt(field_level)]
+//!         chocolate: String
+//!     },
+//!
+//!     #[structopt(top_level)]
+//!     Orange,
+//! }
+//! ```
 //!
 //! - `name`: `[name = "name"]`
-//!   - On top of a `struct`: `App::new("name")`.
+//!   - On top level: `App::new("name")`.
 //!
 //!     The binary name displayed in help messages. Defaults to the crate name given by Cargo.
 //!
-//!   - On top of a field: `Arg::with_name("name")`.
+//!   - On field-level: `Arg::with_name("name")`.
 //!
 //!     The name for the argument the field stands for, this name appears in help messages.
 //!     Defaults to a name, deduced from a field, see also [`rename_all`](#specifying-argument-types).
 //!
 //! - `version`: `[version = "version"]`
 //!
-//!     Usable only on top of a `struct`: `App::version("version" or env!(CARGO_PKG_VERSION))`.
+//!     Usable only on top level: `App::version("version" or env!(CARGO_PKG_VERSION))`.
 //!
 //!     The version displayed in help messages.
-//!     Defaults to the crate version given by Cargo.
+//!     Defaults to the crate version given by Cargo. If `CARGO_PKG_VERSION` is not
+//!     set no `.version()` calls will be generated unless requested.
 //!
 //! - `no_version`: `no_version`
 //!
-//!     Usable only on top of a `struct`. Prevents default `App::version` call, i.e
+//!     Usable only on top level. Prevents default `App::version` call, i.e
 //!     when no `version = "version"` mentioned.
 //!
 //! - `author`: `author [= "author"]`
 //!
-//!     Usable only on top of a `struct`: `App::author("author" or env!(CARGO_PKG_AUTHOR))`.
+//!     Usable only on top level: `App::author("author" or env!(CARGO_PKG_AUTHOR))`.
 //!
 //!     Author/maintainer of the binary, this name appears in help messages.
 //!     Defaults to the crate author given by cargo, but only when `author` explicitly mentioned.
 //!
 //! - `about`: `about [= "about"]`
 //!
-//!     Usable only on top of a `struct`: `App::about("about" or env!(CARGO_PKG_DESCRIPTION))`.
+//!     Usable only on top level: `App::about("about" or env!(CARGO_PKG_DESCRIPTION))`.
+//!
 //!     Short description of the binary, appears in help messages.
 //!     Defaults to the crate description given by cargo,
 //!     but only when `about` explicitly mentioned.
 //!
 //! - [`short`](#specifying-argument-types): `short [= "short-opt-name"]`
 //!
-//!     Usable only on top of a field.
+//!     Usable only on field-level.
 //!
 //! - [`long`](#specifying-argument-types): `long [= "long-opt-name"]`
 //!
-//!     Usable only on top of a field.
+//!     Usable only on field-level.
 //!
 //! - [`rename_all`](#specifying-argument-types): [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
 //!
-//!     Usable only on top of a `struct`
+//!     Usable only on top level
 //!
 //! - [`parse`](#custom-string-parsers): `parse(type [= path::to::parser::fn])`
 //!
-//!     Usable only on top of a field.
+//!     Usable only on field-level.
+//!
+//! - [`skip`](#skipping-fields): `skip`
+//!
+//!     Usable only on field-level.
+//!
+//! - [`flatten`](#flattening): `flatten`
+//!
+//!     Usable only on field-level.
+//!
+//! - [`subcommand`](#subcommands): `subcommand`
+//!
+//!     Usable only on field-level.
 //!
 //! ## Type magic
 //!
@@ -257,11 +305,6 @@
 //! If an argument is renamed using `name = $NAME` any following call to
 //! `short` or `long` will use the new name.
 //!
-//! If you want to omit a struct field from the parsing process
-//! altogether and just use a default value for it, you can annotate
-//! the field with `#[structopt(skip)]`. Note that the field type has
-//! to implement `std::default::Default` then.
-//!
 //! **Attention**: If these arguments are used without an explicit name
 //! the resulting flag is going to be renamed using `kebab-case` if the
 //! `rename_all` attribute was not specified previously. The same is true
@@ -320,10 +363,9 @@
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! #[structopt(name = "foo")]
 //! /// The help message that will be displayed when passing `--help`.
 //! struct Foo {
-//!   #[structopt(short = "b")]
+//!   #[structopt(short)]
 //!   /// The description for the arg that will be displayed when passing `--help`.
 //!   bar: String
 //! }
@@ -354,10 +396,9 @@
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! #[structopt(name = "foo")]
 //! /// The help message that will be displayed when passing `--help`.
 //! struct Foo {
-//!   #[structopt(short = "b")]
+//!   #[structopt(short)]
 //!   /// Only this summary is visible when passing `-h`.
 //!   ///
 //!   /// But the whole comment will be displayed when passing `--help`.
@@ -370,16 +411,16 @@
 //!
 //! ## Environment Variable Fallback
 //!
-//! It is possible to specify an environment variable fallback option for an arguments, so that its value is taken
-//! from the specified environment variable if not given through the command-line:
+//! It is possible to specify an environment variable fallback option for an arguments
+//! so that its value is taken from the specified environment variable if not
+//! given through the command-line:
 //!
 //! ```
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! #[structopt(name = "foo")]
 //! struct Foo {
-//!   #[structopt(short = "p", long = "param", env = "PARAMETER_VALUE")]
+//!   #[structopt(short, long, env = "PARAMETER_VALUE")]
 //!   param: String
 //! }
 //! # fn main() {}
@@ -402,14 +443,19 @@
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! #[structopt(name = "foo")]
 //! struct Foo {
 //!   #[structopt(long = "secret", env = "SECRET_VALUE", hide_env_values = true)]
 //!   param: String
 //! }
 //! # fn main() {}
 //! ```
-
+//!
+//! ## Skipping fields
+//!
+//! Sometimes you may want to add a field to your `Opt` struct that is not
+//! a command line option and `clap` should know nothing about it. You can ask
+//! `structopt` to skip the field entirely via `#[structopt(skip)]`. Note that
+//! the field type has to implement `std::default::Default` then.
 //!
 //! ## Subcommands
 //!
@@ -426,30 +472,27 @@
 //!
 //! # use std::path::PathBuf;
 //! #[derive(StructOpt)]
-//! #[structopt(name = "git", about = "the stupid content tracker")]
+//! #[structopt(about = "the stupid content tracker")]
 //! enum Git {
-//!     #[structopt(name = "add")]
 //!     Add {
-//!         #[structopt(short = "i")]
+//!         #[structopt(short)]
 //!         interactive: bool,
-//!         #[structopt(short = "p")]
+//!         #[structopt(short)]
 //!         patch: bool,
 //!         #[structopt(parse(from_os_str))]
 //!         files: Vec<PathBuf>
 //!     },
-//!     #[structopt(name = "fetch")]
 //!     Fetch {
-//!         #[structopt(long = "dry-run")]
+//!         #[structopt(long)]
 //!         dry_run: bool,
-//!         #[structopt(long = "all")]
+//!         #[structopt(long)]
 //!         all: bool,
 //!         repository: Option<String>
 //!     },
-//!     #[structopt(name = "commit")]
 //!     Commit {
-//!         #[structopt(short = "m")]
+//!         #[structopt(short)]
 //!         message: Option<String>,
-//!         #[structopt(short = "a")]
+//!         #[structopt(short)]
 //!         all: bool
 //!     }
 //! }
@@ -467,11 +510,9 @@
 //! # use structopt::StructOpt;
 //! # fn main() {}
 //! #[derive(StructOpt)]
-//! #[structopt(name = "make-cookie")]
 //! struct MakeCookie {
 //!     #[structopt(name = "supervisor", default_value = "Puck", long = "supervisor")]
 //!     supervising_faerie: String,
-//!     #[structopt(name = "tree")]
 //!     /// The faerie tree this cookie is being made in.
 //!     tree: Option<String>,
 //!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand
@@ -480,27 +521,24 @@
 //!
 //! #[derive(StructOpt)]
 //! enum Command {
-//!     #[structopt(name = "pound")]
 //!     /// Pound acorns into flour for cookie dough.
 //!     Pound {
 //!         acorns: u32
 //!     },
-//!     #[structopt(name = "sparkle")]
 //!     /// Add magical sparkles -- the secret ingredient!
 //!     Sparkle {
-//!         #[structopt(short = "m", parse(from_occurrences))]
+//!         #[structopt(short, parse(from_occurrences))]
 //!         magicality: u64,
-//!         #[structopt(short = "c")]
+//!         #[structopt(short)]
 //!         color: String
 //!     },
-//!     #[structopt(name = "finish")]
 //!     Finish(Finish),
 //! }
 //!
 //! // Subcommand can also be externalized by using a 1-uple enum variant
 //! #[derive(StructOpt)]
 //! struct Finish {
-//!     #[structopt(short = "t")]
+//!     #[structopt(short)]
 //!     time: u32,
 //!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand
 //!     finish_type: FinishType
@@ -509,11 +547,9 @@
 //! // subsubcommand!
 //! #[derive(StructOpt)]
 //! enum FinishType {
-//!     #[structopt(name = "glaze")]
 //!     Glaze {
 //!         applications: u32
 //!     },
-//!     #[structopt(name = "powder")]
 //!     Powder {
 //!         flavor: String,
 //!         dips: u32
@@ -538,7 +574,6 @@
 //! # use structopt::StructOpt;
 //! # fn main() {}
 //! #[derive(StructOpt)]
-//! #[structopt(name = "foo")]
 //! struct Foo {
 //!     file: String,
 //!     #[structopt(subcommand)]
@@ -564,7 +599,8 @@
 //! # fn main() {}
 //! #[derive(StructOpt)]
 //! struct Cmdline {
-//!     #[structopt(short = "v", help = "switch on verbosity")]
+//!     /// switch on verbosity
+//!     #[structopt(short)]
 //!     verbose: bool,
 //!     #[structopt(flatten)]
 //!     daemon_opts: DaemonOpts,
@@ -572,9 +608,11 @@
 //!
 //! #[derive(StructOpt)]
 //! struct DaemonOpts {
-//!     #[structopt(short = "u", help = "daemon user")]
+//!     /// daemon user
+//!     #[structopt(short)]
 //!     user: String,
-//!     #[structopt(short = "g", help = "daemon group")]
+//!     /// daemon group
+//!     #[structopt(short)]
 //!     group: String,
 //! }
 //! ```
@@ -604,9 +642,9 @@
 //!
 //! #[derive(StructOpt)]
 //! struct HexReader {
-//!     #[structopt(short = "n", parse(try_from_str = parse_hex))]
+//!     #[structopt(short, parse(try_from_str = parse_hex))]
 //!     number: u32,
-//!     #[structopt(short = "o", parse(from_os_str))]
+//!     #[structopt(short, parse(from_os_str))]
 //!     output: PathBuf,
 //! }
 //! ```
