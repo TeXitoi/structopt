@@ -3,6 +3,7 @@
 * Fix "`skip` plus long doc comment" bug ([#245](https://github.com/TeXitoi/structopt/issues/245))
 * Now `structopt` emits dummy `StructOpt` implementation along with an error. It suppresses
   meaningless errors like `from_args method is not found for Opt`
+* `.version()` not get generated if `CARGO_PKG_VERSION` is not set anymore.
 
 # v0.3.0 (2019-08-30)
 
