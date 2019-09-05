@@ -12,7 +12,7 @@ use std::env;
 
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::{call_site_error, span_error};
+use proc_macro_error::span_error;
 use quote::quote;
 use syn::{
     self, spanned::Spanned, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident,
@@ -576,10 +576,11 @@ impl Attrs {
             (None, Some((_, version))) => quote!(.version(#version)),
 
             (None, None) => {
-                let version = env::var("CARGO_PKG_VERSION").unwrap_or_else(|_|{
-                    call_site_error!("`CARGO_PKG_VERSION` environment variable is not defined, use `version = \"version\" to set it manually or `no_version` to not set it at all")
-                });
-                quote!(.version(#version))
+                if let Ok(version) = std::env::var("CARGO_PKG_VERSION") {
+                    quote!(.version(#version))
+                } else {
+                    TokenStream::new()
+                }
             }
 
             (Some(_), None) => TokenStream::new(),
