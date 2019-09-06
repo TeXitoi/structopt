@@ -1,4 +1,5 @@
-# v0.3.1 (2019-08-31)
+# v0.3.1 (2019-09-06)
+
 * Fix error messages ([#241](https://github.com/TeXitoi/structopt/issues/241))
 * Fix "`skip` plus long doc comment" bug ([#245](https://github.com/TeXitoi/structopt/issues/245))
 * Now `structopt` emits dummy `StructOpt` implementation along with an error. It suppresses
