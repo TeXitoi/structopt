@@ -183,7 +183,8 @@
 //!   - On field-level: `Arg::with_name("name")`.
 //!
 //!     The name for the argument the field stands for, this name appears in help messages.
-//!     Defaults to a name, deduced from a field, see also [`rename_all`](#specifying-argument-types).
+//!     Defaults to a name, deduced from a field, see also
+//!     [`rename_all`](#specifying-argument-types).
 //!
 //! - `version`: `[version = "version"]`
 //!
