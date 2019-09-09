@@ -46,6 +46,10 @@ fn help_is_better_than_comments() {
     LoremIpsum::clap().write_long_help(&mut output).unwrap();
     let output = String::from_utf8(output).unwrap();
 
+    for line in output.split("\n") {
+        println!("{:#?}", line);
+    }
+
     assert!(output.contains("Dolor sit amet"));
     assert!(!output.contains("Lorem ipsum"));
     assert!(output.contains("DO NOT PASS A BAR"));
