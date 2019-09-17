@@ -1,7 +1,6 @@
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug, PartialEq)]
-#[structopt(name = "a")]
 pub struct Opt {
     #[structopt(long, short)]
     number: u32,
@@ -9,10 +8,16 @@ pub struct Opt {
     k: Kind,
     #[structopt(skip)]
     v: Vec<u32>,
+
+    #[structopt(skip = Kind::A)]
+    k2: Kind,
+    #[structopt(skip = vec![1, 2, 3])]
+    v2: Vec<u32>,
+    #[structopt(skip = "cake")]
+    s: String,
 }
 
 #[derive(Debug, PartialEq)]
-#[allow(unused)]
 enum Kind {
     A,
     B,
@@ -31,6 +36,10 @@ fn main() {
             number: 10,
             k: Kind::B,
             v: vec![],
+
+            k2: Kind::A,
+            v2: vec![1, 2, 3],
+            s: String::from("cake")
         }
     );
 }

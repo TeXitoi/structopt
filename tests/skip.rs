@@ -73,7 +73,6 @@ fn skip_enum() {
     }
 
     #[derive(StructOpt, Debug, PartialEq)]
-    #[structopt(name = "a")]
     pub struct Opt {
         #[structopt(long, short)]
         number: u32,
@@ -96,7 +95,6 @@ fn skip_enum() {
 #[test]
 fn skip_help_doc_comments() {
     #[derive(StructOpt, Debug, PartialEq)]
-    #[structopt(name = "a")]
     pub struct Opt {
         #[structopt(skip, help = "internal_stuff")]
         a: u32,
@@ -121,6 +119,30 @@ fn skip_help_doc_comments() {
             a: 0,
             b: 0,
             c: 0,
+        }
+    );
+}
+
+#[test]
+fn skip_val() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    pub struct Opt {
+        #[structopt(long, short)]
+        number: u32,
+
+        #[structopt(skip = "key")]
+        k: String,
+
+        #[structopt(skip = vec![1, 2, 3])]
+        v: Vec<u32>,
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "-n", "10"]),
+        Opt {
+            number: 10,
+            k: "key".into(),
+            v: vec![1, 2, 3]
         }
     );
 }

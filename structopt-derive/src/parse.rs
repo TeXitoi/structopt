@@ -32,7 +32,6 @@ pub enum StructOptAttr {
     Long(Ident),
     Flatten(Ident),
     Subcommand(Ident),
-    Skip(Ident),
     NoVersion(Ident),
 
     // ident [= "string literal"]
@@ -46,6 +45,9 @@ pub enum StructOptAttr {
 
     // parse(parser_kind [= parser_func])
     Parse(Ident, ParserSpec),
+
+    // ident [= arbitrary_expr]
+    Skip(Ident, Option<Expr>),
 
     // ident = arbitrary_expr
     NameExpr(Ident, Expr),
@@ -93,11 +95,27 @@ impl Parse for StructOptAttr {
                         Ok(About(name, Some(lit)))
                     }
 
+                    "skip" => {
+                        let expr = ExprLit {
+                            attrs: vec![],
+                            lit: Lit::Str(lit),
+                        };
+                        let expr = Expr::Lit(expr);
+                        Ok(Skip(name, Some(expr)))
+                    }
+
                     _ => Ok(NameLitStr(name, lit)),
                 }
             } else {
                 match input.parse::<Expr>() {
-                    Ok(expr) => Ok(NameExpr(name, expr)),
+                    Ok(expr) => {
+                        if name_str == "skip" {
+                            Ok(Skip(name, Some(expr)))
+                        } else {
+                            Ok(NameExpr(name, expr))
+                        }
+                    }
+
                     Err(_) => span_error! {
                         assign_token.span(),
                         "expected `string literal` or `expression` after `=`"
@@ -146,11 +164,12 @@ impl Parse for StructOptAttr {
                 "short" => Ok(Short(name)),
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
-                "skip" => Ok(Skip(name)),
                 "no_version" => Ok(NoVersion(name)),
 
                 "about" => (Ok(About(name, None))),
                 "author" => (Ok(Author(name, None))),
+
+                "skip" => Ok(Skip(name, None)),
 
                 "version" => {
                     span_error!(name.span(),

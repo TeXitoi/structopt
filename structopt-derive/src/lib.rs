@@ -97,7 +97,7 @@ fn gen_augmentation(
         let attrs = Attrs::from_field(field, parent_attribute.casing());
         let kind = attrs.kind();
         match &*kind {
-            Kind::Subcommand(_) | Kind::Skip => None,
+            Kind::Subcommand(_) | Kind::Skip(_) => None,
             Kind::FlattenStruct => {
                 let ty = &field.ty;
                 Some(quote_spanned! { kind.span()=>
@@ -230,7 +230,10 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 #field_name: ::structopt::StructOpt::from_clap(matches)
             },
 
-            Kind::Skip => quote_spanned!(kind.span()=> #field_name: Default::default()),
+            Kind::Skip(val) => match val {
+                None => quote_spanned!(kind.span()=> #field_name: Default::default()),
+                Some(val) => quote_spanned!(kind.span()=> #field_name: (#val).into()),
+            },
 
             Kind::Arg(ty) => {
                 use crate::attrs::ParserKind::*;
