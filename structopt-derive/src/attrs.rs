@@ -15,16 +15,16 @@ use proc_macro2::{Span, TokenStream};
 use proc_macro_error::span_error;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    self, spanned::Spanned, AngleBracketedGenericArguments, Attribute, GenericArgument, Ident,
-    LitStr, MetaNameValue, PathArguments, PathSegment, Type::Path, TypePath,
+    self, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Expr, GenericArgument,
+    Ident, LitStr, MetaNameValue, PathArguments, PathSegment, Type::Path, TypePath,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Kind {
     Arg(Sp<Ty>),
     Subcommand(Sp<Ty>),
     FlattenStruct,
-    Skip,
+    Skip(Option<Expr>),
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -260,8 +260,8 @@ impl Attrs {
                     self.set_kind(kind);
                 }
 
-                Skip(ident) => {
-                    let kind = Sp::new(Kind::Skip, ident.span());
+                Skip(ident, expr) => {
+                    let kind = Sp::new(Kind::Skip(expr), ident.span());
                     self.set_kind(kind);
                 }
 
@@ -409,7 +409,7 @@ impl Attrs {
             Kind::FlattenStruct => {
                 span_error!(res.kind.span(), "flatten is only allowed on fields")
             }
-            Kind::Skip => span_error!(res.kind.span(), "skip is only allowed on fields"),
+            Kind::Skip(_) => span_error!(res.kind.span(), "skip is only allowed on fields"),
             Kind::Arg(_) => res,
         }
     }
@@ -494,7 +494,7 @@ impl Attrs {
 
                 res.kind = Sp::new(Kind::Subcommand(ty), res.kind.span());
             }
-            Kind::Skip => {
+            Kind::Skip(_) => {
                 if let Some(m) = res
                     .methods
                     .iter()
