@@ -28,7 +28,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! structopt = { version = "0.2", features = [ "paw" ] }
+//! structopt = { version = "0.3", features = [ "paw" ] }
 //! paw = "1.0"
 //! ```
 //!
