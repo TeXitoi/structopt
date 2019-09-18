@@ -1,4 +1,4 @@
-# v0.3.2
+# v0.3.2 (2019-09-18)
 
 * `structopt` does not replace `:` with `, ` inside "author" strings while inside `<...>`.
   Fixes [#156](https://github.com/TeXitoi/structopt/issues/156)
