@@ -18,7 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! structopt = { version = "0.2", default-features = false }
+//! structopt = { version = "0.3", default-features = false }
 //! ```
 //!
 //! Support for [`paw`](https://github.com/rust-cli/paw) (the
