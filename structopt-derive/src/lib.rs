@@ -543,13 +543,17 @@ fn impl_structopt_for_struct(
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
         #[allow(unused_variables)]
+        #[allow(unknown_lints)]
+        #[allow(clippy)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
         }
 
-        #[allow(dead_code, unreachable_code)]
         #[doc(hidden)]
+        #[allow(dead_code, unreachable_code)]
+        #[allow(unknown_lints)]
+        #[allow(clippy)]
         impl #name {
             #augment_clap
             pub fn is_subcommand() -> bool { false }
@@ -573,12 +577,16 @@ fn impl_structopt_for_enum(
 
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
+        #[allow(unknown_lints)]
+        #[allow(clippy)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
         }
 
         #[allow(unused_variables, dead_code, unreachable_code)]
+        #[allow(unknown_lints)]
+        #[allow(clippy)]
         #[doc(hidden)]
         impl #name {
             #augment_clap
