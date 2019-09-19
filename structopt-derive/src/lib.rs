@@ -290,8 +290,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     Ty::OptionVec => quote_spanned! { ty.span()=>
                         if matches.is_present(#name) {
                             Some(matches.#values_of(#name)
-                                 .map(|v| v.map(#parse).collect())
-                                 .unwrap_or_else(Vec::new))
+                                 .map_or_else(Vec::new, |v| v.map(#parse).collect()))
                         } else {
                             None
                         }
@@ -299,8 +298,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
 
                     Ty::Vec => quote_spanned! { ty.span()=>
                         matches.#values_of(#name)
-                            .map(|v| v.map(#parse).collect())
-                            .unwrap_or_else(Vec::new)
+                            .map_or_else(Vec::new, |v| v.map(#parse).collect())
                     },
 
                     Ty::Other if occurrences => quote_spanned! { ty.span()=>
