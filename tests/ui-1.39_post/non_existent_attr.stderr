@@ -5,3 +5,4 @@ error[E0599]: no method named `non_existing_attribute` found for type `clap::arg
    |                        ^^^^^^^^^^^^^^^^^^^^^^ method not found in `clap::args::arg::Arg<'_, '_>`
 
 For more information about this error, try `rustc --explain E0599`.
+error: could not compile `structopt-tests`.

@@ -1,0 +1,7 @@
+error: methods in attributes are not allowed for subcommand
+  --> $DIR/subcommand_and_methods.rs:17:29
+   |
+17 |     #[structopt(subcommand, long)]
+   |                             ^^^^
+
+error: could not compile `structopt-tests`.

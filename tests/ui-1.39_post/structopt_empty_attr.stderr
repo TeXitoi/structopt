@@ -1,0 +1,7 @@
+error: expected parentheses after `structopt`
+  --> $DIR/structopt_empty_attr.rs:14:7
+   |
+14 |     #[structopt]
+   |       ^^^^^^^^^
+
+error: could not compile `structopt-tests`.

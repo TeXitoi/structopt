@@ -1,0 +1,7 @@
+error: default_value is meaningless for bool
+  --> $DIR/bool_default_value.rs:14:24
+   |
+14 |     #[structopt(short, default_value = true)]
+   |                        ^^^^^^^^^^^^^
+
+error: could not compile `structopt-tests`.
