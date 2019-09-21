@@ -4,18 +4,26 @@
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
+// except according to those terms.
 
-extern crate version_check;
-use version_check::Version;
+use structopt::StructOpt;
 
-#[test]
-fn ui() {
-    let t = trybuild::TestCases::new();
-    let version = Version::read().unwrap();
+#[derive(Debug)]
+enum Kind {
+    A,
+    B,
+}
 
-    if version.at_least("1.39.0") {
-        t.compile_fail("tests/ui-1.39_post/*.rs");
-    } else {
-        t.compile_fail("tests/ui-pre_1.39/*.rs");
-    }
+#[derive(StructOpt, Debug)]
+#[structopt(name = "test")]
+pub struct Opt {
+    #[structopt(short)]
+    number: u32,
+    #[structopt(skip)]
+    k: Kind,
+}
+
+fn main() {
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
 }

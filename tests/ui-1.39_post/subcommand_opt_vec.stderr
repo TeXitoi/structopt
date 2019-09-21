@@ -3,3 +3,5 @@ error: Option<Vec<T>> type is not allowed for subcommand
    |
 18 |     cmd: Option<Vec<Command>>,
    |          ^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `structopt-tests`.
