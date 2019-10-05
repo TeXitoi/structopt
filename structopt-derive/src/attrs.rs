@@ -146,9 +146,7 @@ impl Parser {
 
         let func = match spec.parse_func {
             None => match kind {
-                FromStr | FromOsStr => {
-                    quote_spanned!(spec.kind.span()=> ::std::convert::From::from)
-                }
+                FromStr | FromOsStr => quote_spanned!(spec.kind.span()=> ::std::convert::From::from),
                 TryFromStr => quote_spanned!(spec.kind.span()=> ::std::str::FromStr::from_str),
                 TryFromOsStr => span_error!(
                     spec.kind.span(),
