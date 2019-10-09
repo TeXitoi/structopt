@@ -5,17 +5,9 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 
-extern crate version_check;
-use version_check::Version;
-
+#[rustversion::attr(not(stable), ignore)]
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();
-    let version = Version::read().unwrap();
-
-    if version.at_least("1.39.0") {
-        t.compile_fail("tests/ui-1.39_post/*.rs");
-    } else {
-        t.compile_fail("tests/ui-pre_1.39/*.rs");
-    }
+    t.compile_fail("tests/ui/*.rs");
 }

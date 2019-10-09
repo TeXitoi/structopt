@@ -1,7 +1,0 @@
-error: methods are not allowed for skipped fields
- --> $DIR/skip_with_other_options.rs:8:23
-  |
-8 |     #[structopt(skip, long)]
-  |                       ^^^^
-
-error: could not compile `structopt-tests`.
