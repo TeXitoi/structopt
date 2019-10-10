@@ -1,4 +1,5 @@
-# v0.3.3 (Upcoming)
+# v0.3.3 (2019-10-10)
+
 * Add `from_flag` custom parser to create flags from non-bool types.
   Fixes [#185](https://github.com/TeXitoi/structopt/issues/185)
 
