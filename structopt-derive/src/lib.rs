@@ -273,11 +273,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                         quote!(),
                         func.clone(),
                     ),
-                    FromFlag => (
-                        quote!(),
-                        quote!(),
-                        func.clone(),
-                    ),
+                    FromFlag => (quote!(), quote!(), func.clone()),
                 };
 
                 let flag = *attrs.parser().kind == ParserKind::FromFlag;
