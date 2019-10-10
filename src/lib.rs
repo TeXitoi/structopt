@@ -684,6 +684,7 @@
 //! | `from_os_str`     | `fn(&OsStr) -> T`                     | `::std::convert::From::from`    |
 //! | `try_from_os_str` | `fn(&OsStr) -> Result<T, OsString>`   | (no default function)           |
 //! | `from_occurrences`| `fn(u64) -> T`                        | `value as T`                    |
+//! | `from_flag`       | `fn(bool) -> T`                       | `::std::convert::From::from`    |
 //!
 //! The `from_occurrences` parser is special. Using `parse(from_occurrences)`
 //! results in the _number of flags occurrences_ being stored in the relevant
@@ -691,6 +692,10 @@
 //! something like `-vvv` to `3`. This is equivalent to
 //! `.takes_value(false).multiple(true)`. Note that the default parser can only
 //! be used with fields of integer types (`u8`, `usize`, `i64`, etc.).
+//!
+//! The `from_flag` parser is also special. Using `parse(from_flag)` or
+//! `parse(from_flag = some_func)` will result in the field being treated as a
+//! flag even if it does not have type `bool`.
 //!
 //! When supplying a custom string parser, `bool` will not be treated specially:
 //!

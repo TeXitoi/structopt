@@ -56,6 +56,7 @@ pub enum ParserKind {
     FromOsStr,
     TryFromOsStr,
     FromOccurrences,
+    FromFlag,
 }
 
 /// Defines the casing for the attributes long representation.
@@ -141,6 +142,7 @@ impl Parser {
             "from_os_str" => FromOsStr,
             "try_from_os_str" => TryFromOsStr,
             "from_occurrences" => FromOccurrences,
+            "from_flag" => FromFlag,
             s => span_error!(spec.kind.span(), "unsupported parser `{}`", s),
         };
 
@@ -153,6 +155,7 @@ impl Parser {
                     "cannot omit parser function name with `try_from_os_str`"
                 ),
                 FromOccurrences => quote_spanned!(spec.kind.span()=> { |v| v as _ }),
+                FromFlag => quote_spanned!(spec.kind.span()=> ::std::convert::From::from),
             },
 
             Some(func) => match func {

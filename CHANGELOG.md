@@ -1,3 +1,7 @@
+# v0.3.3 (Upcoming)
+* Add `from_flag` custom parser to create flags from non-bool types.
+  Fixes [#185](https://github.com/TeXitoi/structopt/issues/185)
+
 # v0.3.2 (2019-09-18)
 
 * `structopt` does not replace `:` with `, ` inside "author" strings while inside `<...>`.
