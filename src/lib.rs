@@ -32,6 +32,25 @@
 //! paw = "1.0"
 //! ```
 //!
+//! # Table of Contents
+//!
+//! - [How to `derive(StructOpt)`](#how-to-derivestructopt)
+//! - [Attributes](#attributes)
+//!     - [Raw methods](#raw-methods)
+//!     - [Magical methods](#magical-methods)
+//! - Arguments
+//!     - [Type magic](#type-magic)
+//!     - [Specifying argument types](#specifying-argument-types)
+//!     - [Help messages](#help-messages)
+//!     - [Environment variable fallback](#environment-variable-fallback)
+//! - [Skipping fields](#skipping-fields)
+//! - [Subcommands](#subcommands)
+//!     - [Optional subcommands](#optional-subcommands)
+//! - [Flattening](#flattening)
+//! - [Custom string parsers](#custom-string-parsers)
+//!
+//!
+//!
 //! ## How to `derive(StructOpt)`
 //!
 //! First, let's look at the example:
@@ -127,8 +146,8 @@
 //!     .long("debug"))
 //! .arg(Arg::with_name("speed")
 //!     .help("Set speed")
-//!     .short("s")
-//!     .long("speed")
+//!     .short("v")
+//!     .long("velocity")
 //!     .default_value("42"))
 //! // and so on
 //! # ;
@@ -276,8 +295,8 @@
 //!     .multiple(false)
 //!     .required(false)
 //!     .validator(parse_validator::<f64>)
-//!     .short("s")
-//!     .long("speed")
+//!     .short("v")
+//!     .long("velocity")
 //!     .help("Set speed")
 //!     .default_value("42");
 //! # }
@@ -410,7 +429,7 @@
 //! # fn main() {}
 //! ```
 //!
-//! ## Environment Variable Fallback
+//! ## Environment variable fallback
 //!
 //! It is possible to specify an environment variable fallback option for an arguments
 //! so that its value is taken from the specified environment variable if not
