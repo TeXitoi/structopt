@@ -104,6 +104,11 @@
 //! (unless they're [subcommands](#subcommands)),
 //! and you can adjust these apps and args by `#[structopt(...)]` [attributes](#attributes).
 //!
+//! The derived `StructOpt` trait allows access to other methods besides
+//! `from_args`. You can, for instance, get the underlying `clap::ArgMatches`
+//! by doing `Opt::clap().get_matches()`. See the [trait's reference documentation](trait.StructOpt.html)
+//! for more details.
+//!
 //! ## Attributes
 //!
 //! `#[structopt(...)]` attributes fall into two categories:
