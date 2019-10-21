@@ -618,7 +618,7 @@
 //!
 //! ### Optional subcommands
 //!
-//! A subcommand can be marked optional:
+//! Subcommands may be optional:
 //!
 //! ```
 //! # use structopt::StructOpt;
