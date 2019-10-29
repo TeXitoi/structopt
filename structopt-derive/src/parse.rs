@@ -148,7 +148,7 @@ impl Parse for StructOptAttr {
                         }
 
                         Err(_) => span_error!(name.span(),
-                            "`#[structopt(raw(...))` attributes are deprecated in structopt 0.3, only `raw(true)` and `raw(false)` are allowed")
+                            "`#[structopt(raw(...))` attributes are removed in structopt 0.3, they are replaced with raw methods\nhelp: if you meant to call `clap::Arg::raw()` method you should use bool literal, like `raw(true)` or `raw(false)`")
                     }
                 }
 
