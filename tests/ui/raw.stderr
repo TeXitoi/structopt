@@ -1,4 +1,5 @@
-error: `#[structopt(raw(...))` attributes are deprecated in structopt 0.3, only `raw(true)` and `raw(false)` are allowed
+error: `#[structopt(raw(...))` attributes are removed in structopt 0.3, they are replaced with raw methods
+help: if you meant to call `clap::Arg::raw()` method you should use bool literal, like `raw(true)` or `raw(false)`
   --> $DIR/raw.rs:13:17
    |
 13 |     #[structopt(raw(case_insensitive = "true"))]
