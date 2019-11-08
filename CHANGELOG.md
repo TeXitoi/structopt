@@ -1,4 +1,4 @@
-# v0.3.4
+# v0.3.4 (2019-11-08)
 
 * `rename_all` does not apply to fields that were annotated with explicit
   `short/long/name = "..."` anymore ([#265](https://github.com/TeXitoi/structopt/issues/265))
