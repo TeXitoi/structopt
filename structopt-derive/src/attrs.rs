@@ -15,8 +15,9 @@ use proc_macro2::{Span, TokenStream};
 use proc_macro_error::span_error;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    self, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Expr, GenericArgument,
-    Ident, LitStr, MetaNameValue, PathArguments, PathSegment, Type::Path, TypePath,
+    self, ext::IdentExt, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Expr,
+    GenericArgument, Ident, LitStr, MetaNameValue, PathArguments, PathSegment, Type::Path,
+    TypePath,
 };
 
 #[derive(Clone)]
@@ -203,7 +204,7 @@ impl Name {
         match self {
             Name::Assigned(lit) => lit,
             Name::Derived(ident) => {
-                let s = ident.to_string();
+                let s = ident.unraw().to_string();
                 let s = match style {
                     Pascal => s.to_camel_case(),
                     Kebab => s.to_kebab_case(),
