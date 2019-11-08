@@ -17,7 +17,7 @@ mod parse;
 mod spanned;
 
 use crate::{
-    attrs::{sub_type, Attrs, CasingStyle, Kind, ParserKind, Ty},
+    attrs::{sub_type, Attrs, CasingStyle, Kind, Name, ParserKind, Ty},
     spanned::Sp,
 };
 
@@ -354,7 +354,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
     let attrs = Attrs::from_struct(
         Span::call_site(),
         attrs,
-        Sp::call_site(name),
+        Name::Assigned(LitStr::new(&name, Span::call_site())),
         Sp::call_site(DEFAULT_CASING),
     );
     let tokens = {
@@ -424,7 +424,7 @@ fn gen_augment_clap_enum(
         let attrs = Attrs::from_struct(
             variant.span(),
             &variant.attrs,
-            variant.ident.clone().into(),
+            Name::Derived(variant.ident.clone()),
             parent_attribute.casing(),
         );
         let app_var = Ident::new("subcommand", Span::call_site());
@@ -490,7 +490,7 @@ fn gen_from_subcommand(
         let attrs = Attrs::from_struct(
             variant.span(),
             &variant.attrs,
-            variant.ident.clone().into(),
+            Name::Derived(variant.ident.clone()),
             parent_attribute.casing(),
         );
         let sub_name = attrs.cased_name();
