@@ -1,3 +1,10 @@
+# v0.3.4
+
+* `rename_all` does not apply to fields that were annotated with explicit
+  `short/long/name = "..."` anymore ([#265](https://github.com/TeXitoi/structopt/issues/265))
+* Now raw idents are handled correctly ([#269](https://github.com/TeXitoi/structopt/issues/269))
+* Some documentation improvements and clarification.
+
 # v0.3.3 (2019-10-10)
 
 * Add `from_flag` custom parser to create flags from non-bool types.
