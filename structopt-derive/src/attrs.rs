@@ -508,7 +508,7 @@ impl Attrs {
                 let mut ty = Self::ty_from_field(&field.ty);
                 if res.has_custom_parser {
                     match *ty {
-                        Ty::Option | Ty::Vec => (),
+                        Ty::Option | Ty::Vec | Ty::OptionVec => (),
                         _ => ty = Sp::new(Ty::Other, ty.span()),
                     }
                 }
