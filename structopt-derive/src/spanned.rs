@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote_spanned, ToTokens};
+use quote::ToTokens;
 use std::ops::{Deref, DerefMut};
 use syn::LitStr;
 
@@ -30,6 +30,10 @@ impl<T> Sp<T> {
 impl<T: ToString> Sp<T> {
     pub fn as_ident(&self) -> Ident {
         Ident::new(&self.to_string(), self.span.clone())
+    }
+
+    pub fn as_lit(&self) -> LitStr {
+        LitStr::new(&self.to_string(), self.span.clone())
     }
 }
 
@@ -85,8 +89,13 @@ impl<T: AsRef<str>> AsRef<str> for Sp<T> {
 
 impl<T: ToTokens> ToTokens for Sp<T> {
     fn to_tokens(&self, stream: &mut TokenStream) {
-        let val = &self.val;
-        let quoted = quote_spanned!(self.span=> #val);
-        stream.extend(quoted);
+        // this is the simplest way out of correct ones to change span on
+        // arbitrary token tree I can come up with
+        let tt = self.val.to_token_stream().into_iter().map(|mut tt| {
+            tt.set_span(self.span.clone());
+            tt
+        });
+
+        stream.extend(tt);
     }
 }
