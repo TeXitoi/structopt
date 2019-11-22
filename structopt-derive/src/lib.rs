@@ -126,7 +126,7 @@ fn gen_augmentation(
                 let validator = match *parser.kind {
                     ParserKind::TryFromStr => quote_spanned! { func.span()=>
                         .validator(|s| {
-                            #func(&s)
+                            #func(s.as_str())
                             .map(|_: #convert_type| ())
                             .map_err(|e| e.to_string())
                         })

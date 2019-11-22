@@ -8,7 +8,7 @@
 
 use structopt::StructOpt;
 
-use std::ffi::{OsStr, OsString};
+use std::ffi::{CString, OsStr, OsString};
 use std::num::ParseIntError;
 use std::path::PathBuf;
 
@@ -289,4 +289,18 @@ fn test_custom_bool() {
         },
         Opt::from_iter(&["test", "-dtrue", "-bfalse", "-btrue", "-bfalse", "-bfalse"])
     );
+}
+
+#[test]
+fn test_cstring() {
+    #[derive(StructOpt)]
+    struct Opt {
+        #[structopt(parse(try_from_str = CString::new))]
+        c_string: CString,
+    }
+    assert!(Opt::clap().get_matches_from_safe(&["test"]).is_err());
+    assert_eq!(Opt::from_iter(&["test", "bla"]).c_string.to_bytes(), b"bla");
+    assert!(Opt::clap()
+        .get_matches_from_safe(&["test", "bla\0bla"])
+        .is_err());
 }
