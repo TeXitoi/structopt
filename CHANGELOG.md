@@ -1,3 +1,7 @@
+# Upcoming
+
+* `try_from_str` functions are now called with a `&str` instead of a `&String` ([#282](https://github.com/TeXitoi/structopt/pull/282))
+
 # v0.3.4 (2019-11-08)
 
 * `rename_all` does not apply to fields that were annotated with explicit
