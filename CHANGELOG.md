@@ -1,4 +1,4 @@
-# Upcoming
+# v0.3.5 (2019-11-22)
 
 * `try_from_str` functions are now called with a `&str` instead of a `&String` ([#282](https://github.com/TeXitoi/structopt/pull/282))
 
