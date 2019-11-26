@@ -604,7 +604,7 @@ impl Attrs {
         let about = &self.about;
         let methods = &self.methods;
 
-        quote!( #author #about #version #(#methods)* )
+        quote!( #author #version #(#methods)* #about )
     }
 
     /// generate methods on top of a field
