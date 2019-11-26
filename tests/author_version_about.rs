@@ -34,3 +34,17 @@ fn use_env() {
     assert!(output.contains("Guillaume Pinot <texitoi@texitoi.eu>, others"));
     assert!(output.contains("Parse command line argument by defining a struct."));
 }
+
+#[test]
+fn explicit_version_not_str() {
+    const VERSION: &str = "custom version";
+
+    #[derive(StructOpt)]
+    #[structopt(version = VERSION)]
+    pub struct Opt {}
+
+    let mut output = Vec::new();
+    Opt::clap().write_long_help(&mut output).unwrap();
+    let output = String::from_utf8(output).unwrap();
+    assert!(output.contains("custom version"));
+}
