@@ -5,9 +5,18 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
+
     - rust: stable
-      env: RUN=FMT
+      name: check if `cargo fmt --all` is applied
       before_script: rustup component add rustfmt-preview
       script: cargo fmt --all -- --check
+
+    - language: node_js
+      node_js: node
+      name: check links
+      install: npm install -g markdown-link-check
+      script:
+        - markdown-link-check -c link-check-headers.json README.md
+        - markdown-link-check -c link-check-headers.json examples/README.md
 script:
   - cargo test $FEATURES
