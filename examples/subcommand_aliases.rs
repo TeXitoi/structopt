@@ -1,3 +1,5 @@
+//! How to assign some aliases to subcommands
+
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
@@ -6,10 +8,10 @@ use structopt::StructOpt;
 #[structopt(setting = AppSettings::InferSubcommands)]
 enum Opt {
     // https://docs.rs/clap/2/clap/struct.App.html#method.alias
-    #[structopt(name = "foo", alias = "foobar")]
+    #[structopt(alias = "foobar")]
     Foo,
     // https://docs.rs/clap/2/clap/struct.App.html#method.aliases
-    #[structopt(name = "bar", aliases = &["baz", "fizz"])]
+    #[structopt(aliases = &["baz", "fizz"])]
     Bar,
 }
 

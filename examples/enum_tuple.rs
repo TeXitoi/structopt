@@ -1,3 +1,5 @@
+//! How to extract subcommands' args into external structs.
+
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

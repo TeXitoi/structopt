@@ -1,3 +1,6 @@
+//! How to require presence of at least N values,
+//! like `val1 val2 ... valN ... valM`.
+
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]

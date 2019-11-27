@@ -1,18 +1,25 @@
+//! How to use flattening.
+
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 struct Cmdline {
-    #[structopt(short = "v", help = "switch on verbosity")]
+    /// switch verbosity on
+    #[structopt(short)]
     verbose: bool,
+
     #[structopt(flatten)]
     daemon_opts: DaemonOpts,
 }
 
 #[derive(StructOpt, Debug)]
 struct DaemonOpts {
-    #[structopt(short = "u", help = "daemon user")]
+    /// daemon user
+    #[structopt(short)]
     user: String,
-    #[structopt(short = "g", help = "daemon group")]
+
+    /// daemon group
+    #[structopt(short)]
     group: String,
 }
 

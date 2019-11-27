@@ -1,7 +1,7 @@
 //! `git.rs` serves as a demonstration of how to use subcommands,
 //! as well as a demonstration of adding documentation to subcommands.
-//! Documentation can be added either through doc comments or the
-//! `about` attribute.
+//! Documentation can be added either through doc comments or
+//! `help`/`about` attributes.
 
 use structopt::StructOpt;
 
@@ -9,22 +9,20 @@ use structopt::StructOpt;
 #[structopt(name = "git")]
 /// the stupid content tracker
 enum Opt {
-    #[structopt(name = "fetch")]
     /// fetch branches from remote repository
     Fetch {
-        #[structopt(long = "dry-run")]
+        #[structopt(long)]
         dry_run: bool,
-        #[structopt(long = "all")]
+        #[structopt(long)]
         all: bool,
         #[structopt(default_value = "origin")]
         repository: String,
     },
-    #[structopt(name = "add")]
-    /// add files to the staging area
+    #[structopt(help = "add files to the staging area")]
     Add {
-        #[structopt(short = "i")]
+        #[structopt(short)]
         interactive: bool,
-        #[structopt(short = "a")]
+        #[structopt(short)]
         all: bool,
         files: Vec<String>,
     },

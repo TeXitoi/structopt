@@ -1,3 +1,5 @@
+//! How to completely remove version.
+
 use structopt::clap::AppSettings;
 use structopt::StructOpt;
 
