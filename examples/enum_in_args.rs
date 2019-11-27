@@ -1,5 +1,4 @@
-//! current `clap::arg_enum!` uses "non-ident macro path" feature, which was stabilized in
-//! Rust 1.31.0.
+//! How to use `arg_enum!` with `StructOpt`.
 
 use clap::arg_enum;
 use structopt::StructOpt;

@@ -1,3 +1,5 @@
+//! How to use `#[structopt(skip)]`
+
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug, PartialEq)]
@@ -13,7 +15,7 @@ pub struct Opt {
     k2: Kind,
     #[structopt(skip = vec![1, 2, 3])]
     v2: Vec<u32>,
-    #[structopt(skip = "cake")]
+    #[structopt(skip = "cake")] // &str implements Into<String>
     s: String,
 }
 

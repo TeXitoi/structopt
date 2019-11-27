@@ -1,3 +1,6 @@
+//! How to use environment variable fallback an how it
+//! interacts with `default_value`.
+
 use structopt::StructOpt;
 
 /// Example for allowing to specify options via environment variables.

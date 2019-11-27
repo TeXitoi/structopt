@@ -1,3 +1,5 @@
+//! How to parse "key=value" pairs with structopt.
+
 use std::error::Error;
 use structopt::StructOpt;
 

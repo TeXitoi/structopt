@@ -1,54 +1,49 @@
-// Copyright 2018 Guillaume Pinot (@TeXitoi) <texitoi@texitoi.eu>
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+//! Somewhat complex example of usage of structopt.
 
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "example", about = "An example of StructOpt usage.")]
+#[structopt(name = "example")]
+/// An example of StructOpt usage.
 struct Opt {
-    /// A flag, true if used in the command line.
-    #[structopt(short = "d", long = "debug", help = "Activate debug mode")]
+    // A flag, true if used in the command line.
+    #[structopt(short, long)]
+    /// Activate debug mode
     debug: bool,
 
-    /// An argument of type float, with a default value.
-    #[structopt(short = "s", long = "speed", help = "Set speed", default_value = "42")]
+    // An argument of type float, with a default value.
+    #[structopt(short, long, default_value = "42")]
+    /// Set speed
     speed: f64,
 
-    /// Needed parameter, the first on the command line.
-    #[structopt(help = "Input file")]
+    // Needed parameter, the first on the command line.
+    /// Input file
     input: String,
 
-    /// An optional parameter, will be `None` if not present on the
-    /// command line.
-    #[structopt(help = "Output file, stdout if not present")]
+    // An optional parameter, will be `None` if not present on the
+    // command line.
+    /// Output file, stdout if not present
     output: Option<String>,
 
-    /// An optional parameter with optional value, will be `None` if
-    /// not present on the command line, will be `Some(None)` if no
-    /// argument is provided (i.e. `--log`) and will be
-    /// `Some(Some(String))` if argument is provided (e.g. `--log
-    /// log.txt`).
-    #[structopt(
-        long = "log",
-        help = "Log file, stdout if no file, no logging if not present"
-    )]
+    // An optional parameter with optional value, will be `None` if
+    // not present on the command line, will be `Some(None)` if no
+    // argument is provided (i.e. `--log`) and will be
+    // `Some(Some(String))` if argument is provided (e.g. `--log
+    // log.txt`).
+    #[structopt(long)]
     #[allow(clippy::option_option)]
+    /// Log file, stdout if no file, no logging if not present
     log: Option<Option<String>>,
 
-    /// An optional list of values, will be `None` if not present on
-    /// the command line, will be `Some(vec![])` if no argument is
-    /// provided (i.e. `--optv`) and will be `Some(Some(String))` if
-    /// argument list is provided (e.g. `--optv a b c`).
-    #[structopt(long = "optv")]
+    // An optional list of values, will be `None` if not present on
+    // the command line, will be `Some(vec![])` if no argument is
+    // provided (i.e. `--optv`) and will be `Some(Some(String))` if
+    // argument list is provided (e.g. `--optv a b c`).
+    #[structopt(long)]
     optv: Option<Vec<String>>,
 
-    /// Skipped option: it won't be parsed and will be filled with the
-    /// default value for its type (in this case '').
+    // Skipped option: it won't be parsed and will be filled with the
+    // default value for its type (in this case it'll be an empty string).
     #[structopt(skip)]
     skipped: String,
 }

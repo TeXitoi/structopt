@@ -1,3 +1,6 @@
+//! How to add `no-thing` flag which is `true` by default and
+//! `false` if passed.
+
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

@@ -1,10 +1,4 @@
-// Copyright 2018 Guillaume Pinot (@TeXitoi) <texitoi@texitoi.eu>
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+//! How to use doc comments in place of `help/long_help`.
 
 use structopt::StructOpt;
 
@@ -15,7 +9,7 @@ use structopt::StructOpt;
 struct Opt {
     /// Just use doc comments to replace `help`, `long_help`,
     /// `about` or `long_about` input.
-    #[structopt(short = "f", long = "first-flag")]
+    #[structopt(short, long)]
     first_flag: bool,
 
     /// Split between `help` and `long_help`.
@@ -37,12 +31,12 @@ struct Opt {
     /// lists or other well formatted content is required it is
     /// necessary to use the related structopt argument with a
     /// raw string as shown on the `third_flag` description.
-    #[structopt(short = "s", long = "second-flag")]
+    #[structopt(short, long)]
     second_flag: bool,
 
     #[structopt(
-        short = "t",
-        long = "third-flag",
+        short,
+        long,
         long_help = r"This is a raw string.
 
 It can be used to pass well formatted content (e.g. lists or source
@@ -63,7 +57,6 @@ code) in the description:
 enum SubCommand {
     /// The same rules described previously for flags. Are
     /// also true for in regards of sub-commands.
-    #[structopt(name = "first")]
     First,
 
     /// Applicable for both `about` an `help`.
@@ -72,7 +65,6 @@ enum SubCommand {
     /// `second_flag` also apply to the description of
     /// sub-commands which is normally given through the `about`
     /// and `long_about` arguments.
-    #[structopt(name = "second")]
     Second,
 }
 
