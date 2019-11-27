@@ -1,0 +1,13 @@
+{
+    "httpHeaders": [
+        {
+            "urls": [
+                "https://crates.io"
+            ],
+            "headers": {
+                "User-Agent": "broken links checker (https://github.com/TeXitoi/structopt)",
+                "Accept": "text/html"
+            }
+        }
+    ]
+}
