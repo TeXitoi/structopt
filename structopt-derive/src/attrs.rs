@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crate::{parse::*, spanned::Sp};
+use crate::{parse::*, spanned::Sp, ty::Ty};
 
 use std::env;
 
@@ -14,11 +14,7 @@ use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::span_error;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{
-    self, ext::IdentExt, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Expr,
-    GenericArgument, Ident, LitStr, MetaNameValue, PathArguments, PathSegment, Type::Path,
-    TypePath,
-};
+use syn::{self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue};
 
 #[derive(Clone)]
 pub enum Kind {
@@ -26,16 +22,6 @@ pub enum Kind {
     Subcommand(Sp<Ty>),
     FlattenStruct,
     Skip(Option<Expr>),
-}
-
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Ty {
-    Bool,
-    Vec,
-    Option,
-    OptionOption,
-    OptionVec,
-    Other,
 }
 
 #[derive(Clone)]
@@ -424,32 +410,6 @@ impl Attrs {
         }
     }
 
-    fn ty_from_field(ty: &syn::Type) -> Sp<Ty> {
-        let t = |kind| Sp::new(kind, ty.span());
-        if let Path(TypePath {
-            path: syn::Path { ref segments, .. },
-            ..
-        }) = *ty
-        {
-            match segments.iter().last().unwrap().ident.to_string().as_str() {
-                "bool" => t(Ty::Bool),
-                "Option" => sub_type(ty)
-                    .map(Attrs::ty_from_field)
-                    .map(|ty| match *ty {
-                        Ty::Option => t(Ty::OptionOption),
-                        Ty::Vec => t(Ty::OptionVec),
-                        _ => t(Ty::Option),
-                    })
-                    .unwrap_or(t(Ty::Option)),
-
-                "Vec" => t(Ty::Vec),
-                _ => t(Ty::Other),
-            }
-        } else {
-            t(Ty::Other)
-        }
-    }
-
     pub fn from_field(field: &syn::Field, struct_casing: Sp<CasingStyle>) -> Self {
         let name = field.ident.clone().unwrap();
         let mut res = Self::new(field.span(), Name::Derived(name.clone()), struct_casing);
@@ -485,7 +445,7 @@ impl Attrs {
                     );
                 }
 
-                let ty = Self::ty_from_field(&field.ty);
+                let ty = Ty::from_syn_ty(&field.ty);
                 match *ty {
                     Ty::OptionOption => {
                         span_error!(
@@ -513,7 +473,7 @@ impl Attrs {
                 }
             }
             Kind::Arg(orig_ty) => {
-                let mut ty = Self::ty_from_field(&field.ty);
+                let mut ty = Ty::from_syn_ty(&field.ty);
                 if res.has_custom_parser {
                     match *ty {
                         Ty::Option | Ty::Vec | Ty::OptionVec => (),
@@ -645,30 +605,6 @@ impl Attrs {
         self.methods
             .iter()
             .any(|m| m.name == "help" || m.name == "long_help")
-    }
-}
-
-pub fn sub_type(t: &syn::Type) -> Option<&syn::Type> {
-    let segs = match *t {
-        Path(TypePath {
-            path: syn::Path { ref segments, .. },
-            ..
-        }) => segments,
-        _ => return None,
-    };
-    match *segs.iter().last().unwrap() {
-        PathSegment {
-            arguments:
-                PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }),
-            ..
-        } if args.len() == 1 => {
-            if let GenericArgument::Type(ref ty) = args[0] {
-                Some(ty)
-            } else {
-                None
-            }
-        }
-        _ => None,
     }
 }
 
