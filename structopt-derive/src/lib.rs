@@ -15,10 +15,12 @@ extern crate proc_macro;
 mod attrs;
 mod parse;
 mod spanned;
+mod ty;
 
 use crate::{
-    attrs::{sub_type, Attrs, CasingStyle, Kind, Name, ParserKind, Ty},
+    attrs::{Attrs, CasingStyle, Kind, Name, ParserKind},
     spanned::Sp,
+    ty::{sub_type, Ty},
 };
 
 use proc_macro2::{Span, TokenStream};
