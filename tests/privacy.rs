@@ -23,9 +23,9 @@ mod subcommands {
 
     #[derive(Debug, StructOpt)]
     pub enum SubCommand {
-        #[structopt(name = "foo", about = "foo")]
+        /// foo
         Foo {
-            #[structopt(help = "foo")]
+            /// foo
             bars: Vec<String>,
         },
     }

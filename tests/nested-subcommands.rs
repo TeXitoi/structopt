@@ -10,9 +10,9 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, PartialEq, Debug)]
 struct Opt {
-    #[structopt(short = "f", long = "force")]
+    #[structopt(short, long)]
     force: bool,
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    #[structopt(short, long, parse(from_occurrences))]
     verbose: u64,
     #[structopt(subcommand)]
     cmd: Sub,
@@ -20,17 +20,15 @@ struct Opt {
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Sub {
-    #[structopt(name = "fetch")]
     Fetch {},
-    #[structopt(name = "add")]
     Add {},
 }
 
 #[derive(StructOpt, PartialEq, Debug)]
 struct Opt2 {
-    #[structopt(short = "f", long = "force")]
+    #[structopt(short, long)]
     force: bool,
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    #[structopt(short, long, parse(from_occurrences))]
     verbose: u64,
     #[structopt(subcommand)]
     cmd: Option<Sub>,
@@ -105,7 +103,7 @@ fn test_badinput() {
 
 #[derive(StructOpt, PartialEq, Debug)]
 struct Opt3 {
-    #[structopt(short = "a", long = "all")]
+    #[structopt(short, long)]
     all: bool,
     #[structopt(subcommand)]
     cmd: Sub2,
@@ -113,21 +111,17 @@ struct Opt3 {
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Sub2 {
-    #[structopt(name = "foo")]
     Foo {
         file: String,
         #[structopt(subcommand)]
         cmd: Sub3,
     },
-    #[structopt(name = "bar")]
     Bar {},
 }
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Sub3 {
-    #[structopt(name = "baz")]
     Baz {},
-    #[structopt(name = "quux")]
     Quux {},
 }
 
@@ -149,12 +143,10 @@ fn test_subsubcommand() {
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum SubSubCmdWithOption {
-    #[structopt(name = "remote")]
     Remote {
         #[structopt(subcommand)]
         cmd: Option<Remote>,
     },
-    #[structopt(name = "stash")]
     Stash {
         #[structopt(subcommand)]
         cmd: Stash,
@@ -162,17 +154,13 @@ enum SubSubCmdWithOption {
 }
 #[derive(StructOpt, PartialEq, Debug)]
 enum Remote {
-    #[structopt(name = "add")]
     Add { name: String, url: String },
-    #[structopt(name = "remove")]
     Remove { name: String },
 }
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Stash {
-    #[structopt(name = "save")]
     Save,
-    #[structopt(name = "pop")]
     Pop,
 }
 
