@@ -60,7 +60,7 @@ fn flatten_in_subcommand() {
 
     #[derive(StructOpt, PartialEq, Debug)]
     struct Add {
-        #[structopt(short = "i")]
+        #[structopt(short)]
         interactive: bool,
         #[structopt(flatten)]
         common: Common,
@@ -68,15 +68,13 @@ fn flatten_in_subcommand() {
 
     #[derive(StructOpt, PartialEq, Debug)]
     enum Opt {
-        #[structopt(name = "fetch")]
         Fetch {
-            #[structopt(short = "a")]
+            #[structopt(short)]
             all: bool,
             #[structopt(flatten)]
             common: Common,
         },
 
-        #[structopt(name = "add")]
         Add(Add),
     }
 

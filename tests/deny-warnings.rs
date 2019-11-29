@@ -7,12 +7,10 @@
 // except according to those terms.
 
 #![deny(warnings)]
-#![cfg(feature = "nightly")] // TODO: remove that when never is stable
-#![feature(never_type)]
 
 use structopt::StructOpt;
 
-fn try_str(s: &str) -> Result<String, !> {
+fn try_str(s: &str) -> Result<String, std::convert::Infallible> {
     Ok(s.into())
 }
 

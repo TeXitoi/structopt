@@ -12,7 +12,7 @@ use structopt::StructOpt;
 fn unique_flag() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "alice")]
+        #[structopt(short, long)]
         alice: bool,
     }
 
@@ -44,9 +44,9 @@ fn unique_flag() {
 fn multiple_flag() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "alice", parse(from_occurrences))]
+        #[structopt(short, long, parse(from_occurrences))]
         alice: u64,
-        #[structopt(short = "b", long = "bob", parse(from_occurrences))]
+        #[structopt(short, long, parse(from_occurrences))]
         bob: u8,
     }
 
@@ -84,9 +84,9 @@ fn parse_from_flag(b: bool) -> std::sync::atomic::AtomicBool {
 fn non_bool_flags() {
     #[derive(StructOpt, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "alice", parse(from_flag = parse_from_flag))]
+        #[structopt(short, long, parse(from_flag = parse_from_flag))]
         alice: std::sync::atomic::AtomicBool,
-        #[structopt(short = "b", long = "bob", parse(from_flag))]
+        #[structopt(short, long, parse(from_flag))]
         bob: std::sync::atomic::AtomicBool,
     }
 
@@ -111,9 +111,9 @@ fn non_bool_flags() {
 fn combined_flags() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "alice")]
+        #[structopt(short, long)]
         alice: bool,
-        #[structopt(short = "b", long = "bob", parse(from_occurrences))]
+        #[structopt(short, long, parse(from_occurrences))]
         bob: u64,
     }
 

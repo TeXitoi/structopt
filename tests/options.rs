@@ -12,7 +12,7 @@ use structopt::StructOpt;
 fn required_option() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "arg")]
+        #[structopt(short, long)]
         arg: i32,
     }
     assert_eq!(
@@ -37,7 +37,7 @@ fn required_option() {
 fn optional_option() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a")]
+        #[structopt(short)]
         arg: Option<i32>,
     }
     assert_eq!(
@@ -57,7 +57,7 @@ fn optional_option() {
 fn option_with_default() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", default_value = "42")]
+        #[structopt(short, default_value = "42")]
         arg: i32,
     }
     assert_eq!(
@@ -77,7 +77,7 @@ fn option_with_default() {
 fn option_with_raw_default() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", default_value = "42")]
+        #[structopt(short, default_value = "42")]
         arg: i32,
     }
     assert_eq!(
@@ -97,7 +97,7 @@ fn option_with_raw_default() {
 fn options() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", long = "arg")]
+        #[structopt(short, long)]
         arg: Vec<i32>,
     }
     assert_eq!(
@@ -118,7 +118,7 @@ fn options() {
 fn empy_default_value() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a", default_value = "")]
+        #[structopt(short, default_value = "")]
         arg: String,
     }
     assert_eq!(Opt { arg: "".into() }, Opt::from_iter(&["test"]));
@@ -153,7 +153,7 @@ fn option_from_str() {
 fn optional_argument_for_optional_option() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a")]
+        #[structopt(short)]
         #[allow(clippy::option_option)]
         arg: Option<Option<i32>>,
     }
@@ -181,10 +181,10 @@ fn two_option_options() {
     #[derive(StructOpt, PartialEq, Debug)]
     #[allow(clippy::option_option)]
     struct Opt {
-        #[structopt(short = "a")]
+        #[structopt(short)]
         arg: Option<Option<i32>>,
 
-        #[structopt(long = "field")]
+        #[structopt(long)]
         field: Option<Option<String>>,
     }
     assert_eq!(
@@ -235,7 +235,7 @@ fn two_option_options() {
 fn optional_vec() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a")]
+        #[structopt(short)]
         arg: Option<Vec<i32>>,
     }
     assert_eq!(
@@ -298,10 +298,10 @@ fn optional_vec() {
 fn two_optional_vecs() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
-        #[structopt(short = "a")]
+        #[structopt(short)]
         arg: Option<Vec<i32>>,
 
-        #[structopt(short = "b")]
+        #[structopt(short)]
         b: Option<Vec<i32>>,
     }
 

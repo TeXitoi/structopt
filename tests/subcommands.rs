@@ -10,21 +10,20 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt {
-    #[structopt(name = "fetch", about = "Fetch stuff from GitHub.")]
+    /// Fetch stuff from GitHub
     Fetch {
-        #[structopt(long = "all")]
+        #[structopt(long)]
         all: bool,
-        #[structopt(short = "f", long = "force")]
+        #[structopt(short, long)]
         /// Overwrite local branches.
         force: bool,
         repo: String,
     },
 
-    #[structopt(name = "add")]
     Add {
-        #[structopt(short = "i", long = "interactive")]
+        #[structopt(short, long)]
         interactive: bool,
-        #[structopt(short = "v", long = "verbose")]
+        #[structopt(short, long)]
         verbose: bool,
     },
 }
@@ -81,7 +80,6 @@ fn test_no_parse() {
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt2 {
-    #[structopt(name = "do-something")]
     DoSomething { arg: String },
 }
 
@@ -99,11 +97,8 @@ fn test_hyphenated_subcommands() {
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt3 {
-    #[structopt(name = "add")]
     Add,
-    #[structopt(name = "init")]
     Init,
-    #[structopt(name = "fetch")]
     Fetch,
 }
 
@@ -135,13 +130,11 @@ struct Fetch {
 }
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt4 {
-    /// Not shown
-    #[structopt(name = "add", about = "Add a file")]
+    // Not shown
+    /// Add a file
     Add(Add),
-    #[structopt(name = "init")]
     Init,
     /// download history from remote
-    #[structopt(name = "fetch")]
     Fetch(Fetch),
 }
 
@@ -177,15 +170,12 @@ fn test_tuple_commands() {
 fn enum_in_enum_subsubcommand() {
     #[derive(StructOpt, Debug, PartialEq)]
     pub enum Opt {
-        #[structopt(name = "daemon")]
         Daemon(DaemonCommand),
     }
 
     #[derive(StructOpt, Debug, PartialEq)]
     pub enum DaemonCommand {
-        #[structopt(name = "start")]
         Start,
-        #[structopt(name = "stop")]
         Stop,
     }
 
