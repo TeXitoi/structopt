@@ -209,7 +209,9 @@ fn gen_augmentation(
         }
     });
 
+    let app_methods = parent_attribute.top_level_methods();
     quote! {{
+        let #app_var = #app_var#app_methods;
         #( #args )*
         #subcmd
         #app_var
@@ -363,9 +365,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
     );
     let tokens = {
         let name = attrs.cased_name();
-        let methods = attrs.top_level_methods();
-
-        quote!(::structopt::clap::App::new(#name)#methods)
+        quote!(::structopt::clap::App::new(#name))
     };
 
     GenOutput { tokens, attrs }
@@ -465,11 +465,13 @@ fn gen_augment_clap_enum(
         }
     });
 
+    let app_methods = parent_attribute.top_level_methods();
+
     quote! {
         pub fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
-            app #( #subcommands )*
+            app #app_methods #( #subcommands )*
         }
     }
 }
