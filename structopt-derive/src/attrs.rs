@@ -120,7 +120,7 @@ impl ToTokens for Method {
 
 impl Parser {
     fn default_spanned(span: Span) -> Sp<Self> {
-        let kind = Sp::new(ParserKind::TryFromStr, span.clone());
+        let kind = Sp::new(ParserKind::TryFromStr, span);
         let func = quote_spanned!(span=> ::std::str::FromStr::from_str);
         Sp::new(Parser { kind, func }, span)
     }
@@ -184,7 +184,7 @@ impl CasingStyle {
 }
 
 impl Name {
-    pub fn translate(self, style: &CasingStyle) -> LitStr {
+    pub fn translate(self, style: CasingStyle) -> LitStr {
         use CasingStyle::*;
 
         match self {
@@ -211,7 +211,7 @@ impl Attrs {
             name,
             casing,
             methods: vec![],
-            parser: Parser::default_spanned(default_span.clone()),
+            parser: Parser::default_spanned(default_span),
             about: None,
             author: None,
             version: None,
@@ -242,7 +242,7 @@ impl Attrs {
                 Short(ident) | Long(ident) => {
                     self.push_str_method(
                         ident.into(),
-                        self.name.clone().translate(&self.casing).into(),
+                        self.name.clone().translate(*self.casing).into(),
                     );
                 }
 
@@ -280,11 +280,9 @@ impl Attrs {
                     self.push_str_method(name.into(), lit.into());
                 }
 
-                NameExpr(name, expr) => self.methods.push(Method::new(name.into(), quote!(#expr))),
+                NameExpr(name, expr) => self.methods.push(Method::new(name, quote!(#expr))),
 
-                MethodCall(name, args) => self
-                    .methods
-                    .push(Method::new(name.into(), quote!(#(#args),*))),
+                MethodCall(name, args) => self.methods.push(Method::new(name, quote!(#(#args),*))),
 
                 RenameAll(_, casing_lit) => {
                     self.casing = CasingStyle::from_lit(casing_lit);
@@ -574,7 +572,7 @@ impl Attrs {
     }
 
     pub fn cased_name(&self) -> LitStr {
-        self.name.clone().translate(&self.casing)
+        self.name.clone().translate(*self.casing)
     }
 
     pub fn parser(&self) -> &Sp<Parser> {
