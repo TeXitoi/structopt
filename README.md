@@ -19,6 +19,9 @@ And then, in your rust file:
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+/// Special type to be used for `true` and `false` parsing
+type Bool = bool;
+
 /// A basic example
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
@@ -56,6 +59,11 @@ struct Opt {
     /// Files to process
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
+    
+    // A parameter which needs to be explicitly set to either `true` or `false`.
+    /// Enable frobnication?
+    #[structopt(short, long)]
+    frobnicate: Bool,
 }
 
 fn main() {
@@ -89,14 +97,15 @@ FLAGS:
     -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
 
 OPTIONS:
-    -l, --level <level>...     admin_level to consider
-    -c, --nb-cars <nb-cars>    Number of cars
-    -o, --output <output>      Output file
-    -s, --speed <speed>        Set speed [default: 42]
+    -f, --frobnicate <frobnicate>    Enable frobnication?
+    -l, --level <level>...           admin_level to consider
+    -c, --nb-cars <nb-cars>          Number of cars
+    -o, --output <output>            Output file
+    -s, --speed <speed>              Set speed [default: 42]
 
 ARGS:
     <file>...    Files to process
-$ ./basic -o foo.txt
+$ ./basic -o foo.txt -f true
 Opt {
     debug: false,
     verbose: 0,
@@ -105,8 +114,9 @@ Opt {
     nb_cars: None,
     level: [],
     files: [],
+    frobnicate: true,
 }
-$ ./basic -o foo.txt -dvvvs 1337 -l alice -l bob --nb-cars 4 bar.txt baz.txt
+$ ./basic -o foo.txt -dvvvs 1337 -l alice -l bob --nb-cars 4 bar.txt baz.txt --frobnicate false
 Opt {
     debug: true,
     verbose: 3,
@@ -123,6 +133,7 @@ Opt {
         "bar.txt",
         "baz.txt",
     ],
+    frobnicate: false,
 }
 ```
 
