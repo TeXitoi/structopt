@@ -10,6 +10,8 @@
 //! directly. See [structopt documentation](https://docs.rs/structopt)
 //! for the usage of `#[derive(StructOpt)]`.
 
+#![allow(clippy::large_enum_variant)]
+
 extern crate proc_macro;
 
 mod attrs;

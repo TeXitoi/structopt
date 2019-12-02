@@ -23,17 +23,17 @@ impl<T> Sp<T> {
     }
 
     pub fn span(&self) -> Span {
-        self.span.clone()
+        self.span
     }
 }
 
 impl<T: ToString> Sp<T> {
     pub fn as_ident(&self) -> Ident {
-        Ident::new(&self.to_string(), self.span.clone())
+        Ident::new(&self.to_string(), self.span)
     }
 
     pub fn as_lit(&self) -> LitStr {
-        LitStr::new(&self.to_string(), self.span.clone())
+        LitStr::new(&self.to_string(), self.span)
     }
 }
 

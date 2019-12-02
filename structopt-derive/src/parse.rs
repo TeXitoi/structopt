@@ -18,11 +18,10 @@ pub struct StructOptAttributes {
 impl Parse for StructOptAttributes {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let content;
+        let paren_token = parenthesized!(content in input);
+        let attrs = content.parse_terminated(StructOptAttr::parse)?;
 
-        Ok(StructOptAttributes {
-            paren_token: parenthesized!(content in input),
-            attrs: content.parse_terminated(StructOptAttr::parse)?,
-        })
+        Ok(StructOptAttributes { paren_token, attrs })
     }
 }
 
