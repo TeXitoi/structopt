@@ -71,3 +71,15 @@ fn special_types_vec() {
         Opt::from_iter(&["test", "success"])
     );
 }
+
+#[test]
+fn positional_bool() {
+    #[derive(StructOpt, Debug)]
+    struct Opt {
+        verbose: bool,
+    }
+
+    assert!(Opt::from_iter_safe(&["test", "true"]).is_ok());
+    assert!(Opt::from_iter_safe(&["test", "false"]).is_ok());
+    assert!(Opt::from_iter_safe(&["test", "beauty"]).is_err()); // no beauty, only truth and falseness
+}

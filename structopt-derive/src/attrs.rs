@@ -482,7 +482,7 @@ impl Attrs {
                 }
 
                 match *ty {
-                    Ty::Bool => {
+                    Ty::Bool if !res.is_positional() => {
                         if let Some(m) = res.find_method("default_value") {
                             span_error!(m.name.span(), "default_value is meaningless for bool")
                         }

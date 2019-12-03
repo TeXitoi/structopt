@@ -66,7 +66,7 @@ fn gen_augmentation(
                 (Ty::Option, Some(sub_type)) => sub_type,
                 _ => &field.ty,
             };
-            let required = if **ty == Ty::Option {
+            let required = if *ty == Ty::Option {
                 quote!()
             } else {
                 quote_spanned! { kind.span()=>
@@ -97,8 +97,8 @@ fn gen_augmentation(
 
     let args = fields.iter().filter_map(|field| {
         let attrs = Attrs::from_field(field, parent_attribute.casing());
-        let kind = attrs.kind();
-        match &*kind {
+        let mut kind = attrs.kind();
+        match &mut *kind {
             Kind::Subcommand(_) | Kind::Skip(_) => None,
             Kind::FlattenStruct => {
                 let ty = &field.ty;
@@ -111,7 +111,12 @@ fn gen_augmentation(
                     };
                 })
             }
-            Kind::Arg(ty) => {
+            Kind::Arg(ref mut ty) => {
+                // do not specialize if it's positional
+                if *ty == Ty::Bool && attrs.is_positional() {
+                    *ty = Sp::new(Ty::Other, ty.span());
+                }
+
                 let convert_type = match **ty {
                     Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
                     Ty::OptionOption | Ty::OptionVec => {
@@ -218,8 +223,9 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
     let fields = fields.iter().map(|field| {
         let attrs = Attrs::from_field(field, parent_attribute.casing());
         let field_name = field.ident.as_ref().unwrap();
-        let kind = attrs.kind();
-        match &*kind {
+        let mut kind = attrs.kind();
+        let kind_span = kind.span();
+        match &mut *kind {
             Kind::Subcommand(ty) => {
                 let subcmd_type = match (**ty, sub_type(&field.ty)) {
                     (Ty::Option, Some(sub_type)) => sub_type,
@@ -239,12 +245,17 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
             },
 
             Kind::Skip(val) => match val {
-                None => quote_spanned!(kind.span()=> #field_name: Default::default()),
-                Some(val) => quote_spanned!(kind.span()=> #field_name: (#val).into()),
+                None => quote_spanned!(kind_span=> #field_name: Default::default()),
+                Some(val) => quote_spanned!(kind_span=> #field_name: (#val).into()),
             },
 
-            Kind::Arg(ty) => {
+            Kind::Arg(ref mut ty) => {
                 use crate::attrs::ParserKind::*;
+
+                // do not specialize if it's positional
+                if *ty == Ty::Bool && attrs.is_positional() {
+                    *ty = Sp::new(Ty::Other, ty.span());
+                }
 
                 let parser = attrs.parser();
                 let func = &parser.func;
