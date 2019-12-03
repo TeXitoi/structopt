@@ -12,7 +12,7 @@ use std::env;
 
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::span_error;
+use proc_macro_error::abort;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue};
 
@@ -95,8 +95,10 @@ impl Method {
             None => match env::var(env_var) {
                 Ok(val) => LitStr::new(&val, ident.span()),
                 Err(_) => {
-                    span_error!(ident.span(),
-                        "`{}` environment variable is not defined, use `{} = \"{}\"` to set it manually", env_var, ident, ident
+                    abort!(ident.span(),
+                        "cannot derive `{}` from Cargo.toml", ident;
+                        note = "`{}` environment variable is not set", env_var;
+                        help = "use `{} = \"{}\"` to set {} manually", ident, ident, ident;
                     );
                 }
             },
@@ -135,7 +137,7 @@ impl Parser {
             "try_from_os_str" => TryFromOsStr,
             "from_occurrences" => FromOccurrences,
             "from_flag" => FromFlag,
-            s => span_error!(spec.kind.span(), "unsupported parser `{}`", s),
+            s => abort!(spec.kind.span(), "unsupported parser `{}`", s),
         };
 
         let func = match spec.parse_func {
@@ -144,9 +146,9 @@ impl Parser {
                     quote_spanned!(spec.kind.span()=> ::std::convert::From::from)
                 }
                 TryFromStr => quote_spanned!(spec.kind.span()=> ::std::str::FromStr::from_str),
-                TryFromOsStr => span_error!(
+                TryFromOsStr => abort!(
                     spec.kind.span(),
-                    "cannot omit parser function name with `try_from_os_str`"
+                    "parser's function name for `try_from_os_str` mut be set explicitly"
                 ),
                 FromOccurrences => quote_spanned!(spec.kind.span()=> { |v| v as _ }),
                 FromFlag => quote_spanned!(spec.kind.span()=> ::std::convert::From::from),
@@ -154,7 +156,7 @@ impl Parser {
 
             Some(func) => match func {
                 syn::Expr::Path(_) => quote!(#func),
-                _ => span_error!(func.span(), "`parse` argument must be a function path"),
+                _ => abort!(func.span(), "`parse` argument must be a function path"),
             },
         };
 
@@ -178,7 +180,7 @@ impl CasingStyle {
             "screamingsnake" | "screamingsnakecase" => cs(ScreamingSnake),
             "snake" | "snakecase" => cs(Snake),
             "verbatim" | "verbatimcase" => cs(Verbatim),
-            s => span_error!(name.span(), "unsupported casing: `{}`", s),
+            s => abort!(name.span(), "unsupported casing: `{}`", s),
         }
     }
 }
@@ -391,19 +393,15 @@ impl Attrs {
         res.push_doc_comment(attrs, "about");
 
         if res.has_custom_parser {
-            span_error!(
+            abort!(
                 res.parser.span(),
-                "parse attribute is only allowed on fields"
+                "`parse` attribute is only allowed on fields"
             );
         }
         match &*res.kind {
-            Kind::Subcommand(_) => {
-                span_error!(res.kind.span(), "subcommand is only allowed on fields")
-            }
-            Kind::FlattenStruct => {
-                span_error!(res.kind.span(), "flatten is only allowed on fields")
-            }
-            Kind::Skip(_) => span_error!(res.kind.span(), "skip is only allowed on fields"),
+            Kind::Subcommand(_) => abort!(res.kind.span(), "subcommand is only allowed on fields"),
+            Kind::FlattenStruct => abort!(res.kind.span(), "flatten is only allowed on fields"),
+            Kind::Skip(_) => abort!(res.kind.span(), "skip is only allowed on fields"),
             Kind::Arg(_) => res,
         }
     }
@@ -417,13 +415,13 @@ impl Attrs {
         match &*res.kind {
             Kind::FlattenStruct => {
                 if res.has_custom_parser {
-                    span_error!(
+                    abort!(
                         res.parser.span(),
                         "parse attribute is not allowed for flattened entry"
                     );
                 }
                 if res.has_explicit_methods() || res.has_doc_methods() {
-                    span_error!(
+                    abort!(
                         res.kind.span(),
                         "methods and doc comments are not allowed for flattened entry"
                     );
@@ -431,13 +429,13 @@ impl Attrs {
             }
             Kind::Subcommand(_) => {
                 if res.has_custom_parser {
-                    span_error!(
+                    abort!(
                         res.parser.span(),
                         "parse attribute is not allowed for subcommand"
                     );
                 }
                 if res.has_explicit_methods() {
-                    span_error!(
+                    abort!(
                         res.kind.span(),
                         "methods in attributes are not allowed for subcommand"
                     );
@@ -446,13 +444,13 @@ impl Attrs {
                 let ty = Ty::from_syn_ty(&field.ty);
                 match *ty {
                     Ty::OptionOption => {
-                        span_error!(
+                        abort!(
                             ty.span(),
                             "Option<Option<T>> type is not allowed for subcommand"
                         );
                     }
                     Ty::OptionVec => {
-                        span_error!(
+                        abort!(
                             ty.span(),
                             "Option<Vec<T>> type is not allowed for subcommand"
                         );
@@ -464,7 +462,7 @@ impl Attrs {
             }
             Kind::Skip(_) => {
                 if res.has_explicit_methods() {
-                    span_error!(
+                    abort!(
                         res.kind.span(),
                         "methods are not allowed for skipped fields"
                     );
@@ -482,23 +480,23 @@ impl Attrs {
                 match *ty {
                     Ty::Bool => {
                         if let Some(m) = res.find_method("default_value") {
-                            span_error!(m.name.span(), "default_value is meaningless for bool")
+                            abort!(m.name.span(), "default_value is meaningless for bool")
                         }
                         if let Some(m) = res.find_method("required") {
-                            span_error!(m.name.span(), "required is meaningless for bool")
+                            abort!(m.name.span(), "required is meaningless for bool")
                         }
                     }
                     Ty::Option => {
                         if let Some(m) = res.find_method("default_value") {
-                            span_error!(m.name.span(), "default_value is meaningless for Option")
+                            abort!(m.name.span(), "default_value is meaningless for Option")
                         }
                         if let Some(m) = res.find_method("required") {
-                            span_error!(m.name.span(), "required is meaningless for Option")
+                            abort!(m.name.span(), "required is meaningless for Option")
                         }
                     }
                     Ty::OptionOption => {
                         if res.is_positional() {
-                            span_error!(
+                            abort!(
                                 ty.span(),
                                 "Option<Option<T>> type is meaningless for positional argument"
                             )
@@ -506,7 +504,7 @@ impl Attrs {
                     }
                     Ty::OptionVec => {
                         if res.is_positional() {
-                            span_error!(
+                            abort!(
                                 ty.span(),
                                 "Option<Vec<T>> type is meaningless for positional argument"
                             )
@@ -526,7 +524,7 @@ impl Attrs {
         if let Kind::Arg(_) = *self.kind {
             self.kind = kind;
         } else {
-            span_error!(
+            abort!(
                 kind.span(),
                 "subcommand, flatten and skip cannot be used together"
             );
@@ -544,7 +542,7 @@ impl Attrs {
     /// generate methods from attributes on top of struct or enum
     pub fn top_level_methods(&self) -> TokenStream {
         let version = match (&self.no_version, &self.version) {
-            (Some(no_version), Some(_)) => span_error!(
+            (Some(no_version), Some(_)) => abort!(
                 no_version.span(),
                 "`no_version` and `version = \"version\"` can't be used together"
             ),

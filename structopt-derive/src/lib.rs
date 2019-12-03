@@ -26,7 +26,7 @@ use crate::{
 };
 
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::{call_site_error, filter_macro_errors, set_dummy, span_error};
+use proc_macro_error::{abort, abort_call_site, proc_macro_error, set_dummy};
 use quote::{quote, quote_spanned};
 use syn::{punctuated::Punctuated, spanned::Spanned, token::Comma, *};
 
@@ -45,12 +45,11 @@ struct GenOutput {
 
 /// Generates the `StructOpt` impl.
 #[proc_macro_derive(StructOpt, attributes(structopt))]
+#[proc_macro_error]
 pub fn structopt(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    filter_macro_errors! {
-        let input: DeriveInput = syn::parse(input).unwrap();
-        let gen = impl_structopt(&input);
-        gen.into()
-    }
+    let input: DeriveInput = syn::parse(input).unwrap();
+    let gen = impl_structopt(&input);
+    gen.into()
 }
 
 /// Generate a block of code to add arguments/subcommands corresponding to
@@ -91,7 +90,7 @@ fn gen_augmentation(
 
     let subcmd = subcmds.next().map(|(_, ts)| ts);
     if let Some((span, _)) = subcmds.next() {
-        span_error!(
+        abort!(
             span,
             "multiple subcommand sets are not allowed, that's the second"
         );
@@ -450,7 +449,7 @@ fn gen_augment_clap_enum(
                     }
                 }
             }
-            Unnamed(..) => call_site_error!("{}: tuple enums are not supported", variant.ident),
+            Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
         };
 
         let name = attrs.cased_name();
@@ -508,7 +507,7 @@ fn gen_from_subcommand(
                 let ty = &fields.unnamed[0];
                 quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
             }
-            Unnamed(..) => call_site_error!("{}: tuple enums are not supported", variant.ident),
+            Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
         };
 
         quote! {
@@ -619,7 +618,7 @@ fn impl_structopt(input: &DeriveInput) -> TokenStream {
 
     let struct_name = &input.ident;
 
-    set_dummy(Some(quote! {
+    set_dummy(quote! {
         impl ::structopt::StructOpt for #struct_name {
             fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
                 unimplemented!()
@@ -628,7 +627,7 @@ fn impl_structopt(input: &DeriveInput) -> TokenStream {
                 unimplemented!()
             }
         }
-    }));
+    });
 
     match input.data {
         Struct(DataStruct {
@@ -636,6 +635,6 @@ fn impl_structopt(input: &DeriveInput) -> TokenStream {
             ..
         }) => impl_structopt_for_struct(struct_name, &fields.named, &input.attrs),
         Enum(ref e) => impl_structopt_for_enum(struct_name, &e.variants, &input.attrs),
-        _ => call_site_error!("structopt only supports non-tuple structs and enums"),
+        _ => abort_call_site!("structopt only supports non-tuple structs and enums"),
     }
 }

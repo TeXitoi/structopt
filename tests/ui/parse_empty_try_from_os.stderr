@@ -1,4 +1,4 @@
-error: cannot omit parser function name with `try_from_os_str`
+error: parser's function name for `try_from_os_str` mut be set explicitly
   --> $DIR/parse_empty_try_from_os.rs:14:23
    |
 14 |     #[structopt(parse(try_from_os_str))]
