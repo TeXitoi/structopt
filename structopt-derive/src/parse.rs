@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use proc_macro_error::{span_error, ResultExt};
+use proc_macro_error::{abort, ResultExt};
 use syn::{
     self, parenthesized,
     parse::{Parse, ParseStream},
@@ -72,7 +72,12 @@ impl Parse for StructOptAttr {
 
                 let check_empty_lit = |s| {
                     if lit_str.is_empty() {
-                        span_error!(lit.span(), "`#[structopt({} = \"\") is deprecated in structopt 0.3, now it's default behavior", s);
+                        abort!(
+                            lit.span(),
+                            "`#[structopt({} = \"\") is deprecated in structopt 0.3, \
+                             now it's default behavior",
+                            s
+                        );
                     }
                 };
 
@@ -115,7 +120,7 @@ impl Parse for StructOptAttr {
                         }
                     }
 
-                    Err(_) => span_error! {
+                    Err(_) => abort! {
                         assign_token.span(),
                         "expected `string literal` or `expression` after `=`"
                     },
@@ -134,25 +139,35 @@ impl Parse for StructOptAttr {
                     if parser_specs.len() == 1 {
                         Ok(Parse(name, parser_specs[0].clone()))
                     } else {
-                        span_error!(name.span(), "parse must have exactly one argument")
+                        abort!(name.span(), "parse must have exactly one argument")
                     }
                 }
 
-                "raw" => {
-                    match nested.parse::<LitBool>() {
-                        Ok(bool_token) => {
-                            let expr = ExprLit { attrs: vec![], lit: Lit::Bool(bool_token) };
-                            let expr = Expr::Lit(expr);
-                            Ok(MethodCall(name, vec![expr]))
-                        }
-
-                        Err(_) => span_error!(name.span(),
-                            "`#[structopt(raw(...))` attributes are removed in structopt 0.3, they are replaced with raw methods\nhelp: if you meant to call `clap::Arg::raw()` method you should use bool literal, like `raw(true)` or `raw(false)`")
+                "raw" => match nested.parse::<LitBool>() {
+                    Ok(bool_token) => {
+                        let expr = ExprLit {
+                            attrs: vec![],
+                            lit: Lit::Bool(bool_token),
+                        };
+                        let expr = Expr::Lit(expr);
+                        Ok(MethodCall(name, vec![expr]))
                     }
-                }
+
+                    Err(_) => {
+                        abort!(name.span(),
+                            "`#[structopt(raw(...))` attributes are removed in structopt 0.3, \
+                            they are replaced with raw methods";
+                            help = "if you meant to call `clap::Arg::raw()` method \
+                                you should use bool literal, like `raw(true)` or `raw(false)`";
+                            note = "if you need to call some method from `clap::Arg/App` you \
+                                should use raw method";
+                        );
+                    }
+                },
 
                 _ => {
-                    let method_args: Punctuated<_, Token![,]> = nested.parse_terminated(Expr::parse)?;
+                    let method_args: Punctuated<_, Token![,]> =
+                        nested.parse_terminated(Expr::parse)?;
                     Ok(MethodCall(name, Vec::from_iter(method_args)))
                 }
             }
@@ -170,12 +185,14 @@ impl Parse for StructOptAttr {
 
                 "skip" => Ok(Skip(name, None)),
 
-                "version" => {
-                    span_error!(name.span(),
-                    "#[structopt(version)] is invalid attribute, structopt 0.3 inherits version from Cargo.toml by default, no attribute needed")
-                },
+                "version" => abort!(
+                    name.span(),
+                    "#[structopt(version)] is invalid attribute, \
+                     structopt 0.3 inherits version from Cargo.toml by default, \
+                     no attribute needed"
+                ),
 
-                _ => span_error!(name.span(), "unexpected attribute: {}", name_str),
+                _ => abort!(name.span(), "unexpected attribute: {}", name_str),
             }
         }
     }
@@ -222,7 +239,7 @@ pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr>
                     }
                     _ => e,
                 })
-                .unwrap_or_exit();
+                .unwrap_or_abort();
             attrs.attrs
         })
         .collect()
