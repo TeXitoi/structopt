@@ -98,7 +98,7 @@ impl Method {
                     abort!(ident.span(),
                         "cannot derive `{}` from Cargo.toml", ident;
                         note = "`{}` environment variable is not set", env_var;
-                        help = "use `{} = \"{}\"` to set {} manually", ident, ident, ident;
+                        help = "use `{} = \"...\"` to set {} manually", ident, ident;
                     );
                 }
             },
@@ -148,7 +148,7 @@ impl Parser {
                 TryFromStr => quote_spanned!(spec.kind.span()=> ::std::str::FromStr::from_str),
                 TryFromOsStr => abort!(
                     spec.kind.span(),
-                    "parser's function name for `try_from_os_str` mut be set explicitly"
+                    "you must set parser for `try_from_os_str` explicitly"
                 ),
                 FromOccurrences => quote_spanned!(spec.kind.span()=> { |v| v as _ }),
                 FromFlag => quote_spanned!(spec.kind.span()=> ::std::convert::From::from),
