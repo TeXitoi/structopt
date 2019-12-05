@@ -6,7 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+mod utils;
+
 use structopt::StructOpt;
+use utils::*;
 
 #[derive(StructOpt, PartialEq, Debug)]
 enum Opt {
@@ -157,9 +160,7 @@ fn test_tuple_commands() {
         Opt4::from_clap(&Opt4::clap().get_matches_from(&["test", "fetch", "origin"]))
     );
 
-    let mut output = Vec::new();
-    Opt4::clap().write_long_help(&mut output).unwrap();
-    let output = String::from_utf8(output).unwrap();
+    let output = get_long_help::<Opt4>();
 
     assert!(output.contains("download history from remote"));
     assert!(output.contains("Add a file"));
