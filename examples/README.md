@@ -1,5 +1,9 @@
 # Collection of examples "how to use `structopt`"
 
+### [Help on the bottom](after_help.rs)
+
+How to append a postscript to the help message generated.
+
 ### [At least N](at_least_two.rs)
 
 How to require presence of at least N values, like `val1 val2 ... valN ... valM`.
