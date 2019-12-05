@@ -3,7 +3,8 @@
         {
             "urls": [
                 "https://crates.io",
-                "https://opensource.org"
+                "https://opensource.org",
+                "https://www.apache.org"
             ],
             "headers": {
                 "User-Agent": "broken links checker (https://github.com/TeXitoi/structopt)",
