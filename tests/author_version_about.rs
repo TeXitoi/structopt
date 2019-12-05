@@ -6,7 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+mod utils;
+
 use structopt::StructOpt;
+use utils::*;
 
 #[test]
 fn no_author_version_about() {
@@ -14,10 +17,7 @@ fn no_author_version_about() {
     #[structopt(name = "foo", no_version)]
     struct Opt {}
 
-    let mut output = Vec::new();
-    Opt::clap().write_long_help(&mut output).unwrap();
-    let output = String::from_utf8(output).unwrap();
-
+    let output = get_long_help::<Opt>();
     assert!(output.starts_with("foo \n\nUSAGE:"));
 }
 
@@ -27,9 +27,7 @@ fn use_env() {
     #[structopt(author, about)]
     struct Opt {}
 
-    let mut output = Vec::new();
-    Opt::clap().write_long_help(&mut output).unwrap();
-    let output = String::from_utf8(output).unwrap();
+    let output = get_long_help::<Opt>();
     assert!(output.starts_with("structopt 0."));
     assert!(output.contains("Guillaume Pinot <texitoi@texitoi.eu>, others"));
     assert!(output.contains("Parse command line argument by defining a struct."));
@@ -43,8 +41,6 @@ fn explicit_version_not_str() {
     #[structopt(version = VERSION)]
     pub struct Opt {}
 
-    let mut output = Vec::new();
-    Opt::clap().write_long_help(&mut output).unwrap();
-    let output = String::from_utf8(output).unwrap();
+    let output = get_long_help::<Opt>();
     assert!(output.contains("custom version"));
 }

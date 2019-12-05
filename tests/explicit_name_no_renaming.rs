@@ -1,4 +1,7 @@
+mod utils;
+
 use structopt::StructOpt;
+use utils::*;
 
 #[test]
 fn explicit_short_long_no_rename() {
@@ -24,9 +27,6 @@ fn explicit_name_no_rename() {
         foo: Vec<String>,
     }
 
-    let mut output = Vec::new();
-    Opt::clap().write_long_help(&mut output).unwrap();
-    let help = String::from_utf8(output).unwrap();
-
+    let help = get_long_help::<Opt>();
     assert!(help.contains("[.options]..."))
 }
