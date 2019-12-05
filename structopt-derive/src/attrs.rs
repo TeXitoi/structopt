@@ -479,6 +479,15 @@ impl Attrs {
 
                 match *ty {
                     Ty::Bool => {
+                        if res.is_positional() && !res.has_custom_parser {
+                            abort!(ty.span(),
+                                "`bool` cannot be used as positional parameter with default parser";
+                                help = "if you want to create a flag add `long` or `short`";
+                                help = "If you really want a boolean parameter \
+                                    add an explicit parser, for example `parse(try_from_str)`";
+                                note = "see also https://github.com/TeXitoi/structopt/tree/master/examples/true_or_false.rs";
+                            )
+                        }
                         if let Some(m) = res.find_method("default_value") {
                             abort!(m.name.span(), "default_value is meaningless for bool")
                         }
