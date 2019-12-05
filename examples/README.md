@@ -72,3 +72,7 @@ How to use `#[structopt(skip)]`.
 ### [Aliases](subcommand_aliases.rs)
 
 How to use aliases
+
+### [`true` or `false`](true_or_false.rs)
+
+How to express "`"true"` or `"false"` argument.

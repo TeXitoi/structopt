@@ -302,6 +302,22 @@
 //! If you would like to use a custom string parser other than `FromStr`, see
 //! the [same titled section](#custom-string-parsers) below.
 //!
+//! **Note:**
+//! _________________
+//! Pay attention that *only literal occurrence* of this types is special, for example
+//! `Option<T>` is special while `::std::option::Option<T>` is not.
+//!
+//! If you need to avoid special casing you can make a `type` alias and
+//! use it in place of the said type.
+//! _________________
+//!
+//! **Note:**
+//! _________________
+//! `bool` cannot be used as positional argument unless you provide an explicit parser.
+//! If you need a positional bool, for example to parse `true` or `false`, you must
+//! annotate the field with explicit [`#[structopt(parse(...))]`](#custom-string-parsers).
+//! _________________
+//!
 //! Thus, the `speed` argument is generated as:
 //!
 //! ```
