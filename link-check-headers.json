@@ -2,9 +2,8 @@
     "httpHeaders": [
         {
             "urls": [
-                "https://crates.io",
-                "https://opensource.org",
-                "https://www.apache.org"
+                "https://",
+                "http://"
             ],
             "headers": {
                 "User-Agent": "broken links checker (https://github.com/TeXitoi/structopt)",
