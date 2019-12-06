@@ -30,6 +30,7 @@ pub enum StructOptAttr {
     // single-identifier attributes
     Short(Ident),
     Long(Ident),
+    Env(Ident),
     Flatten(Ident),
     Subcommand(Ident),
     NoVersion(Ident),
@@ -40,6 +41,7 @@ pub enum StructOptAttr {
 
     // ident = "string literal"
     Version(Ident, LitStr),
+    RenameAllEnv(Ident, LitStr),
     RenameAll(Ident, LitStr),
     NameLitStr(Ident, LitStr),
 
@@ -84,6 +86,7 @@ impl Parse for StructOptAttr {
 
                 match &*name_str.to_string() {
                     "rename_all" => Ok(RenameAll(name, lit)),
+                    "rename_all_env" => Ok(RenameAllEnv(name, lit)),
 
                     "version" => {
                         check_empty_lit("version");
@@ -176,6 +179,7 @@ impl Parse for StructOptAttr {
             match name_str.as_ref() {
                 "long" => Ok(Long(name)),
                 "short" => Ok(Short(name)),
+                "env" => Ok(Env(name)),
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
                 "no_version" => Ok(NoVersion(name)),
