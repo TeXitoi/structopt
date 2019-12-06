@@ -33,6 +33,9 @@ use syn::{punctuated::Punctuated, spanned::Spanned, token::Comma, *};
 /// Default casing style for generated arguments.
 const DEFAULT_CASING: CasingStyle = CasingStyle::Kebab;
 
+/// Default casing style for environment variables
+const DEFAULT_ENV_CASING: CasingStyle = CasingStyle::ScreamingSnake;
+
 /// Output for the `gen_xxx()` methods were we need more than a simple stream of tokens.
 ///
 /// The output of a generation method is not only the stream of new tokens but also the attribute
@@ -60,7 +63,11 @@ fn gen_augmentation(
     parent_attribute: &Attrs,
 ) -> TokenStream {
     let mut subcmds = fields.iter().filter_map(|field| {
-        let attrs = Attrs::from_field(field, parent_attribute.casing());
+        let attrs = Attrs::from_field(
+            field,
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
         let kind = attrs.kind();
         if let Kind::Subcommand(ty) = &*kind {
             let subcmd_type = match (**ty, sub_type(&field.ty)) {
@@ -97,7 +104,11 @@ fn gen_augmentation(
     }
 
     let args = fields.iter().filter_map(|field| {
-        let attrs = Attrs::from_field(field, parent_attribute.casing());
+        let attrs = Attrs::from_field(
+            field,
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
         let kind = attrs.kind();
         match &*kind {
             Kind::Subcommand(_) | Kind::Skip(_) => None,
@@ -219,7 +230,11 @@ fn gen_augmentation(
 
 fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) -> TokenStream {
     let fields = fields.iter().map(|field| {
-        let attrs = Attrs::from_field(field, parent_attribute.casing());
+        let attrs = Attrs::from_field(
+            field,
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
         let field_name = field.ident.as_ref().unwrap();
         let kind = attrs.kind();
         match &*kind {
@@ -361,6 +376,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
         attrs,
         Name::Assigned(LitStr::new(&name, Span::call_site())),
         Sp::call_site(DEFAULT_CASING),
+        Sp::call_site(DEFAULT_ENV_CASING),
     );
     let tokens = {
         let name = attrs.cased_name();
@@ -429,6 +445,7 @@ fn gen_augment_clap_enum(
             &variant.attrs,
             Name::Derived(variant.ident.clone()),
             parent_attribute.casing(),
+            parent_attribute.env_casing(),
         );
         let app_var = Ident::new("subcommand", Span::call_site());
         let arg_block = match variant.fields {
@@ -497,6 +514,7 @@ fn gen_from_subcommand(
             &variant.attrs,
             Name::Derived(variant.ident.clone()),
             parent_attribute.casing(),
+            parent_attribute.env_casing(),
         );
         let sub_name = attrs.cased_name();
         let variant_name = &variant.ident;
