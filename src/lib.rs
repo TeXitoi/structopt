@@ -526,7 +526,7 @@
 //! value the value will be derived from the field's name. This is controlled by
 //! `#[structopt(rename_all_env)]`.
 //!
-//! `rename_all_env` works almost exactly as `rename_all` (including overriding)
+//! `rename_all_env` works exactly as `rename_all` (including overriding)
 //! except default casing is `SCREAMING_SNAKE_CASE` instead of `kebab-case`.
 //!
 //! ## Skipping fields
