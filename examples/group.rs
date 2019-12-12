@@ -3,12 +3,12 @@
 use structopt::{clap::ArgGroup, StructOpt};
 
 #[derive(StructOpt, Debug)]
-#[structopt(group = ArgGroup::with_name("vers").required(true))]
+#[structopt(group = ArgGroup::with_name("verb").required(true))]
 struct Opt {
     /// Set a custom HTTP verb
     #[structopt(long, group = "verb")]
     method: Option<String>,
-    /// HTTP GET; default if no other HTTP verb is selected
+    /// HTTP GET
     #[structopt(long, group = "verb")]
     get: bool,
     /// HTTP HEAD
