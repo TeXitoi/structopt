@@ -79,7 +79,7 @@ fn gen_augmentation(
 
             let span = field.span();
             let ts = quote! {
-                let #app_var = <#subcmd_type>::augment_clap( #app_var );
+                let #app_var = <#subcmd_type as ::structopt::StructOpt>::augment_clap( #app_var );
                 #required
             };
             Some((span, ts))
@@ -104,8 +104,8 @@ fn gen_augmentation(
             Kind::FlattenStruct => {
                 let ty = &field.ty;
                 Some(quote_spanned! { kind.span()=>
-                    let #app_var = <#ty>::augment_clap(#app_var);
-                    let #app_var = if <#ty>::is_subcommand() {
+                    let #app_var = <#ty as ::structopt::StructOpt>::augment_clap(#app_var);
+                    let #app_var = if <#ty as ::structopt::StructOpt>::is_subcommand() {
                         #app_var.setting(::structopt::clap::AppSettings::SubcommandRequiredElseHelp)
                     } else {
                         #app_var
@@ -233,7 +233,9 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     _ => quote_spanned!( ty.span()=> .unwrap() ),
                 };
                 quote_spanned! { kind.span()=>
-                    #field_name: <#subcmd_type>::from_subcommand(matches.subcommand())#unwrapper
+                    #field_name: <#subcmd_type as ::structopt::StructOpt>::from_subcommand(
+                        matches.subcommand())
+                        #unwrapper
                 }
             }
 
@@ -377,7 +379,7 @@ fn gen_clap_struct(struct_attrs: &[Attribute]) -> GenOutput {
     let augmented_tokens = quote! {
         fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
             let app = #clap_tokens;
-            Self::augment_clap(app)
+            <Self as ::structopt::StructOpt>::augment_clap(app)
         }
     };
 
@@ -391,7 +393,7 @@ fn gen_augment_clap(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs)
     let app_var = Ident::new("app", Span::call_site());
     let augmentation = gen_augmentation(fields, &app_var, parent_attribute);
     quote! {
-        pub fn augment_clap<'a, 'b>(
+        fn augment_clap<'a, 'b>(
             #app_var: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
             #augmentation
@@ -407,7 +409,7 @@ fn gen_clap_enum(enum_attrs: &[Attribute]) -> GenOutput {
         fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
             let app = #clap_tokens
                 .setting(::structopt::clap::AppSettings::SubcommandRequiredElseHelp);
-            Self::augment_clap(app)
+            <Self as ::structopt::StructOpt>::augment_clap(app)
         }
     };
 
@@ -438,8 +440,8 @@ fn gen_augment_clap_enum(
                 let ty = &unnamed[0];
                 quote_spanned! { ty.span()=>
                     {
-                        let #app_var = <#ty>::augment_clap(#app_var);
-                        if <#ty>::is_subcommand() {
+                        let #app_var = <#ty as ::structopt::StructOpt>::augment_clap(#app_var);
+                        if <#ty as ::structopt::StructOpt>::is_subcommand() {
                             #app_var.setting(
                                 ::structopt::clap::AppSettings::SubcommandRequiredElseHelp
                             )
@@ -467,7 +469,7 @@ fn gen_augment_clap_enum(
     let app_methods = parent_attribute.top_level_methods();
 
     quote! {
-        pub fn augment_clap<'a, 'b>(
+        fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
             app #app_methods #( #subcommands )*
@@ -478,7 +480,7 @@ fn gen_augment_clap_enum(
 fn gen_from_clap_enum(name: &Ident) -> TokenStream {
     quote! {
         fn from_clap(matches: &::structopt::clap::ArgMatches) -> Self {
-            <#name>::from_subcommand(matches.subcommand())
+            <#name as ::structopt::StructOpt>::from_subcommand(matches.subcommand())
                 .unwrap()
         }
     }
@@ -517,7 +519,7 @@ fn gen_from_subcommand(
     });
 
     quote! {
-        pub fn from_subcommand<'a, 'b>(
+        fn from_subcommand<'a, 'b>(
             sub: (&'b str, Option<&'b ::structopt::clap::ArgMatches<'a>>)
         ) -> Option<Self> {
             match sub {
@@ -560,18 +562,12 @@ fn impl_structopt_for_struct(
         #[allow(unused_variables)]
         #[allow(unknown_lints)]
         #[allow(clippy)]
+        #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
-        }
-
-        #[doc(hidden)]
-        #[allow(dead_code, unreachable_code)]
-        #[allow(unknown_lints)]
-        #[allow(clippy)]
-        impl #name {
             #augment_clap
-            pub fn is_subcommand() -> bool { false }
+            fn is_subcommand() -> bool { false }
         }
 
         #paw_impl
@@ -593,20 +589,14 @@ fn impl_structopt_for_enum(
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
         #[allow(unknown_lints)]
+        #[allow(unused_variables, dead_code, unreachable_code)]
         #[allow(clippy)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
-        }
-
-        #[allow(unused_variables, dead_code, unreachable_code)]
-        #[allow(unknown_lints)]
-        #[allow(clippy)]
-        #[doc(hidden)]
-        impl #name {
             #augment_clap
             #from_subcommand
-            pub fn is_subcommand() -> bool { true }
+            fn is_subcommand() -> bool { true }
         }
 
         #paw_impl
