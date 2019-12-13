@@ -953,4 +953,51 @@ pub trait StructOpt {
     {
         Ok(Self::from_clap(&Self::clap().get_matches_from_safe(iter)?))
     }
+
+    // All the following is NOT PUBLIC API!!!
+    //
+    // ** SUBJECT TO CHANGE WITHOUT NOTICE!!! **
+
+    #[doc(hidden)]
+    fn is_subcommand() -> bool {
+        unimplemented!()
+    }
+
+    #[doc(hidden)]
+    fn augment_clap<'a, 'b>(_app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        unimplemented!()
+    }
+
+    #[doc(hidden)]
+    fn from_subcommand<'a, 'b>(_sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        unimplemented!()
+    }
+}
+
+impl<T: StructOpt> StructOpt for Box<T> {
+    fn clap<'a, 'b>() -> clap::App<'a, 'b> {
+        <T as StructOpt>::clap()
+    }
+
+    fn from_clap(matches: &clap::ArgMatches<'_>) -> Self {
+        Box::new(<T as StructOpt>::from_clap(matches))
+    }
+
+    #[doc(hidden)]
+    fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        <T as StructOpt>::augment_clap(app)
+    }
+
+    #[doc(hidden)]
+    fn is_subcommand() -> bool {
+        <T as StructOpt>::is_subcommand()
+    }
+
+    #[doc(hidden)]
+    fn from_subcommand<'a, 'b>(sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self> {
+        <T as StructOpt>::from_subcommand(sub).map(Box::new)
+    }
 }
