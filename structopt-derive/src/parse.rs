@@ -34,7 +34,7 @@ pub enum StructOptAttr {
     Flatten(Ident),
     Subcommand(Ident),
     NoVersion(Ident),
-    KeepLineBreaks(Ident),
+    VerbatimDocComment(Ident),
 
     // ident [= "string literal"]
     About(Ident, Option<LitStr>),
@@ -184,7 +184,7 @@ impl Parse for StructOptAttr {
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
                 "no_version" => Ok(NoVersion(name)),
-                "keep_line_breaks" => Ok(KeepLineBreaks(name)),
+                "verbatim_doc_comment" => Ok(VerbatimDocComment(name)),
 
                 "about" => (Ok(About(name, None))),
                 "author" => (Ok(Author(name, None))),

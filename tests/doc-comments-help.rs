@@ -115,7 +115,7 @@ fn top_long_doc_comment_both_help_long_help() {
 }
 
 #[test]
-fn keep_line_breaks() {
+fn verbatim_doc_comment() {
     /// DANCE!
     ///
     ///                    ()
@@ -134,7 +134,7 @@ fn keep_line_breaks() {
     ///      ( ()    ||
     ///       (      () ) )
     #[derive(StructOpt, Debug)]
-    #[structopt(keep_line_breaks)]
+    #[structopt(verbatim_doc_comment)]
     struct SeeFigure1 {
         #[structopt(long)]
         foo: bool,

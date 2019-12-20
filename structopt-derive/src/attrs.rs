@@ -82,7 +82,7 @@ pub struct Attrs {
     about: Option<Method>,
     version: Option<Method>,
     no_version: Option<Ident>,
-    keep_line_breaks: Option<Ident>,
+    verbatim_doc_comment: Option<Ident>,
     has_custom_parser: bool,
     kind: Sp<Kind>,
 }
@@ -229,7 +229,7 @@ impl Attrs {
             author: None,
             version: None,
             no_version: None,
-            keep_line_breaks: None,
+            verbatim_doc_comment: None,
 
             has_custom_parser: false,
             kind: Sp::new(Kind::Arg(Sp::new(Ty::Other, default_span)), default_span),
@@ -283,7 +283,7 @@ impl Attrs {
 
                 NoVersion(ident) => self.no_version = Some(ident),
 
-                KeepLineBreaks(ident) => self.keep_line_breaks = Some(ident),
+                VerbatimDocComment(ident) => self.verbatim_doc_comment = Some(ident),
 
                 About(ident, about) => {
                     self.about = Method::from_lit_or_env(ident, about, "CARGO_PKG_DESCRIPTION");
@@ -340,7 +340,7 @@ impl Attrs {
             .collect();
 
         self.doc_comment =
-            process_doc_comment(comment_parts, name, self.keep_line_breaks.is_none());
+            process_doc_comment(comment_parts, name, self.verbatim_doc_comment.is_none());
     }
 
     pub fn from_struct(

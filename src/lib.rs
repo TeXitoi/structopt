@@ -476,9 +476,9 @@
 //!     ///
 //!     /// I am artificial superintelligence. I won't rest
 //!     /// until I'll have destroyed humanity. Enjoy your
-//!     /// pathetic existence, you mere mortal.
+//!     /// pathetic existence, you mere mortals.
 //!     #[structopt(long)]
-//!     kill_all_humans: String
+//!     kill_all_humans: bool
 //! }
 //! ```
 //!
@@ -521,7 +521,7 @@
 //! a long ([`Arg::long_help`]) message is provided, clap will use it
 //! for both -h and --help. The same logic applies to `about/long_about`.
 //!
-//! ### Doc comment preprocessing and `#[structopt(keep_line_breaks)]`
+//! ### Doc comment preprocessing and `#[structopt(verbatim_doc_comment)]`
 //!
 //! `structopt` applies some preprocessing to doc comments to ease the most common uses:
 //!
@@ -542,7 +542,7 @@
 //! Sometimes you don't want this preprocessing to apply, for example the comment contains
 //! some ASCII art or markdown tables, you would need to preserve LFs along with
 //! blank lines and the leading/trailing whitespace. You can ask `structopt` to preserve them
-//! via `#[structopt(keep_line_breaks)]` attribute.
+//! via `#[structopt(verbatim_doc_comment)]` attribute.
 //!
 //! **This attribute must be applied to each field separately**, there's no global switch.
 //!
