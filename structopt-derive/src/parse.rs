@@ -39,6 +39,7 @@ pub enum StructOptAttr {
     // ident [= "string literal"]
     About(Ident, Option<LitStr>),
     Author(Ident, Option<LitStr>),
+    DefaultValue(Ident, Option<LitStr>),
 
     // ident = "string literal"
     Version(Ident, LitStr),
@@ -88,6 +89,7 @@ impl Parse for StructOptAttr {
                 match &*name_str.to_string() {
                     "rename_all" => Ok(RenameAll(name, lit)),
                     "rename_all_env" => Ok(RenameAllEnv(name, lit)),
+                    "default_value" => Ok(DefaultValue(name, Some(lit))),
 
                     "version" => {
                         check_empty_lit("version");
@@ -186,6 +188,7 @@ impl Parse for StructOptAttr {
                 "no_version" => Ok(NoVersion(name)),
                 "verbatim_doc_comment" => Ok(VerbatimDocComment(name)),
 
+                "default_value" => Ok(DefaultValue(name, None)),
                 "about" => (Ok(About(name, None))),
                 "author" => (Ok(Author(name, None))),
 

@@ -14,8 +14,10 @@ use std::env;
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::abort;
-use quote::{quote, quote_spanned, ToTokens};
-use syn::{self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
+use syn::{
+    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Type,
+};
 
 #[derive(Clone)]
 pub enum Kind {
@@ -75,6 +77,7 @@ pub struct Attrs {
     name: Name,
     casing: Sp<CasingStyle>,
     env_casing: Sp<CasingStyle>,
+    ty: Option<Type>,
     doc_comment: Vec<Method>,
     methods: Vec<Method>,
     parser: Sp<Parser>,
@@ -216,6 +219,7 @@ impl Attrs {
         default_span: Span,
         name: Name,
         parent_attrs: Option<&Attrs>,
+        ty: Option<Type>,
         casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
     ) -> Self {
@@ -226,6 +230,7 @@ impl Attrs {
 
         Self {
             name,
+            ty,
             casing,
             env_casing,
             doc_comment: vec![],
@@ -290,6 +295,39 @@ impl Attrs {
                 NoVersion(ident) => self.no_version = Some(ident),
 
                 VerbatimDocComment(ident) => self.verbatim_doc_comment = Some(ident),
+
+                DefaultValue(ident, lit) => {
+                    let val = if let Some(lit) = lit {
+                        quote!(#lit)
+                    } else {
+                        let ty = if let Some(ty) = self.ty.as_ref() {
+                            ty
+                        } else {
+                            abort!(
+                                ident.span(),
+                                "#[structopt(default_value)] (without an argument) can be used \
+                                only on field level";
+
+                                note = "see \
+                                    https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
+                        };
+
+                        let static_name = format_ident!("__STRUCTOPT_DEFAULT_VALUE_{}", fresh_id());
+
+                        quote_spanned!(ident.span()=> {
+                            ::structopt::lazy_static::lazy_static! {
+                                static ref #static_name: &'static str = {
+                                    let val = <#ty as ::std::default::Default>::default();
+                                    let s = ::std::string::ToString::to_string(&val);
+                                    ::std::boxed::Box::leak(s.into_boxed_str())
+                                };
+                            }
+                            *#static_name
+                        })
+                    };
+
+                    self.methods.push(Method::new(ident, val));
+                }
 
                 About(ident, about) => {
                     self.about = Method::from_lit_or_env(ident, about, "CARGO_PKG_DESCRIPTION");
@@ -357,7 +395,7 @@ impl Attrs {
         argument_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
     ) -> Self {
-        let mut res = Self::new(span, name, parent_attrs, argument_casing, env_casing);
+        let mut res = Self::new(span, name, parent_attrs, None, argument_casing, env_casing);
         res.push_attrs(attrs);
         res.push_doc_comment(attrs, "about");
 
@@ -386,6 +424,7 @@ impl Attrs {
             field.span(),
             Name::Derived(name.clone()),
             parent_attrs,
+            Some(field.ty.clone()),
             struct_casing,
             env_casing,
         );
@@ -601,6 +640,20 @@ impl Attrs {
                     || m.name == "long_about"
             })
     }
+}
+
+fn fresh_id() -> usize {
+    use std::cell::Cell;
+
+    thread_local! {
+        static NEXT_ID: Cell<usize> = Cell::new(0);
+    }
+
+    NEXT_ID.with(|next_id| {
+        let id = next_id.get();
+        next_id.set(id + 1);
+        id
+    })
 }
 
 /// replace all `:` with `, ` when not inside the `<>`
