@@ -30,6 +30,9 @@ fn issue_151() {
     assert!(Cli::clap()
         .get_matches_from_safe(&["test", "--zebra"])
         .is_err());
+    assert!(Cli::clap()
+        .get_matches_from_safe(&["test", "--foo", "--bar"])
+        .is_ok());
 }
 
 #[test]

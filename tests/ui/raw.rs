@@ -14,6 +14,11 @@ struct Opt {
     s: String,
 }
 
+#[derive(StructOpt, Debug)]
+struct Opt2 {
+    #[structopt(raw(requires_if = r#""one", "two""#))]
+    s: String,
+}
 fn main() {
     let opt = Opt::from_args();
     println!("{:?}", opt);

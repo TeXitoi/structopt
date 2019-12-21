@@ -1,10 +1,74 @@
 # [Upcoming]
 
-* **Bugfix**: `structopt` used to treat `::path::to::type::Vec<T>` as `Vec<T>`
+This is unusually big patch release. It contains a number of bugfixes and
+new features, some of them may theoretically be considered breaking. We did our best
+to avoid any problems on user's side but, if it wasn't good enough, please
+[file an issue ASAP](https://github.com/TeXitoi/structopt/issues).
+
+### Bugfixes
+
+* `structopt` used to treat `::path::to::type::Vec<T>` as `Vec<T>`
   special type. [This was considered erroneous](https://github.com/TeXitoi/structopt/pull/287).
   (same for `Option<T>` and `bool`). Now only exact `Vec<T>` match is a special type.
-* Top level `#structopt[...]` raw methods on inner atructs/enums now work as expected
-  ([#151](https://github.com/TeXitoi/structopt/issues/151)) ([#289](https://github.com/TeXitoi/structopt/issues/289)).
+
+* `#[structopt(version = expr)]` where `expr` is not a string literal used to get
+  overridden by auto generated `.version()` call,
+  [incorrectly](https://github.com/TeXitoi/structopt/issues/283). Now it doesn't.
+
+* Fixed bug with top-level `App::*` calls on multiple `struct`s, see
+  [#289](https://github.com/TeXitoi/structopt/issues/265).
+
+* Positional `bool` args with no explicit `#[structopt(parse(...))]` annotation are
+  now prohibited. This couldn't work well anyway, see
+  [this example](https://github.com/TeXitoi/structopt/blob/master/examples/true_or_false.rs)
+  for details.
+
+* Now we've instituted strict priority between doc comments, about, help, and the like.
+  See [the documentation](https://docs.rs/structopt/0.3/structopt/#help-messages).
+
+  **HUGE THANKS to [`@ssokolow`](https://github.com/ssokolow)** for tidying up our documentation,
+  teaching me English and explaining why our doc used to suck. I promise I'll make the rest
+  of the doc up to your standards... sometime later!
+
+### New features
+
+* Implement `StructOpt` for `Box<impl StructOpt>` so from now on you can use `Box<T>`
+  with `flatten` and `subcommand` ([#304](https://github.com/TeXitoi/structopt/issues/304)).
+
+  ```rust
+  enum Command {
+      #[structopt(name = "version")]
+      PrintVersion,
+
+      #[structopt(name = "second")]
+      DoSomething {
+          #[structopt(flatten)]
+          config: Box<DoSomethingConfig>,
+      },
+
+      #[structopt(name = "first")]
+      DoSomethingElse {
+          #[structopt(flatten)]
+          config: Box<DoSomethingElseConfig>,
+      }
+  }
+  ```
+
+* Introduced `#[structopt(verbatim_doc_comment)]` attribute that keeps line breaks in
+  doc comments, see
+  [the documentation](https://docs.rs/structopt/0.3/structopt/#doc-comment-preprocessing-and-structoptverbatim_doc_comment).
+
+* Introduced `#[structopt(rename_all_env)]` and `#[structopt(env)]` magical methods
+  so you can derive env var's name from field's name. See
+  [the documentation](https://docs.rs/structopt/0.3/structopt/#auto-deriving-environment-variables).
+
+### Improvements
+
+* Now we have nice README for our examples,
+  [check it out](https://github.com/TeXitoi/structopt/tree/master/examples)!
+
+* Some error messages were improved and clarified, thanks for all people involved!
+
 
 # v0.3.5 (2019-11-22)
 
