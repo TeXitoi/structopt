@@ -15,6 +15,7 @@
 extern crate proc_macro;
 
 mod attrs;
+mod doc_comments;
 mod parse;
 mod spanned;
 mod ty;

@@ -408,60 +408,176 @@
 //!
 //! ## Help messages
 //!
-//! Help messages for the whole binary or individual arguments can be
-//! specified using the `about` attribute on the struct and the `help`
-//! attribute on the field, as we've already seen. For convenience,
-//! they can also be specified using doc comments. For example:
+//! In clap, help messages for the whole binary can be specified
+//! via [`App::about`] and [`App::long_about`] while help messages
+//! for individual arguments can be specified via [`Arg::help`] and [`Arg::long_help`]".
+//!
+//! `long_*` variants are used when user calls the program with
+//! `--help` and "short" variants are used with `-h` flag. In `structopt`,
+//! you can use them via [raw methods](#raw-methods), for example:
 //!
 //! ```
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! /// The help message that will be displayed when passing `--help`.
+//! #[structopt(about = "I am a program and I work, just pass `-h`")]
 //! struct Foo {
-//!   #[structopt(short)]
-//!   /// The description for the arg that will be displayed when passing `--help`.
+//!   #[structopt(short, help = "Pass `-h` and you'll see me!")]
 //!   bar: String
 //! }
-//! # fn main() {}
 //! ```
 //!
-//! If it is necessary or wanted to provide a more complex help message then the
-//! previous used ones, it could still be a good idea to distinguish between the
-//! actual help message a short summary. In this case `about` and `help` should
-//! only contain the short and concise form while the two additional arguments
-//! `long_about` and `long_help` can be used to store a descriptive and more in
-//! depth message.
-//!
-//! If both - the short and the long version of the argument - are present,
-//! the user can later chose between the short summary (`-h`) and the long
-//! descriptive version (`--help`) of the help message. Also in case
-//! of subcommands the short help message will automatically be used for the
-//! command description inside the parents help message and the long version
-//! as command description if help is requested on the actual subcommand.
-//!
-//! This feature can also be used with doc comments instead of arguments through
-//! proper comment formatting. To be activated it requires, that the first line
-//! of the comment is separated from the rest of the comment through an empty line.
-//! In this case the first line is used as summary and the whole comment represents
-//! the long descriptive message.
+//! For convenience, doc comments can be used instead of raw methods
+//! (this example works exactly like the one above):
 //!
 //! ```
 //! # use structopt::StructOpt;
 //!
 //! #[derive(StructOpt)]
-//! /// The help message that will be displayed when passing `--help`.
+//! /// I am a program and I work, just pass `-h`
 //! struct Foo {
-//!   #[structopt(short)]
-//!   /// Only this summary is visible when passing `-h`.
-//!   ///
-//!   /// But the whole comment will be displayed when passing `--help`.
-//!   /// This could be quite useful to provide further hints are usage
-//!   /// examples.
+//!   /// Pass `-h` and you'll see me!
 //!   bar: String
 //! }
-//! # fn main() {}
 //! ```
+//!
+//! Doc comments on [top-level](#magical-methods) will be turned into
+//! `App::about/long_about` call (see below), doc comments on field-level are
+//! `Arg::help/long_help` calls.
+//!
+//! **Important:**
+//! _________________
+//!
+//! Raw methods have priority over doc comments!
+//!
+//! **Top level doc comments always generate `App::about/long_about` calls!**
+//! If you really want to use the `App::help/long_help` methods (you likely don't),
+//! use a raw method to override the `App::about` call generated from the doc comment.
+//! __________________
+//!
+//! ### `long_help` and `--help`
+//!
+//! A message passed to [`App::long_help`] or [`Arg::long_about`] will be displayed whenever
+//! your program is called with `--help` instead of `-h`. Of course, you can
+//! use them via raw methods as described [above](#help-messages).
+//!
+//! The more convenient way is to use a so-called "long" doc comment:
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! #[derive(StructOpt)]
+//! /// Hi there, I'm Robo!
+//! ///
+//! /// I like beeping, stumbling, eating your electricity,
+//! /// and making records of you singing in a shower.
+//! /// Pay up, or I'll upload it to youtube!
+//! struct Robo {
+//!     /// Call my brother SkyNet.
+//!     ///
+//!     /// I am artificial superintelligence. I won't rest
+//!     /// until I'll have destroyed humanity. Enjoy your
+//!     /// pathetic existence, you mere mortals.
+//!     #[structopt(long)]
+//!     kill_all_humans: bool
+//! }
+//! ```
+//!
+//! A long doc comment consists of three parts:
+//! * Short summary
+//! * A blank line (whitespace only)
+//! * Detailed description, all the rest
+//!
+//! In other words, "long" doc comment consists of two or more paragraphs,
+//! with the first being a summary and the rest being the detailed description.
+//!
+//! **A long comment will result in two method calls**, `help(<summary>)` and
+//! `long_help(<whole comment>)`, so clap will display the summary with `-h`
+//! and the whole help message on `--help` (see below).
+//!
+//! So, the example above will be turned into this (details omitted):
+//! ```
+//! clap::App::new("<name>")
+//!     .about("Hi there, I'm Robo!")
+//!     .long_about("Hi there, I'm Robo!\n\n\
+//!                  I like beeping, stumbling, eating your electricity,\
+//!                  and making records of you singing in a shower.\
+//!                  Pay up or I'll upload it to youtube!")
+//! // args...
+//! # ;
+//! ```
+//!
+//! ### `-h` vs `--help` (A.K.A `help()` vs `long_help()`)
+//!
+//! The `-h` flag is not the same as `--help`.
+//!
+//! -h corresponds to Arg::help/App::about and requests short "summary" messages
+//! while --help corresponds to Arg::long_help/App::long_about and requests more
+//! detailed, descriptive messages.
+//!
+//! It is entirely up to `clap` what happens if you used only one of
+//! [`Arg::help`]/[`Arg::long_help`], see `clap`'s documentation for these methods.
+//!
+//! As of clap v2.33, if only a short message ([`Arg::help`]) or only
+//! a long ([`Arg::long_help`]) message is provided, clap will use it
+//! for both -h and --help. The same logic applies to `about/long_about`.
+//!
+//! ### Doc comment preprocessing and `#[structopt(verbatim_doc_comment)]`
+//!
+//! `structopt` applies some preprocessing to doc comments to ease the most common uses:
+//!
+//! * Strip leading and trailing whitespace from every line, if present.
+//!
+//! * Strip leading and trailing blank lines, if present.
+//!
+//! * Interpret each group of non-empty lines as a word-wrapped paragraph.
+//!
+//!   We replace newlines within paragraphs with spaces to allow the output
+//!   to be re-wrapped to the terminal width.
+//!
+//! * Strip any excess blank lines so that there is exactly one per paragraph break.
+//!
+//! * If the first paragraph ends in exactly one period,
+//!   remove the trailing period (i.e. strip trailing periods but not trailing ellipses).
+//!
+//! Sometimes you don't want this preprocessing to apply, for example the comment contains
+//! some ASCII art or markdown tables, you would need to preserve LFs along with
+//! blank lines and the leading/trailing whitespace. You can ask `structopt` to preserve them
+//! via `#[structopt(verbatim_doc_comment)]` attribute.
+//!
+//! **This attribute must be applied to each field separately**, there's no global switch.
+//!
+//! **Important:**
+//! ______________
+//! Keep in mind that `structopt` will *still* remove one leading space from each
+//! line, even if this attribute is present, to allow for a space between
+//! `///` and the content.
+//!
+//! Also, `structopt` will *still* remove leading and trailing blank lines so
+//! these formats are equivalent:
+//!
+//! ```ignore
+//! /** This is a doc comment
+//!
+//! Hello! */
+//!
+//! /**
+//! This is a doc comment
+//!
+//! Hello!
+//! */
+//!
+//! /// This is a doc comment
+//! ///
+//! /// Hello!
+//! ```
+//!
+//! Summary
+//! ______________
+//!
+//! [`App::about`]:      https://docs.rs/clap/2/clap/struct.App.html#method.about
+//! [`App::long_about`]: https://docs.rs/clap/2/clap/struct.App.html#method.long_about
+//! [`Arg::help`]:       https://docs.rs/clap/2/clap/struct.Arg.html#method.help
+//! [`Arg::long_help`]:  https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help
 //!
 //! ## Environment variable fallback
 //!
@@ -492,7 +608,7 @@
 //!
 //! In some cases this may be undesirable, for example when being used for passing
 //! credentials or secret tokens. In those cases you can use `hide_env_values` to avoid
-//! having strucopt emit the actual secret values:
+//! having structopt emit the actual secret values:
 //! ```
 //! # use structopt::StructOpt;
 //!
