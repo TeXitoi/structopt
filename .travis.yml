@@ -1,11 +1,6 @@
 language: rust
 matrix:
   include:
-    - rust: 1.36.0
-    - rust: stable
-    - rust: beta
-    - rust: nightly
-
     - rust: stable
       name: check if `cargo fmt --all` is applied
       before_script: rustup component add rustfmt-preview
@@ -17,6 +12,13 @@ matrix:
       install: npm install -g markdown-link-check
       script:
         - markdown-link-check -c link-check-headers.json README.md
+        - markdown-link-check -c link-check-headers.json CHANGELOG.md
         - markdown-link-check -c link-check-headers.json examples/README.md
+
+    - rust: 1.36.0
+    - rust: stable
+    - rust: beta
+    - rust: nightly
+
 script:
   - cargo test $FEATURES

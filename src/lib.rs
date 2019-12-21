@@ -261,13 +261,13 @@
 //!
 //! - [`rename_all`](#specifying-argument-types): [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
 //!
-//!     Usable only on top level
+//!     Usable both on top level and field level.
 //!
 //! - [`parse`](#custom-string-parsers): `parse(type [= path::to::parser::fn])`
 //!
 //!     Usable only on field-level.
 //!
-//! - [`skip`](#skipping-fields): `skip = [expr]`
+//! - [`skip`](#skipping-fields): `skip [= expr]`
 //!
 //!     Usable only on field-level.
 //!
@@ -278,6 +278,19 @@
 //! - [`subcommand`](#subcommands): `subcommand`
 //!
 //!     Usable only on field-level.
+//!
+//! - [`env`](#environment-variable-fallback): `env [= str_literal]`
+//!
+//!     Usable only on field-level.
+//!
+//! - [`rename_all_env`](##auto-deriving-environment-variables): [`rename_all_env = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//!
+//!     Usable both on top level and field level.
+//!
+//! - [`verbatim_doc_comment`](#doc-comment-preprocessing-and-structoptverbatim_doc_comment):
+//!     `verbatim_doc_comment`
+//!
+//!     Usable both on top level and field level.
 //!
 //! ## Type magic
 //!
