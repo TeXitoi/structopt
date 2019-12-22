@@ -1,11 +1,11 @@
-# [Upcoming]
+# v0.3.6 (2019-12-22)
 
 This is unusually big patch release. It contains a number of bugfixes and
 new features, some of them may theoretically be considered breaking. We did our best
 to avoid any problems on user's side but, if it wasn't good enough, please
 [file an issue ASAP](https://github.com/TeXitoi/structopt/issues).
 
-### Bugfixes
+## Bugfixes
 
 * `structopt` used to treat `::path::to::type::Vec<T>` as `Vec<T>`
   special type. [This was considered erroneous](https://github.com/TeXitoi/structopt/pull/287).
@@ -30,7 +30,7 @@ to avoid any problems on user's side but, if it wasn't good enough, please
   teaching me English and explaining why our doc used to suck. I promise I'll make the rest
   of the doc up to your standards... sometime later!
 
-### New features
+## New features
 
 * Implement `StructOpt` for `Box<impl StructOpt>` so from now on you can use `Box<T>`
   with `flatten` and `subcommand` ([#304](https://github.com/TeXitoi/structopt/issues/304)).
@@ -62,7 +62,7 @@ to avoid any problems on user's side but, if it wasn't good enough, please
   so you can derive env var's name from field's name. See
   [the documentation](https://docs.rs/structopt/0.3/structopt/#auto-deriving-environment-variables).
 
-### Improvements
+## Improvements
 
 * Now we have nice README for our examples,
   [check it out](https://github.com/TeXitoi/structopt/tree/master/examples)!
