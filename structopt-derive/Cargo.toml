@@ -1,6 +1,6 @@
 [package]
 name = "structopt-derive"
-version = "0.3.6"
+version = "0.4.0"
 edition = "2018"
 authors = ["Guillaume Pinot <texitoi@texitoi.eu>"]
 description = "Parse command line argument by defining a struct, derive crate."
