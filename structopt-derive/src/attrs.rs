@@ -215,9 +215,15 @@ impl Attrs {
     fn new(
         default_span: Span,
         name: Name,
+        parent_attrs: Option<&Attrs>,
         casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
     ) -> Self {
+        let no_version = parent_attrs
+            .as_ref()
+            .map(|attrs| attrs.no_version.clone())
+            .unwrap_or(None);
+
         Self {
             name,
             casing,
@@ -228,7 +234,7 @@ impl Attrs {
             about: None,
             author: None,
             version: None,
-            no_version: None,
+            no_version,
             verbatim_doc_comment: None,
 
             has_custom_parser: false,
@@ -347,10 +353,11 @@ impl Attrs {
         span: Span,
         attrs: &[Attribute],
         name: Name,
+        parent_attrs: Option<&Attrs>,
         argument_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
     ) -> Self {
-        let mut res = Self::new(span, name, argument_casing, env_casing);
+        let mut res = Self::new(span, name, parent_attrs, argument_casing, env_casing);
         res.push_attrs(attrs);
         res.push_doc_comment(attrs, "about");
 
@@ -370,6 +377,7 @@ impl Attrs {
 
     pub fn from_field(
         field: &syn::Field,
+        parent_attrs: Option<&Attrs>,
         struct_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
     ) -> Self {
@@ -377,6 +385,7 @@ impl Attrs {
         let mut res = Self::new(
             field.span(),
             Name::Derived(name.clone()),
+            parent_attrs,
             struct_casing,
             env_casing,
         );

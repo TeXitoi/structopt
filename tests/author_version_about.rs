@@ -44,3 +44,15 @@ fn explicit_version_not_str() {
     let output = get_long_help::<Opt>();
     assert!(output.contains("custom version"));
 }
+
+#[test]
+fn no_version_gets_propagated() {
+    #[derive(StructOpt, PartialEq, Debug)]
+    #[structopt(no_version)]
+    enum Action {
+        Move,
+    }
+
+    let output = get_subcommand_long_help::<Action>("move");
+    assert_eq!(output.lines().next(), Some("test-move "));
+}
