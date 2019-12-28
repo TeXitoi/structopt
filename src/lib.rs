@@ -966,27 +966,24 @@ pub trait StructOpt {
     {
         Ok(Self::from_clap(&Self::clap().get_matches_from_safe(iter)?))
     }
+}
 
-    // All the following is NOT PUBLIC API!!!
-    //
-    // ** SUBJECT TO CHANGE WITHOUT NOTICE!!! **
+/// This trait is NOT API. **SUBJECT TO CHANGE WITHOUT NOTICE!**.
+#[doc(hidden)]
+pub trait StructOptInternal: StructOpt {
+    fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        app
+    }
 
-    #[doc(hidden)]
     fn is_subcommand() -> bool {
-        unimplemented!()
+        false
     }
 
-    #[doc(hidden)]
-    fn augment_clap<'a, 'b>(_app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
-        unimplemented!()
-    }
-
-    #[doc(hidden)]
     fn from_subcommand<'a, 'b>(_sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self>
     where
-        Self: Sized,
+        Self: std::marker::Sized,
     {
-        unimplemented!()
+        None
     }
 }
 
@@ -998,19 +995,21 @@ impl<T: StructOpt> StructOpt for Box<T> {
     fn from_clap(matches: &clap::ArgMatches<'_>) -> Self {
         Box::new(<T as StructOpt>::from_clap(matches))
     }
+}
 
-    #[doc(hidden)]
-    fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
-        <T as StructOpt>::augment_clap(app)
-    }
-
+impl<T: StructOptInternal> StructOptInternal for Box<T> {
     #[doc(hidden)]
     fn is_subcommand() -> bool {
-        <T as StructOpt>::is_subcommand()
+        <T as StructOptInternal>::is_subcommand()
     }
 
     #[doc(hidden)]
     fn from_subcommand<'a, 'b>(sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self> {
-        <T as StructOpt>::from_subcommand(sub).map(Box::new)
+        <T as StructOptInternal>::from_subcommand(sub).map(Box::new)
+    }
+
+    #[doc(hidden)]
+    fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        <T as StructOptInternal>::augment_clap(app)
     }
 }
