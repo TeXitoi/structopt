@@ -1,3 +1,9 @@
+# [Upcoming]
+
+* You don't have to apply `#[no_version]` to every `enum` variant anymore.
+  Just annotate the `enum` and the setting will be propagated down
+  ([#242](https://github.com/TeXitoi/structopt/issues/242)).
+
 # v0.3.7 (2019-12-28)
 
 Nothing's new. Just re-release of `v0.3.6` due to
