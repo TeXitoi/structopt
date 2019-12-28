@@ -1,4 +1,12 @@
-# v0.3.6 (2019-12-22)
+# v0.3.7 (2019-12-28)
+
+Nothing's new. Just re-release of `v0.3.6` due to
+[the mess with versioning](https://github.com/TeXitoi/structopt/issues/315#issuecomment-568502792).
+
+You may notice that `structopt-derive` was bumped to `v0.4.0`, that's OK, it's not a breaking change.
+`structopt` will pull the right version in on its on.
+
+# v0.3.6 (2019-12-22) - YANKED
 
 This is unusually big patch release. It contains a number of bugfixes and
 new features, some of them may theoretically be considered breaking. We did our best
