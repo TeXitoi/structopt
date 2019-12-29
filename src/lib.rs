@@ -41,6 +41,7 @@
 //! - Arguments
 //!     - [Type magic](#type-magic)
 //!     - [Specifying argument types](#specifying-argument-types)
+//!     - [Default values](#default-values)
 //!     - [Help messages](#help-messages)
 //!     - [Environment variable fallback](#environment-variable-fallback)
 //! - [Skipping fields](#skipping-fields)
@@ -259,7 +260,12 @@
 //!
 //!     Usable only on field-level.
 //!
-//! - [`rename_all`](#specifying-argument-types): [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//! - [`defautl_value`](#default-values): `default_value [= "default value"]`
+//!
+//!     Usable only on field-level.
+//!
+//! - [`rename_all`](#specifying-argument-types):
+//!     [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
 //!
 //!     Usable both on top level and field level.
 //!
@@ -283,7 +289,8 @@
 //!
 //!     Usable only on field-level.
 //!
-//! - [`rename_all_env`](##auto-deriving-environment-variables): [`rename_all_env = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//! - [`rename_all_env`](##auto-deriving-environment-variables):
+//!     [`rename_all_env = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
 //!
 //!     Usable both on top level and field level.
 //!
@@ -315,7 +322,7 @@
 //! If you would like to use a custom string parser other than `FromStr`, see
 //! the [same titled section](#custom-string-parsers) below.
 //!
-//! **Note:**
+//! **Important:**
 //! _________________
 //! Pay attention that *only literal occurrence* of this types is special, for example
 //! `Option<T>` is special while `::std::option::Option<T>` is not.
@@ -418,6 +425,47 @@
 //! #    &["test", "--foo-option", "", "-b", "", "--baz", "", "--custom", "", "positional"]));
 //! # }
 //! ```
+//!
+//! ## Default values
+//!
+//! In clap, default values for options can be specified via [`Arg::default_value`].
+//!
+//! Of course, you can use as a raw method:
+//! ```
+//! # use structopt::StructOpt;
+//! #[derive(StructOpt)]
+//! struct Opt {
+//!     #[structopt(default_value = "", long)]
+//!     prefix: String
+//! }
+//! ```
+//!
+//! This is quite mundane and error-prone to type the `"..."` default by yourself,
+//! especially when the Rust ecosystem uses the [`Default`] trait for that.
+//! It would be wonderful to have `structopt` to take the `Default_default` and fill it
+//! for you. And yes, `structopt` can do that.
+//!
+//! Unfortunately, `default_value` takes `&str` but `Default::default`
+//! gives us some `Self` value. We need to map `Self` to `&str` somehow.
+//!
+//! `structopt` solves this problem via [`ToString`] trait.
+//!
+//! To be able to use auto-default the type must implement *both* `Default` and `ToString`:
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! #[derive(StructOpt)]
+//! struct Opt {
+//!     // just leave the `= "..."` part and structopt will figure it for you
+//!     #[structopt(default_value, long)]
+//!     prefix: String // `String` implements both `Default` and `ToString`
+//! }
+//! ```
+//!
+//! [`Default`]: https://doc.rust-lang.org/std/default/trait.Default.html
+//! [`ToString`]: https://doc.rust-lang.org/std/string/trait.ToString.html
+//! [`Arg::default_value`]: https://docs.rs/clap/2.33.0/clap/struct.Arg.html#method.default_value
+//!
 //!
 //! ## Help messages
 //!
@@ -583,8 +631,6 @@
 //! ///
 //! /// Hello!
 //! ```
-//!
-//! Summary
 //! ______________
 //!
 //! [`App::about`]:      https://docs.rs/clap/2/clap/struct.App.html#method.about
@@ -921,8 +967,12 @@ pub use structopt_derive::*;
 
 use std::ffi::OsString;
 
-/// Re-export of clap
+/// Re-exports
 pub use clap;
+
+/// **This is NOT PUBLIC API**.
+#[doc(hidden)]
+pub use lazy_static;
 
 /// A struct that is converted from command line arguments.
 pub trait StructOpt {
