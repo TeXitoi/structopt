@@ -14,7 +14,7 @@ use std::env;
 use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::abort;
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Type,
 };
@@ -312,17 +312,15 @@ impl Attrs {
                                     https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
                         };
 
-                        let static_name = format_ident!("__STRUCTOPT_DEFAULT_VALUE_{}", fresh_id());
-
                         quote_spanned!(ident.span()=> {
                             ::structopt::lazy_static::lazy_static! {
-                                static ref #static_name: &'static str = {
+                                static ref DEFAULT_VALUE: &'static str = {
                                     let val = <#ty as ::std::default::Default>::default();
                                     let s = ::std::string::ToString::to_string(&val);
                                     ::std::boxed::Box::leak(s.into_boxed_str())
                                 };
                             }
-                            *#static_name
+                            *DEFAULT_VALUE
                         })
                     };
 
@@ -640,20 +638,6 @@ impl Attrs {
                     || m.name == "long_about"
             })
     }
-}
-
-fn fresh_id() -> usize {
-    use std::cell::Cell;
-
-    thread_local! {
-        static NEXT_ID: Cell<usize> = Cell::new(0);
-    }
-
-    NEXT_ID.with(|next_id| {
-        let id = next_id.get();
-        next_id.set(id + 1);
-        id
-    })
 }
 
 /// replace all `:` with `, ` when not inside the `<>`
