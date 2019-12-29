@@ -969,6 +969,9 @@ use std::ffi::OsString;
 
 /// Re-exports
 pub use clap;
+
+/// **This is NOT PUBLIC API**.
+#[doc(hidden)]
 pub use lazy_static;
 
 /// A struct that is converted from command line arguments.
