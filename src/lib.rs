@@ -260,7 +260,7 @@
 //!
 //!     Usable only on field-level.
 //!
-//! - [`defautl_value`](#default-values): `default_value [= "default value"]`
+//! - [`default_value`](#default-values): `default_value [= "default value"]`
 //!
 //!     Usable only on field-level.
 //!
