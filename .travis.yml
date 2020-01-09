@@ -1,3 +1,5 @@
+if: type != push OR branch = master
+
 language: rust
 matrix:
   include:
