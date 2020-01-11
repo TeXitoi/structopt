@@ -225,11 +225,12 @@ fn gen_augmentation(
     });
 
     let app_methods = parent_attribute.top_level_methods();
+    let version = parent_attribute.version();
     quote! {{
         let #app_var = #app_var#app_methods;
         #( #args )*
         #subcmd
-        #app_var
+        #app_var#version
     }}
 }
 
@@ -382,7 +383,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
     let attrs = Attrs::from_struct(
         Span::call_site(),
         attrs,
-        Name::Assigned(LitStr::new(&name, Span::call_site())),
+        Name::Assigned(quote!(#name)),
         None,
         Sp::call_site(DEFAULT_CASING),
         Sp::call_site(DEFAULT_ENV_CASING),
@@ -483,23 +484,23 @@ fn gen_augment_clap_enum(
 
         let name = attrs.cased_name();
         let from_attrs = attrs.top_level_methods();
-
+        let version = attrs.version();
         quote! {
             .subcommand({
                 let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                 let #app_var = #arg_block;
-                #app_var#from_attrs
+                #app_var#from_attrs#version
             })
         }
     });
 
     let app_methods = parent_attribute.top_level_methods();
-
+    let version = parent_attribute.version();
     quote! {
         fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
-            app #app_methods #( #subcommands )*
+            app #app_methods #( #subcommands )* #version
         }
     }
 }

@@ -213,12 +213,12 @@
 //! }
 //! ```
 //!
-//! - `name`: `[name = "name"]`
-//!   - On top level: `App::new("name")`.
+//! - `name`: `[name = expr]`
+//!   - On top level: `App::new(expr)`.
 //!
 //!     The binary name displayed in help messages. Defaults to the crate name given by Cargo.
 //!
-//!   - On field-level: `Arg::with_name("name")`.
+//!   - On field-level: `Arg::with_name(expr)`.
 //!
 //!     The name for the argument the field stands for, this name appears in help messages.
 //!     Defaults to a name, deduced from a field, see also
@@ -1035,6 +1035,10 @@ pub trait StructOptInternal: StructOpt {
     {
         None
     }
+
+    fn augment_version<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        app
+    }
 }
 
 impl<T: StructOpt> StructOpt for Box<T> {
@@ -1061,5 +1065,10 @@ impl<T: StructOptInternal> StructOptInternal for Box<T> {
     #[doc(hidden)]
     fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
         <T as StructOptInternal>::augment_clap(app)
+    }
+
+    #[doc(hidden)]
+    fn augment_version<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+        <T as StructOptInternal>::augment_version(app)
     }
 }
