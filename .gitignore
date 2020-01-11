@@ -1,6 +1,7 @@
 target
 Cargo.lock
 *~
+expanded.rs
 
 .idea/
 .vscode/

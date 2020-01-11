@@ -211,3 +211,93 @@ fn flatten_enum() {
         }
     );
 }
+
+#[test]
+fn external_subcommand() {
+    #[derive(Debug, PartialEq, StructOpt)]
+    struct Opt {
+        #[structopt(subcommand)]
+        sub: Subcommands,
+    }
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    enum Subcommands {
+        Add,
+        Remove,
+        #[structopt(external_subcommand)]
+        Other(Vec<String>),
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "add"]),
+        Opt {
+            sub: Subcommands::Add
+        }
+    );
+
+    assert_eq!(
+        Opt::from_iter(&["test", "remove"]),
+        Opt {
+            sub: Subcommands::Remove
+        }
+    );
+
+    assert_eq!(
+        Opt::from_iter(&["test", "git", "status"]),
+        Opt {
+            sub: Subcommands::Other(vec!["git".into(), "status".into()])
+        }
+    );
+
+    assert!(Opt::from_iter_safe(&["test"]).is_err());
+}
+
+#[test]
+fn external_subcommand_os_string() {
+    use std::ffi::OsString;
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    struct Opt {
+        #[structopt(subcommand)]
+        sub: Subcommands,
+    }
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    enum Subcommands {
+        #[structopt(external_subcommand)]
+        Other(Vec<OsString>),
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "git", "status"]),
+        Opt {
+            sub: Subcommands::Other(vec!["git".into(), "status".into()])
+        }
+    );
+
+    assert!(Opt::from_iter_safe(&["test"]).is_err());
+}
+
+#[test]
+fn external_subcommand_optional() {
+    #[derive(Debug, PartialEq, StructOpt)]
+    struct Opt {
+        #[structopt(subcommand)]
+        sub: Option<Subcommands>,
+    }
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    enum Subcommands {
+        #[structopt(external_subcommand)]
+        Other(Vec<String>),
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "git", "status"]),
+        Opt {
+            sub: Some(Subcommands::Other(vec!["git".into(), "status".into()]))
+        }
+    );
+
+    assert_eq!(Opt::from_iter(&["test"]), Opt { sub: None });
+}

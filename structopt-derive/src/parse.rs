@@ -33,6 +33,7 @@ pub enum StructOptAttr {
     Env(Ident),
     Flatten(Ident),
     Subcommand(Ident),
+    ExternalSubcommand(Ident),
     NoVersion(Ident),
     VerbatimDocComment(Ident),
 
@@ -185,6 +186,7 @@ impl Parse for StructOptAttr {
                 "env" => Ok(Env(name)),
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
+                "external_subcommand" => Ok(ExternalSubcommand(name)),
                 "no_version" => Ok(NoVersion(name)),
                 "verbatim_doc_comment" => Ok(VerbatimDocComment(name)),
 

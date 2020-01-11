@@ -47,6 +47,7 @@
 //! - [Skipping fields](#skipping-fields)
 //! - [Subcommands](#subcommands)
 //!     - [Optional subcommands](#optional-subcommands)
+//!     - [External subcommands](#external-subcommands)
 //! - [Flattening](#flattening)
 //! - [Custom string parsers](#custom-string-parsers)
 //!
@@ -866,6 +867,60 @@
 //!     Quux
 //! }
 //! ```
+//!
+//! ### External subcommands
+//!
+//! Sometimes you want to support not only the set of well-known subcommands
+//! but you also want to allow other, user-driven subcommands. `clap` supports
+//! this via [`AppSettings::AllowExternalSubcommands`].
+//!
+//! `structopt` provides it's own dedicated syntax for that:
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! #[derive(Debug, PartialEq, StructOpt)]
+//! struct Opt {
+//!     #[structopt(subcommand)]
+//!     sub: Subcommands,
+//! }
+//!
+//! #[derive(Debug, PartialEq, StructOpt)]
+//! enum Subcommands {
+//!     // normal subcommand
+//!     Add,
+//!
+//!     // `external_subcommand` tells structopt to put
+//!     // all the extra arguments into this Vec
+//!     #[structopt(external_subcommand)]
+//!     Other(Vec<String>),
+//! }
+//!
+//! // normal subcommand
+//! assert_eq!(
+//!     Opt::from_iter(&["test", "add"]),
+//!     Opt {
+//!         sub: Subcommands::Add
+//!     }
+//! );
+//!
+//! assert_eq!(
+//!     Opt::from_iter(&["test", "git", "status"]),
+//!     Opt {
+//!         sub: Subcommands::Other(vec!["git".into(), "status".into()])
+//!     }
+//! );
+//!
+//! // Please note that if you'd wanted to allow "no subcommands at all" case
+//! // you should have used `sub: Option<Subcommands>` above
+//! assert!(Opt::from_iter_safe(&["test"]).is_err());
+//! ```
+//!
+//! In other words, you just add an extra tuple variant marked with
+//! `#[structopt(subcommand)]`, and its type must be either
+//! `Vec<String>` or `Vec<OsString>`. `structopt` will detect `String` in this context
+//! and use appropriate `clap` API.
+//!
+//! [`AppSettings::AllowExternalSubcommands`]: https://docs.rs/clap/2.32.0/clap/enum.AppSettings.html#variant.AllowExternalSubcommands
 //!
 //! ## Flattening
 //!
