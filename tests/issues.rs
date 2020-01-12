@@ -80,7 +80,7 @@ fn issue_324() {
     #[structopt(version = my_version())]
     struct Opt {
         #[structopt(subcommand)]
-        cmd: Option<SubCommand>,
+        _cmd: Option<SubCommand>,
     }
 
     #[derive(StructOpt)]

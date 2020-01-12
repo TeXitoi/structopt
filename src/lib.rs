@@ -1035,10 +1035,6 @@ pub trait StructOptInternal: StructOpt {
     {
         None
     }
-
-    fn augment_version<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
-        app
-    }
 }
 
 impl<T: StructOpt> StructOpt for Box<T> {
@@ -1065,10 +1061,5 @@ impl<T: StructOptInternal> StructOptInternal for Box<T> {
     #[doc(hidden)]
     fn augment_clap<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
         <T as StructOptInternal>::augment_clap(app)
-    }
-
-    #[doc(hidden)]
-    fn augment_version<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
-        <T as StructOptInternal>::augment_version(app)
     }
 }
