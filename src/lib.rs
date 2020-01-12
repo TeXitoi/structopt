@@ -286,6 +286,10 @@
 //!
 //!     Usable only on field-level.
 //!
+//! - [`external_subcommand`](#external-subcommands)
+//!
+//!     Usable only on enum variants.
+//!
 //! - [`env`](#environment-variable-fallback): `env [= str_literal]`
 //!
 //!     Usable only on field-level.
