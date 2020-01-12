@@ -123,7 +123,6 @@ fn gen_augmentation(
             Kind::Subcommand(_) | Kind::Skip(_) => None,
             Kind::FlattenStruct => {
                 let ty = &field.ty;
-                // let settings = gen_subcommand_settings(&a);
                 Some(quote_spanned! { kind.span()=>
                     let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(#app_var);
                     let #app_var = if <#ty as ::structopt::StructOptInternal>::is_subcommand() {
