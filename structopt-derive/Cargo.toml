@@ -14,7 +14,7 @@ license = "Apache-2.0/MIT"
 travis-ci = { repository = "TeXitoi/structopt" }
 
 [dependencies]
-syn = { version = "1", features = ["full"] }
+syn = { version = "1", default-features = false, features = ["derive", "parsing", "proc-macro"] }
 quote = "1"
 proc-macro2 = "1"
 heck = "0.3.0"
