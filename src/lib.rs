@@ -213,12 +213,12 @@
 //! }
 //! ```
 //!
-//! - `name`: `[name = "name"]`
-//!   - On top level: `App::new("name")`.
+//! - `name`: `[name = expr]`
+//!   - On top level: `App::new(expr)`.
 //!
 //!     The binary name displayed in help messages. Defaults to the crate name given by Cargo.
 //!
-//!   - On field-level: `Arg::with_name("name")`.
+//!   - On field-level: `Arg::with_name(expr)`.
 //!
 //!     The name for the argument the field stands for, this name appears in help messages.
 //!     Defaults to a name, deduced from a field, see also

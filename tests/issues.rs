@@ -1,5 +1,9 @@
-// https://github.com/TeXitoi/structopt/issues/151
-// https://github.com/TeXitoi/structopt/issues/289
+// https://github.com/TeXitoi/structopt/issues/{NUMBER}
+
+mod utils;
+use utils::*;
+
+use structopt::StructOpt;
 
 #[test]
 fn issue_151() {
@@ -64,4 +68,26 @@ fn issue_289() {
     assert!(Args::clap()
         .get_matches_from_safe(&["test", "some", "test"])
         .is_ok());
+}
+
+#[test]
+fn issue_324() {
+    fn my_version() -> &'static str {
+        "MY_VERSION"
+    }
+
+    #[derive(StructOpt)]
+    #[structopt(version = my_version())]
+    struct Opt {
+        #[structopt(subcommand)]
+        _cmd: Option<SubCommand>,
+    }
+
+    #[derive(StructOpt)]
+    enum SubCommand {
+        Start,
+    }
+
+    let help = get_long_help::<Opt>();
+    assert!(help.contains("MY_VERSION"));
 }
