@@ -485,12 +485,28 @@ fn gen_augment_clap_enum(
         let name = attrs.cased_name();
         let from_attrs = attrs.top_level_methods();
         let version = attrs.version();
-        quote! {
-            .subcommand({
-                let #app_var = ::structopt::clap::SubCommand::with_name(#name);
-                let #app_var = #arg_block;
-                #app_var#from_attrs#version
-            })
+        let kind = attrs.kind();
+        match &*kind {
+            Kind::FlattenStruct => {
+                quote! {
+                    .subcommands({
+                        let name2 = #name;
+                        let #app_var = ::structopt::clap::SubCommand::with_name(#name);
+                        let #app_var = #arg_block;
+                        #app_var#from_attrs#version.p.subcommands
+                    })
+                }
+            },
+            _ => {
+                quote! {
+                    .subcommand({
+                        let name1 = #name;
+                        let #app_var = ::structopt::clap::SubCommand::with_name(#name);
+                        let #app_var = #arg_block;
+                        #app_var#from_attrs#version
+                    })
+                }
+            },
         }
     });
 

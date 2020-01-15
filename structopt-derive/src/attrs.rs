@@ -401,7 +401,7 @@ impl Attrs {
         }
         match &*res.kind {
             Kind::Subcommand(_) => abort!(res.kind.span(), "subcommand is only allowed on fields"),
-            Kind::FlattenStruct => abort!(res.kind.span(), "flatten is only allowed on fields"),
+            Kind::FlattenStruct => res,
             Kind::Skip(_) => abort!(res.kind.span(), "skip is only allowed on fields"),
             Kind::Arg(_) => res,
         }
