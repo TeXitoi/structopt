@@ -490,7 +490,6 @@ fn gen_augment_clap_enum(
             Kind::FlattenStruct => {
                 quote! {
                     .subcommands({
-                        let name2 = #name;
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
                         #app_var#from_attrs#version.p.subcommands
@@ -500,7 +499,6 @@ fn gen_augment_clap_enum(
             _ => {
                 quote! {
                     .subcommand({
-                        let name1 = #name;
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
                         #app_var#from_attrs#version
