@@ -458,14 +458,20 @@ fn gen_augment_clap_enum(
             parent_attribute.casing(),
             parent_attribute.env_casing(),
         );
+        let kind = attrs.kind();
         let app_var = Ident::new("subcommand", Span::call_site());
         let arg_block = match variant.fields {
             Named(ref fields) => gen_augmentation(&fields.named, &app_var, &attrs),
             Unit => quote!( #app_var ),
             Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
                 let ty = &unnamed[0];
+                let kind = match &*kind {
+                    Kind::FlattenStruct => "FlattenStruct",
+                    _ => "other",
+                };
                 quote_spanned! { ty.span()=>
                     {
+                        let kind = #kind;
                         let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(
                             #app_var
                         );
@@ -485,14 +491,13 @@ fn gen_augment_clap_enum(
         let name = attrs.cased_name();
         let from_attrs = attrs.top_level_methods();
         let version = attrs.version();
-        let kind = attrs.kind();
         match &*kind {
             Kind::FlattenStruct => {
                 quote! {
                     .subcommands({
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
-                        #app_var#from_attrs#version.p.subcommands
+                        #app_var#from_attrs#version
                     })
                 }
             },
@@ -544,23 +549,39 @@ fn gen_from_subcommand(
             parent_attribute.casing(),
             parent_attribute.env_casing(),
         );
-        let sub_name = attrs.cased_name();
-        let variant_name = &variant.ident;
-        let constructor_block = match variant.fields {
-            Named(ref fields) => gen_constructor(&fields.named, &attrs),
-            Unit => quote!(),
-            Unnamed(ref fields) if fields.unnamed.len() == 1 => {
-                let ty = &fields.unnamed[0];
-                quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
-            }
-            Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
-        };
+        let kind = attrs.kind();
+        match &*kind {
+            /*
+            Kind::FlattenStruct => {
+                vec![quote! {}]
+            },
+            */
+            _ => {
+                let sub_name = attrs.cased_name();
+                let variant_name = &variant.ident;
+                let constructor_block = match variant.fields {
+                    Named(ref fields) => gen_constructor(&fields.named, &attrs),
+                    Unit => quote!(),
+                    Unnamed(ref fields) if fields.unnamed.len() == 1 => {
+                        let ty = &fields.unnamed[0];
+                        quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
+                    }
+                    Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
+                };
 
-        quote! {
-            (#sub_name, Some(matches)) =>
-                Some(#name :: #variant_name #constructor_block)
+                let kind = match &*kind {
+                    Kind::FlattenStruct => "FlattenStruct",
+                    _ => "other",
+                };
+                vec![quote! {
+                    (#sub_name, Some(matches)) => {
+                        let kind = #kind;
+                        Some(#name :: #variant_name #constructor_block)
+                    }
+                }]
+            },
         }
-    });
+    }).flatten();
 
     quote! {
         fn from_subcommand<'a, 'b>(
