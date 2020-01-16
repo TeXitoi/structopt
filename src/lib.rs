@@ -867,7 +867,7 @@
 //! }
 //! ```
 //!
-//! ### Flattening enums of subcommands
+//! ### Flattening subcommands
 //!
 //! It is also possible to combine multiple enums of subcommands into one.
 //! All the subcommands will be on the same level.
