@@ -1,5 +1,5 @@
-error: flatten is only allowed on fields
-  --> $DIR/struct_flatten.rs:12:29
+error: Variant1: `flatten` can only be applied on a field or on an enum variant with another enum inside
+  --> $DIR/struct_flatten.rs:11:10
    |
-12 | #[structopt(name = "basic", flatten)]
-   |                             ^^^^^^^
+11 | #[derive(StructOpt, Debug)]
+   |          ^^^^^^^^^

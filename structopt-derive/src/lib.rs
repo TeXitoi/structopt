@@ -468,7 +468,10 @@ fn gen_augment_clap_enum(
                             let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
                         }
                     }
-                    _ => todo!(),
+                    _ => abort_call_site!(
+                        "{}: `flatten` can only be applied on a field or on an enum variant with another enum inside",
+                        variant.ident
+                    ),
                 }
             },
             _ => {
@@ -561,7 +564,10 @@ fn gen_from_subcommand(
                             }
                         }
                     },
-                    _ => todo!(),
+                    _ => abort_call_site!(
+                        "{}: `flatten` can only be applied on a field or on an enum variant with another enum inside",
+                        variant.ident
+                    ),
                 }
             },
             _ => {
