@@ -279,7 +279,7 @@
 //!
 //! - [`flatten`](#flattening): `flatten`
 //!
-//!     Usable only on field-level.
+//!     Usable on field-level or single-typed tuple variants.
 //!
 //! - [`subcommand`](#subcommands): `subcommand`
 //!
@@ -866,6 +866,40 @@
 //!     Quux
 //! }
 //! ```
+//!
+//! ### Flattening enums of subcommands
+//!
+//! It is also possible to combine multiple enums of subcommands into one.
+//! All the subcommands will be on the same level.
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! # fn main() {}
+//! #[derive(StructOpt)]
+//! enum BaseCli {
+//!     Command1(Command1),
+//! }
+//!
+//! #[derive(StructOpt)]
+//! struct Command1 {
+//!     arg1: i32,
+//! }
+//!
+//! #[derive(StructOpt)]
+//! struct Command2 {
+//!     arg2: i32,
+//! }
+//!
+//! #[derive(StructOpt)]
+//! enum Opt {
+//!     #[structopt(flatten)]
+//!     BaseCli(BaseCli),
+//!     Command2(Command2),
+//! }
+//! ```
+//!
+//! + `cli command1 42`
+//! + `cli command2 42`
 //!
 //! ## Flattening
 //!
