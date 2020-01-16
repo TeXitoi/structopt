@@ -449,7 +449,7 @@ fn gen_augment_clap_enum(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let subcommands = variants.iter().map(|variant| {
+    let subcommands = variants.iter().filter_map(|variant| {
         let attrs = Attrs::from_struct(
             variant.span(),
             &variant.attrs,
@@ -492,34 +492,53 @@ fn gen_augment_clap_enum(
         let from_attrs = attrs.top_level_methods();
         let version = attrs.version();
         match &*kind {
-            Kind::FlattenStruct => {
-                quote! {
-                    .subcommands({
-                        let #app_var = ::structopt::clap::SubCommand::with_name(#name);
-                        let #app_var = #arg_block;
-                        #app_var#from_attrs#version
-                    })
-                }
-            },
+            Kind::FlattenStruct => None,
             _ => {
-                quote! {
+                Some(quote! {
                     .subcommand({
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
                         #app_var#from_attrs#version
                     })
-                }
+                })
             },
         }
     });
 
     let app_methods = parent_attribute.top_level_methods();
     let version = parent_attribute.version();
+    let augment_claps = variants.iter().filter_map(|variant| {
+        let attrs = Attrs::from_struct(
+            variant.span(),
+            &variant.attrs,
+            Name::Derived(variant.ident.clone()),
+            Some(parent_attribute),
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
+        let kind = attrs.kind();
+        match &*kind {
+            Kind::FlattenStruct => {
+                match variant.fields {
+                    Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
+                        let ty = &unnamed[0];
+                        Some(quote! {
+                            let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
+                        })
+                    }
+                    _ => todo!(),
+                }
+            },
+            _ => None,
+        }
+    });
     quote! {
         fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
-            app #app_methods #( #subcommands )* #version
+            let app = app #app_methods #( #subcommands )* #version;
+            #( #augment_claps )*;
+            app
         }
     }
 }
@@ -540,7 +559,7 @@ fn gen_from_subcommand(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let match_arms = variants.iter().map(|variant| {
+    let match_arms = variants.iter().filter_map(|variant| {
         let attrs = Attrs::from_struct(
             variant.span(),
             &variant.attrs,
@@ -551,11 +570,7 @@ fn gen_from_subcommand(
         );
         let kind = attrs.kind();
         match &*kind {
-            /*
-            Kind::FlattenStruct => {
-                vec![quote! {}]
-            },
-            */
+            Kind::FlattenStruct => None,
             _ => {
                 let sub_name = attrs.cased_name();
                 let variant_name = &variant.ident;
@@ -573,20 +588,49 @@ fn gen_from_subcommand(
                     Kind::FlattenStruct => "FlattenStruct",
                     _ => "other",
                 };
-                vec![quote! {
+                Some(quote! {
                     (#sub_name, Some(matches)) => {
                         let kind = #kind;
                         Some(#name :: #variant_name #constructor_block)
                     }
-                }]
+                })
             },
         }
-    }).flatten();
+    });
+    let child_subcommands = variants.iter().filter_map(|variant| {
+        let attrs = Attrs::from_struct(
+            variant.span(),
+            &variant.attrs,
+            Name::Derived(variant.ident.clone()),
+            Some(parent_attribute),
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
+        let kind = attrs.kind();
+        match &*kind {
+            Kind::FlattenStruct => {
+                let variant_name = &variant.ident;
+                match variant.fields {
+                    Unnamed(ref fields) if fields.unnamed.len() == 1 => {
+                        let ty = &fields.unnamed[0];
+                        Some(quote! {
+                            if let Some(res) = <#ty as ::structopt::StructOptInternal>::from_subcommand(sub) {
+                                return Some(#name :: #variant_name (res));
+                            }
+                        })
+                    },
+                    _ => todo!(),
+                }
+            },
+            _ => None,
+        }
+    });
 
     quote! {
         fn from_subcommand<'a, 'b>(
             sub: (&'b str, Option<&'b ::structopt::clap::ArgMatches<'a>>)
         ) -> Option<Self> {
+            #( #child_subcommands )*;
             match sub {
                 #( #match_arms ),*,
                 _ => None
