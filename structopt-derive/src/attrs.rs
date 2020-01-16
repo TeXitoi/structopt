@@ -23,7 +23,7 @@ use syn::{
 pub enum Kind {
     Arg(Sp<Ty>),
     Subcommand(Sp<Ty>),
-    FlattenStruct,
+    Flatten,
     Skip(Option<Expr>),
 }
 
@@ -277,7 +277,7 @@ impl Attrs {
                 }
 
                 Flatten(ident) => {
-                    let kind = Sp::new(Kind::FlattenStruct, ident.span());
+                    let kind = Sp::new(Kind::Flatten, ident.span());
                     self.set_kind(kind);
                 }
 
@@ -402,7 +402,7 @@ impl Attrs {
         match &*res.kind {
             Kind::Subcommand(_) => abort!(res.kind.span(), "subcommand is only allowed on fields"),
             Kind::Skip(_) => abort!(res.kind.span(), "skip is only allowed on fields"),
-            Kind::Arg(_) | Kind::FlattenStruct => res,
+            Kind::Arg(_) | Kind::Flatten => res,
         }
     }
 
@@ -425,7 +425,7 @@ impl Attrs {
         res.push_attrs(&field.attrs);
 
         match &*res.kind {
-            Kind::FlattenStruct => {
+            Kind::Flatten => {
                 if res.has_custom_parser {
                     abort!(
                         res.parser.span(),

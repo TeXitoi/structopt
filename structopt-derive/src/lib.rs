@@ -117,7 +117,7 @@ fn gen_augmentation(
         let kind = attrs.kind();
         match &*kind {
             Kind::Subcommand(_) | Kind::Skip(_) => None,
-            Kind::FlattenStruct => {
+            Kind::Flatten => {
                 let ty = &field.ty;
                 Some(quote_spanned! { kind.span()=>
                     let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(#app_var);
@@ -261,7 +261,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 }
             }
 
-            Kind::FlattenStruct => quote_spanned! { kind.span()=>
+            Kind::Flatten => quote_spanned! { kind.span()=>
                 #field_name: ::structopt::StructOpt::from_clap(matches)
             },
 
@@ -449,82 +449,75 @@ fn gen_augment_clap_enum(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let (flatten_variants, variants): (Vec<_>, Vec<_>) = variants.iter()
-        .map(|variant| {
-            let attrs = Attrs::from_struct(
-                variant.span(),
-                &variant.attrs,
-                Name::Derived(variant.ident.clone()),
-                Some(parent_attribute),
-                parent_attribute.casing(),
-                parent_attribute.env_casing(),
-            );
-            (variant, attrs)
-        })
-        .partition(|(_, attrs)| {
-            let kind = attrs.kind();
-            match &*kind {
-                Kind::FlattenStruct => true,
-                _ => false
-            }
-        });
-
-    let subcommands = variants.iter().map(|(variant, attrs)| {
-        let app_var = Ident::new("subcommand", Span::call_site());
-        let arg_block = match variant.fields {
-            Named(ref fields) => gen_augmentation(&fields.named, &app_var, &attrs),
-            Unit => quote!( #app_var ),
-            Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
-                let ty = &unnamed[0];
-                quote_spanned! { ty.span()=>
-                    {
-                        let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(
-                            #app_var
-                        );
-                        if <#ty as ::structopt::StructOptInternal>::is_subcommand() {
-                            #app_var.setting(
-                                ::structopt::clap::AppSettings::SubcommandRequiredElseHelp
-                            )
-                        } else {
-                            #app_var
+    let subcommands = variants.iter().map(|variant| {
+        let attrs = Attrs::from_struct(
+            variant.span(),
+            &variant.attrs,
+            Name::Derived(variant.ident.clone()),
+            Some(parent_attribute),
+            parent_attribute.casing(),
+            parent_attribute.env_casing(),
+        );
+        let kind = attrs.kind();
+        match &*kind {
+            Kind::Flatten => {
+                match variant.fields {
+                    Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
+                        let ty = &unnamed[0];
+                        quote! {
+                            let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
                         }
                     }
+                    _ => todo!(),
                 }
-            }
-            Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
-        };
+            },
+            _ => {
+                let app_var = Ident::new("subcommand", Span::call_site());
+                let arg_block = match variant.fields {
+                    Named(ref fields) => gen_augmentation(&fields.named, &app_var, &attrs),
+                    Unit => quote!( #app_var ),
+                    Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
+                        let ty = &unnamed[0];
+                        quote_spanned! { ty.span()=>
+                            {
+                                let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(
+                                    #app_var
+                                );
+                                if <#ty as ::structopt::StructOptInternal>::is_subcommand() {
+                                    #app_var.setting(
+                                        ::structopt::clap::AppSettings::SubcommandRequiredElseHelp
+                                    )
+                                } else {
+                                    #app_var
+                                }
+                            }
+                        }
+                    }
+                    Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
+                };
 
-        let name = attrs.cased_name();
-        let from_attrs = attrs.top_level_methods();
-        let version = attrs.version();
-        quote! {
-            .subcommand({
-                let #app_var = ::structopt::clap::SubCommand::with_name(#name);
-                let #app_var = #arg_block;
-                #app_var#from_attrs#version
-            })
+                let name = attrs.cased_name();
+                let from_attrs = attrs.top_level_methods();
+                let version = attrs.version();
+                quote! {
+                    let app = app.subcommand({
+                        let #app_var = ::structopt::clap::SubCommand::with_name(#name);
+                        let #app_var = #arg_block;
+                        #app_var#from_attrs#version
+                    });
+                }
+            },
         }
     });
 
     let app_methods = parent_attribute.top_level_methods();
     let version = parent_attribute.version();
-    let augment_claps = flatten_variants.iter().map(|(variant, _attrs)| {
-        match variant.fields {
-            Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
-                let ty = &unnamed[0];
-                quote! {
-                    let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
-                }
-            }
-            _ => todo!(),
-        }
-    });
     quote! {
         fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
-            let app = app #app_methods #( #subcommands )* #version;
-            #( #augment_claps )*;
+            let app = app #app_methods #version;
+            #( #subcommands )*;
             app
         }
     }
