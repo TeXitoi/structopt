@@ -516,9 +516,9 @@ fn gen_augment_clap_enum(
         fn augment_clap<'a, 'b>(
             app: ::structopt::clap::App<'a, 'b>
         ) -> ::structopt::clap::App<'a, 'b> {
-            let app = app #app_methods #version;
+            let app = app #app_methods;
             #( #subcommands )*;
-            app
+            app #version
         }
     }
 }
