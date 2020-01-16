@@ -493,7 +493,7 @@ fn gen_augment_clap_enum(
                             }
                         }
                     }
-                    Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
+                    Unnamed(..) => abort!(variant.span(), "non single-typed tuple enums are not supported"),
                 };
 
                 let name = attrs.cased_name();
