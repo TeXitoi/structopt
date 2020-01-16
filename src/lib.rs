@@ -878,16 +878,16 @@
 //! # fn main() {}
 //! #[derive(StructOpt)]
 //! enum BaseCli {
-//!     Command1(Command1),
+//!     Ghost10(Ghost10),
 //! }
 //!
 //! #[derive(StructOpt)]
-//! struct Command1 {
+//! struct Ghost10 {
 //!     arg1: i32,
 //! }
 //!
 //! #[derive(StructOpt)]
-//! struct Command2 {
+//! struct Dex {
 //!     arg2: i32,
 //! }
 //!
@@ -895,13 +895,13 @@
 //! enum Opt {
 //!     #[structopt(flatten)]
 //!     BaseCli(BaseCli),
-//!     Command2(Command2),
+//!     Dex(Dex),
 //! }
 //! ```
 //!
 //! ```shell
-//! cli command1 42
-//! cli command2 42
+//! cli ghost10 42
+//! cli dex 42
 //! ```
 //!
 //! ## Flattening
