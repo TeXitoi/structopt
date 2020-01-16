@@ -47,6 +47,7 @@
 //! - [Skipping fields](#skipping-fields)
 //! - [Subcommands](#subcommands)
 //!     - [Optional subcommands](#optional-subcommands)
+//!     - [Flattening subcommands](#flattening-subcommands)
 //! - [Flattening](#flattening)
 //! - [Custom string parsers](#custom-string-parsers)
 //!
@@ -898,8 +899,10 @@
 //! }
 //! ```
 //!
-//! + `cli command1 42`
-//! + `cli command2 42`
+//! ```shell
+//! cli command1 42
+//! cli command2 42
+//! ```
 //!
 //! ## Flattening
 //!
