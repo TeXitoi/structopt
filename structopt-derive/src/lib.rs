@@ -539,7 +539,8 @@ fn gen_from_subcommand(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let (flatten_variants, variants): (Vec<_>, Vec<_>) = variants.iter()
+    let (flatten_variants, variants): (Vec<_>, Vec<_>) = variants
+        .iter()
         .map(|variant| {
             let attrs = Attrs::from_struct(
                 variant.span(),
@@ -555,7 +556,7 @@ fn gen_from_subcommand(
             let kind = attrs.kind();
             match &*kind {
                 Kind::Flatten => true,
-                _ => false
+                _ => false,
             }
         });
 
