@@ -539,49 +539,57 @@ fn gen_from_subcommand(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let matches = variants.iter().map(|variant| {
-        let attrs = Attrs::from_struct(
-            variant.span(),
-            &variant.attrs,
-            Name::Derived(variant.ident.clone()),
-            Some(parent_attribute),
-            parent_attribute.casing(),
-            parent_attribute.env_casing(),
-        );
-        let kind = attrs.kind();
-        let variant_name = &variant.ident;
-        match &*kind {
-            Kind::Flatten => {
-                match variant.fields {
-                    Unnamed(ref fields) if fields.unnamed.len() == 1 => {
-                        let ty = &fields.unnamed[0];
-                        quote! {
-                            if let Some(res) = <#ty as ::structopt::StructOptInternal>::from_subcommand(sub) {
-                                return Some(#name :: #variant_name (res));
-                            }
-                        }
-                    },
-                    _ => abort!(variant.span(), "`flatten` is usable only with single-typed tuple variants"),
-                }
-            },
-            _ => {
-                let sub_name = attrs.cased_name();
-                let constructor_block = match variant.fields {
-                    Named(ref fields) => gen_constructor(&fields.named, &attrs),
-                    Unit => quote!(),
-                    Unnamed(ref fields) if fields.unnamed.len() == 1 => {
-                        let ty = &fields.unnamed[0];
-                        quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
-                    }
-                    Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
-                };
+    let (flatten_variants, variants): (Vec<_>, Vec<_>) = variants.iter()
+        .map(|variant| {
+            let attrs = Attrs::from_struct(
+                variant.span(),
+                &variant.attrs,
+                Name::Derived(variant.ident.clone()),
+                Some(parent_attribute),
+                parent_attribute.casing(),
+                parent_attribute.env_casing(),
+            );
+            (variant, attrs)
+        })
+        .partition(|(_, attrs)| {
+            let kind = attrs.kind();
+            match &*kind {
+                Kind::Flatten => true,
+                _ => false
+            }
+        });
 
+    let match_arms = variants.iter().map(|(variant, attrs)| {
+        let sub_name = attrs.cased_name();
+        let variant_name = &variant.ident;
+        let constructor_block = match variant.fields {
+            Named(ref fields) => gen_constructor(&fields.named, &attrs),
+            Unit => quote!(),
+            Unnamed(ref fields) if fields.unnamed.len() == 1 => {
+                let ty = &fields.unnamed[0];
+                quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
+            }
+            Unnamed(..) => abort_call_site!("{}: tuple enums are not supported", variant.ident),
+        };
+
+        quote! {
+            (#sub_name, Some(matches)) => {
+                Some(#name :: #variant_name #constructor_block)
+            }
+        }
+    });
+    let child_subcommands = flatten_variants.iter().map(|(variant, _attrs)| {
+        let variant_name = &variant.ident;
+        match variant.fields {
+            Unnamed(ref fields) if fields.unnamed.len() == 1 => {
+                let ty = &fields.unnamed[0];
                 quote! {
-                    if let (#sub_name, Some(matches)) = sub {
-                        return Some(#name :: #variant_name #constructor_block);
+                    if let Some(res) = <#ty as ::structopt::StructOptInternal>::from_subcommand(other) {
+                        return Some(#name :: #variant_name (res));
                     }
                 }
             },
+            _ => abort!(variant.span(), "`flatten` is usable only with single-typed tuple variants"),
         }
     });
 
@@ -589,8 +597,13 @@ fn gen_from_subcommand(
         fn from_subcommand<'a, 'b>(
             sub: (&'b str, Option<&'b ::structopt::clap::ArgMatches<'a>>)
         ) -> Option<Self> {
-            #( #matches )*;
-            None
+            match sub {
+                #( #match_arms ),*,
+                other => {
+                    #( #child_subcommands )*;
+                    None
+                }
+            }
         }
     }
 }
