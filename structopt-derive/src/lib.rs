@@ -627,7 +627,7 @@ fn impl_structopt_for_enum(
     quote! {
         #[allow(unknown_lints)]
         #[allow(unused_variables, dead_code, unreachable_code)]
-        #[allow(clippy)]
+        #[allow(clippy::all)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
