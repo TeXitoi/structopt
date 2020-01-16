@@ -1,5 +1,5 @@
-error: Variant1: `flatten` can only be applied on a field or on an enum variant with another enum inside
-  --> $DIR/struct_flatten.rs:11:10
+error: `flatten` is usable only with single-typed tuple variants
+  --> $DIR/struct_flatten.rs:14:5
    |
-11 | #[derive(StructOpt, Debug)]
-   |          ^^^^^^^^^
+14 |     #[structopt(flatten)]
+   |     ^
