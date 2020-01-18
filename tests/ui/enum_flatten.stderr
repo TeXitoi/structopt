@@ -1,0 +1,5 @@
+error: `flatten` is usable only with single-typed tuple variants
+  --> $DIR/enum_flatten.rs:14:5
+   |
+14 |     #[structopt(flatten)]
+   |     ^

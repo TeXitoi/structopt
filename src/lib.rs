@@ -48,6 +48,7 @@
 //! - [Subcommands](#subcommands)
 //!     - [Optional subcommands](#optional-subcommands)
 //!     - [External subcommands](#external-subcommands)
+//!     - [Flattening subcommands](#flattening-subcommands)
 //! - [Flattening](#flattening)
 //! - [Custom string parsers](#custom-string-parsers)
 //!
@@ -280,7 +281,7 @@
 //!
 //! - [`flatten`](#flattening): `flatten`
 //!
-//!     Usable only on field-level.
+//!     Usable on field-level or single-typed tuple variants.
 //!
 //! - [`subcommand`](#subcommands): `subcommand`
 //!
@@ -925,6 +926,36 @@
 //! and use appropriate `clap` API.
 //!
 //! [`AppSettings::AllowExternalSubcommands`]: https://docs.rs/clap/2.32.0/clap/enum.AppSettings.html#variant.AllowExternalSubcommands
+//!
+//! ### Flattening subcommands
+//!
+//! It is also possible to combine multiple enums of subcommands into one.
+//! All the subcommands will be on the same level.
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! # fn main() {}
+//! #[derive(StructOpt)]
+//! enum BaseCli {
+//!     Ghost10 {
+//!         arg1: i32,
+//!     }
+//! }
+//!
+//! #[derive(StructOpt)]
+//! enum Opt {
+//!     #[structopt(flatten)]
+//!     BaseCli(BaseCli),
+//!     Dex {
+//!         arg2: i32,
+//!     }
+//! }
+//! ```
+//!
+//! ```shell
+//! cli ghost10 42
+//! cli dex 42
+//! ```
 //!
 //! ## Flattening
 //!
