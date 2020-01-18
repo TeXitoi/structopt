@@ -9,10 +9,10 @@
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "basic", flatten)]
-struct Opt {
-    #[structopt(short)]
-    s: String,
+#[structopt(name = "basic")]
+enum Opt {
+    #[structopt(flatten)]
+    Variant1,
 }
 
 fn main() {
