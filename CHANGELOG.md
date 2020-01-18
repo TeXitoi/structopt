@@ -4,6 +4,7 @@
   Just annotate the `enum` and the setting will be propagated down
   ([#242](https://github.com/TeXitoi/structopt/issues/242)).
 * [Auto-default](https://docs.rs/structopt/0.3/structopt/#default-values).
+* [External subcommands](https://docs.rs/structopt/0.3/structopt/#external-subcommands).
 
 # v0.3.7 (2019-12-28)
 
