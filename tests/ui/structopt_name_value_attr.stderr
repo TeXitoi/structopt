@@ -1,4 +1,4 @@
-error: expected parentheses
+error: expected parentheses: #[structopt(...)]
   --> $DIR/structopt_name_value_attr.rs:14:17
    |
 14 |     #[structopt = "short"]
