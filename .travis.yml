@@ -29,3 +29,7 @@ matrix:
 
 script:
   - cargo test -- -D warnings
+
+jobs:
+  allow_failures:
+    - name: clippy
