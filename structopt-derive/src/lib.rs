@@ -758,6 +758,7 @@ fn impl_structopt_for_struct(
             clippy::nursery,
             clippy::cargo
         )]
+        #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
@@ -776,6 +777,7 @@ fn impl_structopt_for_struct(
             clippy::nursery,
             clippy::cargo
         )]
+        #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOptInternal for #name {
             #augment_clap
@@ -813,6 +815,7 @@ fn impl_structopt_for_enum(
             clippy::nursery,
             clippy::cargo
         )]
+        #[deny(clippy::correctness)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
@@ -830,6 +833,7 @@ fn impl_structopt_for_enum(
             clippy::nursery,
             clippy::cargo
         )]
+        #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOptInternal for #name {
             #augment_clap
