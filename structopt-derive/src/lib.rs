@@ -748,7 +748,16 @@ fn impl_structopt_for_struct(
     quote! {
         #[allow(unused_variables)]
         #[allow(unknown_lints)]
-        #[allow(clippy::all)]
+        #[allow(
+            clippy::style,
+            clippy::complexity,
+            clippy::pedantic,
+            clippy::restriction,
+            clippy::perf,
+            clippy::deprecated,
+            clippy::nursery,
+            clippy::cargo
+        )]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
@@ -757,7 +766,16 @@ fn impl_structopt_for_struct(
 
         #[allow(unused_variables)]
         #[allow(unknown_lints)]
-        #[allow(clippy::all)]
+        #[allow(
+            clippy::style,
+            clippy::complexity,
+            clippy::pedantic,
+            clippy::restriction,
+            clippy::perf,
+            clippy::deprecated,
+            clippy::nursery,
+            clippy::cargo
+        )]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOptInternal for #name {
             #augment_clap
@@ -785,7 +803,16 @@ fn impl_structopt_for_enum(
     quote! {
         #[allow(unknown_lints)]
         #[allow(unused_variables, dead_code, unreachable_code)]
-        #[allow(clippy::all)]
+        #[allow(
+            clippy::style,
+            clippy::complexity,
+            clippy::pedantic,
+            clippy::restriction,
+            clippy::perf,
+            clippy::deprecated,
+            clippy::nursery,
+            clippy::cargo
+        )]
         impl ::structopt::StructOpt for #name {
             #clap_tokens
             #from_clap
@@ -793,7 +820,16 @@ fn impl_structopt_for_enum(
 
         #[allow(unused_variables)]
         #[allow(unknown_lints)]
-        #[allow(clippy::all)]
+        #[allow(
+            clippy::style,
+            clippy::complexity,
+            clippy::pedantic,
+            clippy::restriction,
+            clippy::perf,
+            clippy::deprecated,
+            clippy::nursery,
+            clippy::cargo
+        )]
         #[allow(dead_code, unreachable_code)]
         impl ::structopt::StructOptInternal for #name {
             #augment_clap
