@@ -17,10 +17,19 @@ matrix:
         - markdown-link-check -c link-check-headers.json CHANGELOG.md
         - markdown-link-check -c link-check-headers.json examples/README.md
 
+    - rust: stable
+      name: clippy
+      before_script: rustup component add clippy
+      script: cargo clippy --all -- -D warnings
+
     - rust: 1.36.0
     - rust: stable
     - rust: beta
     - rust: nightly
 
 script:
-  - cargo test $FEATURES
+  - cargo test
+
+jobs:
+  allow_failures:
+    - name: clippy

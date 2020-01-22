@@ -349,7 +349,6 @@
 //! ```
 //! # extern crate clap;
 //! # fn parse_validator<T>(_: String) -> Result<(), String> { unimplemented!() }
-//! # fn main() {
 //! clap::Arg::with_name("speed")
 //!     .takes_value(true)
 //!     .multiple(false)
@@ -359,7 +358,6 @@
 //!     .long("velocity")
 //!     .help("Set speed")
 //!     .default_value("42");
-//! # }
 //! ```
 //!
 //! ## Specifying argument types
@@ -426,10 +424,8 @@
 //!
 //! }
 //!
-//! # fn main() {
 //! # Opt::from_clap(&Opt::clap().get_matches_from(
 //! #    &["test", "--foo-option", "", "-b", "", "--baz", "", "--custom", "", "positional"]));
-//! # }
 //! ```
 //!
 //! ## Default values
@@ -658,7 +654,6 @@
 //!   #[structopt(short, long, env = "PARAMETER_VALUE")]
 //!   parameter_value: String
 //! }
-//! # fn main() {}
 //! ```
 //!
 //! By default, values from the environment are shown in the help output (i.e. when invoking
@@ -781,7 +776,6 @@
 //!         all: bool
 //!     }
 //! }
-//! # fn main() {}
 //! ```
 //!
 //! Using `derive(StructOpt)` on an enum instead of a struct will produce
@@ -793,7 +787,6 @@
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! # fn main() {}
 //! #[derive(StructOpt)]
 //! struct MakeCookie {
 //!     #[structopt(name = "supervisor", default_value = "Puck", long = "supervisor")]
@@ -857,7 +850,6 @@
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! # fn main() {}
 //! #[derive(StructOpt)]
 //! struct Foo {
 //!     file: String,
@@ -934,7 +926,6 @@
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! # fn main() {}
 //! #[derive(StructOpt)]
 //! enum BaseCli {
 //!     Ghost10 {
@@ -965,7 +956,6 @@
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! # fn main() {}
 //! #[derive(StructOpt)]
 //! struct Cmdline {
 //!     /// switch on verbosity
@@ -1001,7 +991,6 @@
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! # fn main() {}
 //! use std::num::ParseIntError;
 //! use std::path::PathBuf;
 //!
@@ -1051,6 +1040,9 @@
 //! In the `try_from_*` variants, the function will run twice on valid input:
 //! once to validate, and once to parse. Hence, make sure the function is
 //! side-effect-free.
+
+// those mains are for a reason
+#![allow(clippy::needless_doctest_main)]
 
 #[doc(hidden)]
 pub use structopt_derive::*;
