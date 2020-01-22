@@ -347,7 +347,6 @@
 //! Thus, the `speed` argument is generated as:
 //!
 //! ```
-//! # extern crate clap;
 //! # fn parse_validator<T>(_: String) -> Result<(), String> { unimplemented!() }
 //! clap::Arg::with_name("speed")
 //!     .takes_value(true)
@@ -424,8 +423,8 @@
 //!
 //! }
 //!
-//! # Opt::from_clap(&Opt::clap().get_matches_from(
-//! #    &["test", "--foo-option", "", "-b", "", "--baz", "", "--custom", "", "positional"]));
+//! # Opt::from_iter(
+//! #    &["test", "--foo-option", "", "-b", "", "--baz", "", "--custom", "", "positional"]);
 //! ```
 //!
 //! ## Default values
