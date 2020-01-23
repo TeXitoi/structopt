@@ -20,6 +20,7 @@ pub enum StructOptAttr {
     ExternalSubcommand(Ident),
     NoVersion(Ident),
     VerbatimDocComment(Ident),
+    Hidden(Ident),
 
     // ident [= "string literal"]
     About(Ident, Option<LitStr>),
@@ -173,6 +174,7 @@ impl Parse for StructOptAttr {
                 "external_subcommand" => Ok(ExternalSubcommand(name)),
                 "no_version" => Ok(NoVersion(name)),
                 "verbatim_doc_comment" => Ok(VerbatimDocComment(name)),
+                "hidden" => Ok(Hidden(name)),
 
                 "default_value" => Ok(DefaultValue(name, None)),
                 "about" => (Ok(About(name, None))),

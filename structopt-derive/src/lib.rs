@@ -517,6 +517,11 @@ fn gen_augment_clap_enum(
                     }
                     Unnamed(..) => abort!(variant.span(), "non single-typed tuple enums are not supported"),
                 };
+                let hidden = if attrs.is_hidden() {
+                    quote!( #app_var.setting(::structopt::clap::AppSettings::Hidden) )
+                } else {
+                    quote!( #app_var )
+                };
 
                 let name = attrs.cased_name();
                 let from_attrs = attrs.top_level_methods();
@@ -525,6 +530,7 @@ fn gen_augment_clap_enum(
                     let app = app.subcommand({
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
+                        let #app_var = #hidden;
                         #app_var#from_attrs#version
                     });
                 }

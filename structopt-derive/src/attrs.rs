@@ -89,6 +89,7 @@ pub struct Attrs {
     verbatim_doc_comment: Option<Ident>,
     has_custom_parser: bool,
     kind: Sp<Kind>,
+    hidden: bool,
 }
 
 impl Method {
@@ -245,6 +246,7 @@ impl Attrs {
 
             has_custom_parser: false,
             kind: Sp::new(Kind::Arg(Sp::new(Ty::Other, default_span)), default_span),
+            hidden: false,
         }
     }
 
@@ -275,6 +277,10 @@ impl Attrs {
                     let ty = Sp::call_site(Ty::Other);
                     let kind = Sp::new(Kind::Subcommand(ty), ident.span());
                     self.set_kind(kind);
+                }
+
+                Hidden(_) => {
+                    self.hidden = true;
                 }
 
                 ExternalSubcommand(ident) => {
@@ -637,6 +643,10 @@ impl Attrs {
                     || m.name == "about"
                     || m.name == "long_about"
             })
+    }
+
+    pub fn is_hidden(&self) -> bool {
+        self.hidden
     }
 }
 
