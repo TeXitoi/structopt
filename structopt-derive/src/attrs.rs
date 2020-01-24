@@ -426,8 +426,8 @@ impl Attrs {
             struct_casing,
             env_casing,
         );
-        res.push_doc_comment(&field.attrs, "help");
         res.push_attrs(&field.attrs);
+        res.push_doc_comment(&field.attrs, "help");
 
         match &*res.kind {
             Kind::Flatten => {
