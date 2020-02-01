@@ -6,7 +6,6 @@ use syn::{
     self, parenthesized,
     parse::{Parse, ParseBuffer, ParseStream},
     punctuated::Punctuated,
-    spanned::Spanned,
     Attribute, Expr, ExprLit, Ident, Lit, LitBool, LitStr, Token,
 };
 
@@ -63,7 +62,7 @@ impl Parse for StructOptAttr {
                 let check_empty_lit = |s| {
                     if lit_str.is_empty() {
                         abort!(
-                            lit.span(),
+                            lit,
                             "`#[structopt({} = \"\")]` is deprecated in structopt 0.3, \
                              now it's default behavior",
                             s
@@ -71,7 +70,7 @@ impl Parse for StructOptAttr {
                     }
                 };
 
-                match &*name_str.to_string() {
+                match &*name_str {
                     "rename_all" => Ok(RenameAll(name, lit)),
                     "rename_all_env" => Ok(RenameAllEnv(name, lit)),
                     "default_value" => Ok(DefaultValue(name, Some(lit))),
@@ -113,7 +112,7 @@ impl Parse for StructOptAttr {
                     }
 
                     Err(_) => abort! {
-                        assign_token.span(),
+                        assign_token,
                         "expected `string literal` or `expression` after `=`"
                     },
                 }
@@ -131,7 +130,7 @@ impl Parse for StructOptAttr {
                     if parser_specs.len() == 1 {
                         Ok(Parse(name, parser_specs[0].clone()))
                     } else {
-                        abort!(name.span(), "parse must have exactly one argument")
+                        abort!(name, "`parse` must have exactly one argument")
                     }
                 }
 
@@ -146,7 +145,7 @@ impl Parse for StructOptAttr {
                     }
 
                     Err(_) => {
-                        abort!(name.span(),
+                        abort!(name,
                             "`#[structopt(raw(...))` attributes are removed in structopt 0.3, \
                             they are replaced with raw methods";
                             help = "if you meant to call `clap::Arg::raw()` method \
@@ -181,13 +180,13 @@ impl Parse for StructOptAttr {
                 "skip" => Ok(Skip(name, None)),
 
                 "version" => abort!(
-                    name.span(),
+                    name,
                     "#[structopt(version)] is invalid attribute, \
                      structopt 0.3 inherits version from Cargo.toml by default, \
                      no attribute needed"
                 ),
 
-                _ => abort!(name.span(), "unexpected attribute: {}", name_str),
+                _ => abort!(name, "unexpected attribute: {}", name_str),
             }
         }
     }
