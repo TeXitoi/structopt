@@ -1,8 +1,9 @@
-# [Upcoming]
+# v0.3.9 (2020-02-01)
 
 * `clippy` warnings triggered by generated code shall not annoy you anymore!
   Except for those from `clippy::correctness`, these lints are useful even
   for auto generated code.
+* Improved error messages.
 
 # v0.3.8 (2020-1-19)
 
