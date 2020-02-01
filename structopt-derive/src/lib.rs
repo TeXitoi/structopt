@@ -487,7 +487,7 @@ fn gen_augment_clap_enum(
                         }
                     },
                     _ => abort!(
-                        variant.span(),
+                        variant,
                         "`flatten` is usable only with single-typed tuple variants"
                     ),
                 }
@@ -515,7 +515,7 @@ fn gen_augment_clap_enum(
                             }
                         }
                     }
-                    Unnamed(..) => abort!(variant.span(), "non single-typed tuple enums are not supported"),
+                    Unnamed(..) => abort!(variant, "non single-typed tuple enums are not supported"),
                 };
 
                 let name = attrs.cased_name();
@@ -590,7 +590,7 @@ fn gen_from_subcommand(
                     Unnamed(ref fields) if fields.unnamed.len() == 1 => &fields.unnamed[0].ty,
 
                     _ => abort!(
-                        variant.span(),
+                        variant,
                         "The enum variant marked with `external_attribute` must be \
                          a single-typed tuple, and the type must be either `Vec<String>` \
                          or `Vec<OsString>`."
@@ -615,7 +615,7 @@ fn gen_from_subcommand(
                     }
 
                     None => abort!(
-                        ty.span(),
+                        ty,
                         "The type must be either `Vec<String>` or `Vec<OsString>` \
                          to be used with `external_subcommand`."
                     ),
@@ -670,7 +670,7 @@ fn gen_from_subcommand(
                 quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
             }
             Unnamed(..) => abort!(
-                variant.ident.span(),
+                variant.ident,
                 "non single-typed tuple enums are not supported"
             ),
         };
@@ -696,7 +696,7 @@ fn gen_from_subcommand(
                 }
             }
             _ => abort!(
-                variant.span(),
+                variant,
                 "`flatten` is usable only with single-typed tuple variants"
             ),
         }

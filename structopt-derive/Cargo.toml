@@ -18,7 +18,7 @@ syn = { version = "1", default-features = false, features = ["derive", "parsing"
 quote = "1"
 proc-macro2 = "1"
 heck = "0.3.0"
-proc-macro-error = "0.4.3"
+proc-macro-error = "0.4.7"
 
 [features]
 paw = []
