@@ -4,5 +4,5 @@ error[E0308]: mismatched types
 13 |     Other(Vec<CString>)
    |               ^^^^^^^ expected struct `std::ffi::CString`, found struct `std::ffi::OsString`
    |
-   = note: expected type `std::vec::Vec<std::ffi::CString>`
-              found type `std::vec::Vec<std::ffi::OsString>`
+   = note: expected struct `std::vec::Vec<std::ffi::CString>`
+              found struct `std::vec::Vec<std::ffi::OsString>`

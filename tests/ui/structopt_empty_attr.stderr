@@ -2,4 +2,4 @@ error: expected attribute arguments in parentheses: #[structopt(...)]
   --> $DIR/structopt_empty_attr.rs:14:5
    |
 14 |     #[structopt]
-   |     ^
+   |     ^^^^^^^^^^^^
