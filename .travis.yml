@@ -28,7 +28,7 @@ matrix:
     - rust: nightly
 
 script:
-  - cargo build
+  - cd structopt-derive && cargo build && cd ..
   - cargo test
 
 jobs:
