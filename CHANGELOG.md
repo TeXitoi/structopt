@@ -1,15 +1,19 @@
-# v0.3.10 (2020-03-01)
+# v0.3.11 (2020-03-01)
+
+* `syn`'s "full" feature is now explicitly enabled because it must has been, but hasn't.
+
+# v0.3.10 (2020-03-01) - YANKED
 
 * Fixed the breakage due to a required `syn` feature was not enabled.
 
-# v0.3.9 (2020-02-01)
+# v0.3.9 (2020-02-01) - YANKED
 
 * `clippy` warnings triggered by generated code shall not annoy you anymore!
   Except for those from `clippy::correctness`, these lints are useful even
   for auto generated code.
 * Improved error messages.
 
-# v0.3.8 (2020-1-19)
+# v0.3.8 (2020-1-19) - YANKED
 
 * You don't have to apply `#[no_version]` to every `enum` variant anymore.
   Just annotate the `enum` and the setting will be propagated down
