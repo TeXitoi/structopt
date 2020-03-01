@@ -1,3 +1,7 @@
+# v0.3.10 (2020-03-01)
+
+* Fixed the breakage due to a required `syn` feature was not enabled.
+
 # v0.3.9 (2020-02-01)
 
 * `clippy` warnings triggered by generated code shall not annoy you anymore!
