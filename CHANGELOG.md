@@ -1,6 +1,10 @@
+# v0.3.12 (2020-03-18)
+
+* Fixed [bug in `external_subcommand`](https://github.com/TeXitoi/structopt/issues/359).
+
 # v0.3.11 (2020-03-01)
 
-* `syn`'s "full" feature is now explicitly enabled because it must has been, but hasn't.
+* `syn`'s "full" feature is now explicitly enabled. It must have been, but hasn't.
 
 # v0.3.10 (2020-03-01) - YANKED
 
