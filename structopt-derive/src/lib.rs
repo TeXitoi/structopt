@@ -641,7 +641,7 @@ fn gen_from_subcommand(
                     ::std::option::Option::Some(#name::#var_name(
                         ::std::iter::once(#str_ty::from(external))
                         .chain(
-                            matches.#values_of("").unwrap().map(#str_ty::from)
+                            matches.#values_of("").into_iter().flatten().map(#str_ty::from)
                         )
                         .collect::<::std::vec::Vec<_>>()
                     ))
