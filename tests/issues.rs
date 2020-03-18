@@ -91,3 +91,27 @@ fn issue_324() {
     let help = get_long_help::<Opt>();
     assert!(help.contains("MY_VERSION"));
 }
+
+#[test]
+fn issue_359() {
+    #[derive(Debug, PartialEq, StructOpt)]
+    struct Opt {
+        #[structopt(subcommand)]
+        sub: Subcommands,
+    }
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    enum Subcommands {
+        Add,
+
+        #[structopt(external_subcommand)]
+        Other(Vec<String>),
+    }
+
+    assert_eq!(
+        Opt {
+            sub: Subcommands::Other(vec!["only_one_arg".into()])
+        },
+        Opt::from_iter(&["test", "only_one_arg"])
+    );
+}
