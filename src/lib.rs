@@ -117,7 +117,10 @@
 //!
 //! ## Attributes
 //!
-//! `#[structopt(...)]` attributes fall into two categories:
+//! You can control the way `structopt` translates your struct into an actual
+//! [`clap::App`] invocation via `#[structopt(...)]` attributes.
+//!
+//! The attributes fall into two categories:
 //! - `structopt`'s own [magical methods](#magical-methods).
 //!
 //!    They are used by `structopt` itself. They come mostly in
@@ -166,12 +169,22 @@
 //!
 //! ## Raw methods
 //!
-//! They are the reason why `structopt` is so flexible.
+//! They are the reason why `structopt` is so flexible. **Every and each method from
+//! `clap::App/Arg` can be used this way!**
 //!
-//! Each and every method from `clap::App` and `clap::Arg` can be used directly -
-//! just `#[structopt(method_name = single_arg)]` or `#[structopt(method_name(arg1, arg2))]`
-//! and it just works. As long as `method_name` is not one of the magical methods -
-//! it's just a method call.
+//! ```ignore
+//! #[structopt(
+//!     global = true, // name = arg form, neat for one-arg methods
+//!     required_if("out", "file") // name(arg1, arg2, ...) form.
+//! )]
+//! ```
+//!
+//! The first form can only be used for methods which take only one argument.
+//! The second form must be used with multi-arg methods, but can also be used with
+//! single-arg methods. These forms are identical otherwise.
+//!
+//! As long as `method_name` is not one of the magical methods -
+//! it will be translated into a mere method call.
 //!
 //! **Note:**
 //! _________________
