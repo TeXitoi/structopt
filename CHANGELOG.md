@@ -1,3 +1,7 @@
+# v0.3.13 (2020-04-9)
+
+* Bump `proc-macro-error` to `1.0`.
+
 # v0.3.12 (2020-03-18)
 
 * Fixed [bug in `external_subcommand`](https://github.com/TeXitoi/structopt/issues/359).
