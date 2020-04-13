@@ -254,7 +254,7 @@
 //!
 //! - `author`: `author [= "author"]`
 //!
-//!     Usable only on top level: `App::author("author" or env!(CARGO_PKG_AUTHOR))`.
+//!     Usable only on top level: `App::author("author" or env!(CARGO_PKG_AUTHORS))`.
 //!
 //!     Author/maintainer of the binary, this name appears in help messages.
 //!     Defaults to the crate author given by cargo, but only when `author` explicitly mentioned.
