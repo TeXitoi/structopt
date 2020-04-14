@@ -7,7 +7,11 @@
 // except according to those terms.
 
 use crate::doc_comments::process_doc_comment;
-use crate::{parse::*, spanned::Sp, ty::Ty};
+use crate::{
+    parse::*,
+    spanned::Sp,
+    ty::{self, Ty},
+};
 
 use std::env;
 
@@ -310,6 +314,7 @@ impl Attrs {
                                 note = "see \
                                     https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
                         };
+                        let ty = ty::sub_type(ty).unwrap_or(ty);
 
                         quote_spanned!(ident.span()=> {
                             ::structopt::lazy_static::lazy_static! {
@@ -516,9 +521,6 @@ impl Attrs {
                         }
                     }
                     Ty::Option => {
-                        if let Some(m) = res.find_method("default_value") {
-                            abort!(m.name, "default_value is meaningless for Option")
-                        }
                         if let Some(m) = res.find_method("required") {
                             abort!(m.name, "required is meaningless for Option")
                         }

@@ -321,8 +321,12 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     Ty::Bool => quote_spanned!(ty.span()=> matches.is_present(#name)),
 
                     Ty::Option => quote_spanned! { ty.span()=>
-                        matches.#value_of(#name)
-                            .map(#parse)
+                        if matches.occurrences_of(#name) > 0 {
+                            matches.#value_of(#name)
+                                .map(#parse)
+                        } else {
+                            None
+                        }
                     },
 
                     Ty::OptionOption => quote_spanned! { ty.span()=>
