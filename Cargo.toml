@@ -27,7 +27,7 @@ paw = ["structopt-derive/paw"]
 travis-ci = { repository = "TeXitoi/structopt" }
 
 [dependencies]
-clap = { version = "2.33", default-features = false }
+clap = { git = "https://github.com/davidMcneil/clap.git", branch = "v2-master", default-features = false }
 structopt-derive = { path = "structopt-derive", version = "=0.4.6" }
 lazy_static = "1.4.0"
 
