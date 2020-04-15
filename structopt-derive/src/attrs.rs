@@ -10,7 +10,7 @@ use crate::doc_comments::process_doc_comment;
 use crate::{
     parse::*,
     spanned::Sp,
-    ty::{self, Ty},
+    ty::{subty_if_name, Ty},
 };
 
 use std::env;
@@ -314,7 +314,7 @@ impl Attrs {
                                 note = "see \
                                     https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
                         };
-                        let ty = ty::sub_type(ty).unwrap_or(ty);
+                        let ty = subty_if_name(ty, "Option").unwrap_or(ty);
 
                         quote_spanned!(ident.span()=> {
                             ::structopt::lazy_static::lazy_static! {
