@@ -1,3 +1,7 @@
+# v0.3.14 (2020-04-22)
+
+* Minor documentation improvements.
+
 # v0.3.13 (2020-04-9)
 
 * Bump `proc-macro-error` to `1.0`.
