@@ -1088,6 +1088,11 @@ pub trait StructOpt {
 
     /// Gets the struct from any iterator such as a `Vec` of your making.
     /// Print the error message and quit the program in case of failure.
+    ///
+    /// **NOTE**: The first argument will be parsed as the binary name unless
+    /// [`AppSettings::NoBinaryName`] has been used.
+    ///
+    /// [`AppSettings::NoBinaryName`]: https://docs.rs/clap/2.33.0/clap/enum.AppSettings.html#variant.NoBinaryName
     fn from_iter<I>(iter: I) -> Self
     where
         Self: Sized,
@@ -1102,6 +1107,11 @@ pub trait StructOpt {
     /// Returns a `clap::Error` in case of failure. This does *not* exit in the
     /// case of `--help` or `--version`, to achieve the same behavior as
     /// `from_iter()` you must call `.exit()` on the error value.
+    ///
+    /// **NOTE**: The first argument will be parsed as the binary name unless
+    /// [`AppSettings::NoBinaryName`] has been used.
+    ///
+    /// [`AppSettings::NoBinaryName`]: https://docs.rs/clap/2.33.0/clap/enum.AppSettings.html#variant.NoBinaryName
     fn from_iter_safe<I>(iter: I) -> Result<Self, clap::Error>
     where
         Self: Sized,
