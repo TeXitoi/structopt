@@ -23,7 +23,6 @@ pub enum StructOptAttr {
     // ident [= "string literal"]
     About(Ident, Option<LitStr>),
     Author(Ident, Option<LitStr>),
-    DefaultValue(Ident, Option<LitStr>),
 
     // ident = "string literal"
     Version(Ident, LitStr),
@@ -36,6 +35,7 @@ pub enum StructOptAttr {
 
     // ident [= arbitrary_expr]
     Skip(Ident, Option<Expr>),
+    DefaultValue(Ident, Option<Expr>),
 
     // ident = arbitrary_expr
     NameExpr(Ident, Expr),
@@ -73,7 +73,6 @@ impl Parse for StructOptAttr {
                 match &*name_str {
                     "rename_all" => Ok(RenameAll(name, lit)),
                     "rename_all_env" => Ok(RenameAllEnv(name, lit)),
-                    "default_value" => Ok(DefaultValue(name, Some(lit))),
 
                     "version" => {
                         check_empty_lit("version");
@@ -90,24 +89,18 @@ impl Parse for StructOptAttr {
                         Ok(About(name, Some(lit)))
                     }
 
-                    "skip" => {
-                        let expr = ExprLit {
-                            attrs: vec![],
-                            lit: Lit::Str(lit),
-                        };
-                        let expr = Expr::Lit(expr);
-                        Ok(Skip(name, Some(expr)))
-                    }
+                    "skip" => Ok(Skip(name, Some(lit_str_expr(lit)))),
+                    "default_value" => Ok(DefaultValue(name, Some(lit_str_expr(lit)))),
 
                     _ => Ok(NameLitStr(name, lit)),
                 }
             } else {
                 match input.parse::<Expr>() {
                     Ok(expr) => {
-                        if name_str == "skip" {
-                            Ok(Skip(name, Some(expr)))
-                        } else {
-                            Ok(NameExpr(name, expr))
+                        match &*name_str {
+                            "skip" => Ok(Skip(name, Some(expr))),
+                            "default_value" => Ok(DefaultValue(name, Some(expr))),
+                            _ => Ok(NameExpr(name, expr)),
                         }
                     }
 
@@ -215,6 +208,14 @@ impl Parse for ParserSpec {
             parse_func,
         })
     }
+}
+
+fn lit_str_expr(lit: LitStr) -> Expr {
+    let expr = ExprLit {
+        attrs: vec![],
+        lit: Lit::Str(lit),
+    };
+    Expr::Lit(expr)
 }
 
 fn raw_method_suggestion(ts: ParseBuffer) -> String {

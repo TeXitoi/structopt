@@ -295,9 +295,9 @@ impl Attrs {
 
                 VerbatimDocComment(ident) => self.verbatim_doc_comment = Some(ident),
 
-                DefaultValue(ident, lit) => {
-                    let val = if let Some(lit) = lit {
-                        quote!(#lit)
+                DefaultValue(ident, expr) => {
+                    let val = if let Some(expr) = expr {
+                        to_string_lazy_static(quote!(#expr))
                     } else {
                         let ty = if let Some(ty) = self.ty.as_ref() {
                             ty
@@ -308,19 +308,11 @@ impl Attrs {
                                 only on field level";
 
                                 note = "see \
-                                    https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
+                                    https://docs.rs/structopt/0.3/structopt/#magical-methods")
                         };
 
-                        quote_spanned!(ident.span()=> {
-                            ::structopt::lazy_static::lazy_static! {
-                                static ref DEFAULT_VALUE: &'static str = {
-                                    let val = <#ty as ::std::default::Default>::default();
-                                    let s = ::std::string::ToString::to_string(&val);
-                                    ::std::boxed::Box::leak(s.into_boxed_str())
-                                };
-                            }
-                            *DEFAULT_VALUE
-                        })
+                        let val = quote_spanned!(ident.span()=> <#ty as ::std::default::Default>::default());
+                        to_string_lazy_static(val)
                     };
 
                     self.methods.push(Method::new(ident, val));
@@ -663,4 +655,13 @@ fn process_author_str(author: &str) -> String {
     }
 
     res
+}
+
+fn to_string_lazy_static(val: TokenStream) -> TokenStream {
+    quote_spanned!(val.span()=> {
+        ::structopt::lazy_static::lazy_static! {
+            static ref DEFAULT_VALUE: String = ::std::string::ToString::to_string(&(#val));
+        }
+        DEFAULT_VALUE.as_str()
+    })
 }
