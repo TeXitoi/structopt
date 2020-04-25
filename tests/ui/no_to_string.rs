@@ -4,6 +4,9 @@ use structopt::StructOpt;
 struct Opt {
     #[structopt(short, default_value = ())]
     b: String,
+
+    #[structopt(short, env = ())]
+    a: String,
 }
 
 fn main() {

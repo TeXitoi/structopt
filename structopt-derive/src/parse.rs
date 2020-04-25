@@ -13,7 +13,6 @@ pub enum StructOptAttr {
     // single-identifier attributes
     Short(Ident),
     Long(Ident),
-    Env(Ident),
     Flatten(Ident),
     Subcommand(Ident),
     ExternalSubcommand(Ident),
@@ -36,6 +35,7 @@ pub enum StructOptAttr {
     // ident [= arbitrary_expr]
     Skip(Ident, Option<Expr>),
     DefaultValue(Ident, Option<Expr>),
+    Env(Ident, Option<Expr>),
 
     // ident = arbitrary_expr
     NameExpr(Ident, Expr),
@@ -91,6 +91,7 @@ impl Parse for StructOptAttr {
 
                     "skip" => Ok(Skip(name, Some(lit_str_expr(lit)))),
                     "default_value" => Ok(DefaultValue(name, Some(lit_str_expr(lit)))),
+                    "env" => Ok(Env(name, Some(lit_str_expr(lit)))),
 
                     _ => Ok(NameLitStr(name, lit)),
                 }
@@ -100,6 +101,7 @@ impl Parse for StructOptAttr {
                         match &*name_str {
                             "skip" => Ok(Skip(name, Some(expr))),
                             "default_value" => Ok(DefaultValue(name, Some(expr))),
+                            "env" => Ok(Env(name, Some(expr))),
                             _ => Ok(NameExpr(name, expr)),
                         }
                     }
@@ -159,7 +161,6 @@ impl Parse for StructOptAttr {
             match name_str.as_ref() {
                 "long" => Ok(Long(name)),
                 "short" => Ok(Short(name)),
-                "env" => Ok(Env(name)),
                 "flatten" => Ok(Flatten(name)),
                 "subcommand" => Ok(Subcommand(name)),
                 "external_subcommand" => Ok(ExternalSubcommand(name)),
@@ -169,6 +170,7 @@ impl Parse for StructOptAttr {
                 "default_value" => Ok(DefaultValue(name, None)),
                 "about" => (Ok(About(name, None))),
                 "author" => (Ok(Author(name, None))),
+                "env" => Ok(Env(name, None)),
 
                 "skip" => Ok(Skip(name, None)),
 

@@ -8,3 +8,14 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
   = note: required by `std::string::ToString::to_string`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/no_to_string.rs:8:30
+  |
+8 |     #[structopt(short, env = ())]
+  |                              ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+  = note: required by `std::string::ToString::to_string`

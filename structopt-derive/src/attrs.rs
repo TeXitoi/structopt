@@ -267,10 +267,6 @@ impl Attrs {
                     self.push_method(ident, self.name.clone().translate(*self.casing));
                 }
 
-                Env(ident) => {
-                    self.push_method(ident, self.name.clone().translate(*self.env_casing));
-                }
-
                 Subcommand(ident) => {
                     let ty = Sp::call_site(Ty::Other);
                     let kind = Sp::new(Kind::Subcommand(ty), ident.span());
@@ -297,7 +293,7 @@ impl Attrs {
 
                 DefaultValue(ident, expr) => {
                     let val = if let Some(expr) = expr {
-                        to_string_lazy_static(quote!(#expr))
+                        to_string_lazy_static(&expr)
                     } else {
                         let ty = if let Some(ty) = self.ty.as_ref() {
                             ty
@@ -312,10 +308,21 @@ impl Attrs {
                         };
 
                         let val = quote_spanned!(ident.span()=> <#ty as ::std::default::Default>::default());
-                        to_string_lazy_static(val)
+                        to_string_lazy_static(&val)
                     };
 
-                    self.methods.push(Method::new(ident, val));
+                    self.push_method(ident, val);
+                }
+
+                Env(ident, expr) => {
+                    let val = if let Some(expr) = expr {
+                        to_string_lazy_static(&expr)
+                    } else {
+                        let val = self.name.clone().translate(*self.env_casing);
+                        to_string_lazy_static(&val)
+                    };
+
+                    self.push_method(ident, val);
                 }
 
                 About(ident, about) => {
@@ -657,7 +664,7 @@ fn process_author_str(author: &str) -> String {
     res
 }
 
-fn to_string_lazy_static(val: TokenStream) -> TokenStream {
+fn to_string_lazy_static(val: &dyn ToTokens) -> TokenStream {
     quote_spanned!(val.span()=> {
         ::structopt::lazy_static::lazy_static! {
             static ref DEFAULT_VALUE: String = ::std::string::ToString::to_string(&(#val));
