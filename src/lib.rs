@@ -459,7 +459,7 @@
 //!     // The value doesn't have to be an `&str`,
 //!     // everything that implements ToString will do!
 //!     #[structopt(default_value = 2 + 2 * 2, long)]
-//!     prefix: String,
+//!     suffix: String,
 //! }
 //! ```
 //!

@@ -97,14 +97,12 @@ impl Parse for StructOptAttr {
                 }
             } else {
                 match input.parse::<Expr>() {
-                    Ok(expr) => {
-                        match &*name_str {
-                            "skip" => Ok(Skip(name, Some(expr))),
-                            "default_value" => Ok(DefaultValue(name, Some(expr))),
-                            "env" => Ok(Env(name, Some(expr))),
-                            _ => Ok(NameExpr(name, expr)),
-                        }
-                    }
+                    Ok(expr) => match &*name_str {
+                        "skip" => Ok(Skip(name, Some(expr))),
+                        "default_value" => Ok(DefaultValue(name, Some(expr))),
+                        "env" => Ok(Env(name, Some(expr))),
+                        _ => Ok(NameExpr(name, expr)),
+                    },
 
                     Err(_) => abort! {
                         assign_token,
