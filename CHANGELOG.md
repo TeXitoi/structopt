@@ -1,3 +1,17 @@
+# [Upcoming]
+
+* Now everything that implements `ToString` can be passed to `#[structopt(default_value/env)]`.
+
+  ```rust
+  #[derive(StructOpt, PartialEq, Debug)]
+  struct Opt {
+      #[structopt(default_value = 2 + 2 * 2)]
+      arg: i32,
+  }
+  assert_eq!(Opt { arg: 6 }, Opt::from_iter(&["test"]));
+  assert_eq!(Opt { arg: 1 }, Opt::from_iter(&["test", "1"]));
+  ```
+
 # v0.3.14 (2020-04-22)
 
 * Minor documentation improvements.

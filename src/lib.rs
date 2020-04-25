@@ -279,6 +279,10 @@
 //!
 //!     Usable only on field-level.
 //!
+//! - [`env`](#environment-variable-fallback): `default_value [= "environment variable"]`
+//!
+//!     Usable only on field-level.
+//!
 //! - [`rename_all`](#specifying-argument-types):
 //!     [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
 //!
@@ -450,7 +454,12 @@
 //! #[derive(StructOpt)]
 //! struct Opt {
 //!     #[structopt(default_value = "", long)]
-//!     prefix: String
+//!     prefix: String,
+//!
+//!     // The value doesn't have to be an `&str`,
+//!     // everything that implements ToString will do!
+//!     #[structopt(default_value = 2 + 2 * 2, long)]
+//!     prefix: String,
 //! }
 //! ```
 //!
@@ -664,7 +673,11 @@
 //! #[derive(StructOpt)]
 //! struct Foo {
 //!   #[structopt(short, long, env = "PARAMETER_VALUE")]
-//!   parameter_value: String
+//!   parameter_value: String,
+//!
+//!   // everything that implements ToString can be used as env
+//!   #[structopt(short, long, env = format!("SECOND_{}", "VALUE"))]
+//!   parameter_value2: u32,
 //! }
 //! ```
 //!
@@ -676,6 +689,7 @@
 //! ...
 //! OPTIONS:
 //!   -p, --parameter-value <parameter-value>     [env: PARAMETER_VALUE=env_value]
+//!   -p, --parameter-value2 <parameter-value2>   [env: SECOND_VALUE=env_value]
 //! ```
 //!
 //! In some cases this may be undesirable, for example when being used for passing
