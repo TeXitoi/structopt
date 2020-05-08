@@ -8,7 +8,7 @@ documentation = "https://docs.rs/structopt"
 repository = "https://github.com/TeXitoi/structopt"
 keywords = ["clap", "cli", "derive", "docopt"]
 categories = ["command-line-interface"]
-license = "Apache-2.0/MIT"
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 
 [features]
