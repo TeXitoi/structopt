@@ -89,7 +89,7 @@
 //!
 //!     /// File name: only required when `out` is set to `file`
 //!     #[structopt(name = "FILE", required_if("out_type", "file"))]
-//!     file_name: String,
+//!     file_name: Option<String>,
 //! }
 //!
 //! fn main() {
