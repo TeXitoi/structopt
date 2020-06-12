@@ -28,7 +28,7 @@ use crate::{
 
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::{abort, abort_call_site, proc_macro_error, set_dummy};
-use quote::{quote, quote_spanned};
+use quote::{format_ident, quote, quote_spanned};
 use syn::{punctuated::Punctuated, spanned::Spanned, token::Comma, *};
 
 /// Default casing style for generated arguments.
@@ -239,6 +239,16 @@ fn gen_augmentation(
 }
 
 fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) -> TokenStream {
+    // This ident is used in several match branches below,
+    // and the `quote[_spanned]` invocations have different spans.
+    //
+    // Given that this ident is used in several places and
+    // that the branches are located inside of a loop, it is possible that
+    // this ident will be given _different_ spans in different places, and
+    // thus will not be the _same_ ident anymore. To make sure the `matches`
+    // is always the same, we factor it out.
+    let matches = format_ident!("matches");
+
     let fields = fields.iter().map(|field| {
         let attrs = Attrs::from_field(
             field,
@@ -248,7 +258,6 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
         );
         let field_name = field.ident.as_ref().unwrap();
         let kind = attrs.kind();
-        let matches = quote! { matches };
         match &*kind {
             Kind::ExternalSubcommand => abort!(
                 kind.span(),
