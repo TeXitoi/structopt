@@ -248,6 +248,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
         );
         let field_name = field.ident.as_ref().unwrap();
         let kind = attrs.kind();
+        let matches = quote! { matches };
         match &*kind {
             Kind::ExternalSubcommand => abort!(
                 kind.span(),
@@ -265,13 +266,13 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 };
                 quote_spanned! { kind.span()=>
                     #field_name: <#subcmd_type as ::structopt::StructOptInternal>::from_subcommand(
-                        matches.subcommand())
+                        #matches.subcommand())
                         #unwrapper
                 }
             }
 
             Kind::Flatten => quote_spanned! { kind.span()=>
-                #field_name: ::structopt::StructOpt::from_clap(matches)
+                #field_name: ::structopt::StructOpt::from_clap(#matches)
             },
 
             Kind::Skip(val) => match val {
@@ -318,24 +319,24 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 let occurrences = *attrs.parser().kind == ParserKind::FromOccurrences;
                 let name = attrs.cased_name();
                 let field_value = match **ty {
-                    Ty::Bool => quote_spanned!(ty.span()=> matches.is_present(#name)),
+                    Ty::Bool => quote_spanned!(ty.span()=> #matches.is_present(#name)),
 
                     Ty::Option => quote_spanned! { ty.span()=>
-                        matches.#value_of(#name)
+                        #matches.#value_of(#name)
                             .map(#parse)
                     },
 
                     Ty::OptionOption => quote_spanned! { ty.span()=>
-                        if matches.is_present(#name) {
-                            Some(matches.#value_of(#name).map(#parse))
+                        if #matches.is_present(#name) {
+                            Some(#matches.#value_of(#name).map(#parse))
                         } else {
                             None
                         }
                     },
 
                     Ty::OptionVec => quote_spanned! { ty.span()=>
-                        if matches.is_present(#name) {
-                            Some(matches.#values_of(#name)
+                        if #matches.is_present(#name) {
+                            Some(#matches.#values_of(#name)
                                  .map_or_else(Vec::new, |v| v.map(#parse).collect()))
                         } else {
                             None
@@ -343,20 +344,20 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     },
 
                     Ty::Vec => quote_spanned! { ty.span()=>
-                        matches.#values_of(#name)
+                        #matches.#values_of(#name)
                             .map_or_else(Vec::new, |v| v.map(#parse).collect())
                     },
 
                     Ty::Other if occurrences => quote_spanned! { ty.span()=>
-                        #parse(matches.#value_of(#name))
+                        #parse(#matches.#value_of(#name))
                     },
 
                     Ty::Other if flag => quote_spanned! { ty.span()=>
-                        #parse(matches.is_present(#name))
+                        #parse(#matches.is_present(#name))
                     },
 
                     Ty::Other => quote_spanned! { ty.span()=>
-                        matches.#value_of(#name)
+                        #matches.#value_of(#name)
                             .map(#parse)
                             .unwrap()
                     },
