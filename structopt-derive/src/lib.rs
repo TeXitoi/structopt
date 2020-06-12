@@ -648,10 +648,10 @@ fn gen_from_subcommand(
                 }
 
                 (external, None) => {
-                    ::std::option::Option::Some(#name::#var_name({
+                    ::std::option::Option::Some(#name::#var_name(
                         ::std::iter::once(#str_ty::from(external))
                             .collect::<::std::vec::Vec<_>>()
-                    }))
+                    ))
                 }
             }
         },
