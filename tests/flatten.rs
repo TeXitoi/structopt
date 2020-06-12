@@ -127,3 +127,27 @@ fn merge_subcommands_with_flatten() {
         Opt::from_iter(&["test", "command2", "43"])
     );
 }
+
+#[test]
+#[should_panic = "structopt misuse: You likely tried to #[flatten] a struct \
+                  that contains #[subcommand]. This is forbidden."]
+fn subcommand_in_flatten() {
+    #[derive(Debug, StructOpt)]
+    pub enum Struct1 {
+        #[structopt(flatten)]
+        Struct1(Struct2),
+    }
+
+    #[derive(Debug, StructOpt)]
+    pub struct Struct2 {
+        #[structopt(subcommand)]
+        command_type: Enum3,
+    }
+
+    #[derive(Debug, StructOpt)]
+    pub enum Enum3 {
+        Command { args: Vec<String> },
+    }
+
+    Struct1::from_iter(&["test", "command", "foo"]);
+}

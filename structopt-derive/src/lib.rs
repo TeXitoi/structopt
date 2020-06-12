@@ -559,7 +559,8 @@ fn gen_from_clap_enum(name: &Ident) -> TokenStream {
     quote! {
         fn from_clap(matches: &::structopt::clap::ArgMatches) -> Self {
             <#name as ::structopt::StructOptInternal>::from_subcommand(matches.subcommand())
-                .unwrap()
+                .expect("structopt misuse: You likely tried to #[flatten] a struct \
+                         that contains #[subcommand]. This is forbidden.")
         }
     }
 }
