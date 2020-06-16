@@ -1,3 +1,9 @@
+# v0.3.15 (2020-06-16)
+
+* Minor documentation improvements.
+* Fixed [a latent bug](https://github.com/TeXitoi/structopt/pull/398),
+  courtesy of [@Aaron1011](https://github.com/Aaron1011).
+
 # v0.3.14 (2020-04-22)
 
 * Minor documentation improvements.
