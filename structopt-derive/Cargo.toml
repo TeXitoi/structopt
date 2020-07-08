@@ -22,6 +22,7 @@ proc-macro-error = "1.0.0"
 
 [features]
 paw = []
+external_doc = []
 
 [lib]
 proc-macro = true

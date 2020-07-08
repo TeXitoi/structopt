@@ -371,14 +371,49 @@ impl Attrs {
         let comment_parts: Vec<_> = attrs
             .iter()
             .filter(|attr| attr.path.is_ident("doc"))
-            .filter_map(|attr| {
-                if let Ok(NameValue(MetaNameValue { lit: Str(s), .. })) = attr.parse_meta() {
-                    Some(s.value())
-                } else {
-                    // non #[doc = "..."] attributes are not our concern
-                    // we leave them for rustc to handle
-                    None
+            .filter_map(|attr| match attr.parse_meta() {
+                Ok(NameValue(MetaNameValue { lit: Str(s), .. })) => Some(s.value()),
+                Ok(NameValue(_)) => None,
+                Ok(Path(_)) => None,
+                // external-doc
+                // eg. #[doc(include = "../README.md")]
+                #[cfg(feature = "external_doc")]
+                Ok(List(syn::MetaList { nested, .. })) => {
+                    let content: String = nested
+                        .iter()
+                        .filter_map(|nested_meta| match nested_meta {
+                            syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
+                                if nv.path.is_ident("include") {
+                                    match &nv.lit {
+                                        Str(s) => {
+                                            let path = std::path::PathBuf::from("src")
+                                                .join(s.value())
+                                                .canonicalize()
+                                                .unwrap();
+                                            Some(std::fs::read_to_string(&path).unwrap())
+                                        }
+                                        _ => None,
+                                    }
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                        // add a new line between different on-line inclusions
+                        // eg. #[doc(include = "x.md", include = "y.md")]
+                        .map(|content| String::from("\n\n") + &content)
+                        .collect::<String>();
+                    if !content.is_empty() {
+                        Some(content)
+                    } else {
+                        None
+                    }
                 }
+                // non external-doc
+                #[cfg(not(feature = "external_doc"))]
+                Ok(List(_)) => None,
+                Err(_) => None,
             })
             .collect();
 

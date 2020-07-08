@@ -11,6 +11,7 @@
 //! for the usage of `#[derive(StructOpt)]`.
 
 #![allow(clippy::large_enum_variant)]
+#![cfg_attr(feature = "external_doc", feature(external_doc))]
 
 extern crate proc_macro;
 
