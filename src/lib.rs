@@ -87,8 +87,8 @@
 //!     #[structopt(short)]
 //!     out_type: String,
 //!
-//!     /// File name: only required when `out` is set to `file`
-//!     #[structopt(name = "FILE", required_if("out_type", "file"))]
+//!     /// File name: only required when `out-type` is set to `file`
+//!     #[structopt(name = "FILE", required_if("out-type", "file"))]
 //!     file_name: Option<String>,
 //! }
 //!
