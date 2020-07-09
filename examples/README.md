@@ -69,6 +69,10 @@ How to completely remove version.
 
 How `#[structopt(rename_all)]` works.
 
+### [Required If](required_if.rs)
+
+How to use `#[structopt(required_if)]`.
+
 ### [Skip](skip.rs)
 
 How to use `#[structopt(skip)]`.
