@@ -377,41 +377,55 @@ impl Attrs {
                 Ok(Path(_)) => None,
                 // external-doc
                 // eg. #[doc(include = "../README.md")]
-                #[cfg(feature = "external_doc")]
+                #[cfg(feature = "unstable_external_doc")]
                 Ok(List(syn::MetaList { nested, .. })) => {
                     let content: String = nested
                         .iter()
-                        .filter_map(|nested_meta| match nested_meta {
-                            syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
-                                if nv.path.is_ident("include") {
-                                    match &nv.lit {
-                                        Str(s) => {
-                                            let path = std::path::PathBuf::from("src")
-                                                .join(s.value())
-                                                .canonicalize()
-                                                .unwrap();
-                                            Some(std::fs::read_to_string(&path).unwrap())
-                                        }
-                                        _ => None,
-                                    }
-                                } else {
-                                    None
+                        .filter_map(|nested_meta| {
+                            if let syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) = nested_meta {
+                                Some(nv)
+                            } else {
+                                None
+                            }
+                        })
+                        .filter(|nv| nv.path.is_ident("include"))
+                        .filter_map(|nv| {
+                            if let Str(s) = &nv.lit {
+                                Some((s, nv.lit.span()))
+                            } else {
+                                None
+                            }
+                        })
+                        .map(|(s, span)| {
+                            let path = std::path::PathBuf::from("src").join(s.value());
+                            let path = match path.canonicalize() {
+                                Ok(path) => path,
+                                Err(e) => abort!(
+                                    span,
+                                    "failed to canonicalize {:?} path. Error {}",
+                                    &path,
+                                    e
+                                ),
+                            };
+                            match std::fs::read_to_string(&path) {
+                                Ok(content) => content,
+                                Err(e) => {
+                                    abort!(span, "failed to read {:?} file. Error {}", &path, e)
                                 }
                             }
-                            _ => None,
                         })
-                        // add a new line between different on-line inclusions
+                        // ends up adding a new line between different one-line inclusions
                         // eg. #[doc(include = "x.md", include = "y.md")]
                         .map(|content| String::from("\n\n") + &content)
                         .collect::<String>();
-                    if !content.is_empty() {
-                        Some(content)
-                    } else {
+                    if content.is_empty() {
                         None
+                    } else {
+                        Some(content)
                     }
                 }
                 // non external-doc
-                #[cfg(not(feature = "external_doc"))]
+                #[cfg(not(feature = "unstable_external_doc"))]
                 Ok(List(_)) => None,
                 Err(_) => None,
             })
