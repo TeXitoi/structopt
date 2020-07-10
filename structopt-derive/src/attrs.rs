@@ -390,19 +390,19 @@ impl Attrs {
                         })
                         .filter(|nv| nv.path.is_ident("include"))
                         .filter_map(|nv| {
-                            if let Str(s) = &nv.lit {
-                                Some((s, nv.lit.span()))
+                            if let Str(s) = nv.lit {
+                                Some(s)
                             } else {
                                 None
                             }
                         })
-                        .map(|(s, span)| {
-                            let path = std::path::PathBuf::from("src").join(s.value());
+                        .map(|file_path| {
+                            let path = std::path::PathBuf::from("src").join(file_path.value());
                             let path = match path.canonicalize() {
                                 Ok(path) => path,
                                 Err(e) => abort!(
-                                    span,
-                                    "failed to canonicalize {:?} path. Error {}",
+                                    file_path,
+                                    "failed to canonicalize {:?} path: {}",
                                     &path,
                                     e
                                 ),
@@ -410,7 +410,7 @@ impl Attrs {
                             match std::fs::read_to_string(&path) {
                                 Ok(content) => content,
                                 Err(e) => {
-                                    abort!(span, "failed to read {:?} file. Error {}", &path, e)
+                                    abort!(file_path, "failed to read {:?} file: {}", &path, e)
                                 }
                             }
                         })
