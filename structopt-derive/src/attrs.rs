@@ -389,13 +389,7 @@ impl Attrs {
                             }
                         })
                         .filter(|nv| nv.path.is_ident("include"))
-                        .filter_map(|nv| {
-                            if let Str(s) = nv.lit {
-                                Some(s)
-                            } else {
-                                None
-                            }
-                        })
+                        .filter_map(|nv| if let Str(s) = &nv.lit { Some(s) } else { None })
                         .map(|file_path| {
                             let path = std::path::PathBuf::from("src").join(file_path.value());
                             let path = match path.canonicalize() {
