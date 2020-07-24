@@ -17,6 +17,10 @@
 //! - **Snake Case**: Keep all letters lowercase and indicate word boundaries
 //!                   with underscores.
 //! - **Verbatim**: Use the original attribute name defined in the code.
+//!
+//! - **Lower Case**: Keep all letters lowercase and remove word boundaries.
+//!
+//! - **Upper Case**: Keep all letters upperrcase and remove word boundaries.
 
 use structopt::StructOpt;
 

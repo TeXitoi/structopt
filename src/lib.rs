@@ -280,7 +280,7 @@
 //!     Usable only on field-level.
 //!
 //! - [`rename_all`](#specifying-argument-types):
-//!     [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//!     [`rename_all = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"/"lower"/"upper"]`
 //!
 //!     Usable both on top level and field level.
 //!
@@ -309,7 +309,7 @@
 //!     Usable only on field-level.
 //!
 //! - [`rename_all_env`](##auto-deriving-environment-variables):
-//!     [`rename_all_env = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"]`
+//!     [`rename_all_env = "kebab"/"snake"/"screaming-snake"/"camel"/"pascal"/"verbatim"/"lower"/"upper"]`
 //!
 //!     Usable both on top level and field level.
 //!
