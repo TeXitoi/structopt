@@ -158,7 +158,7 @@ fn subcommand_in_flatten() {
 fn flatten_doc_comment() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Common {
-        /// This is an arg. Arg mean "argument". Command line argument.
+        /// This is an arg. Arg means "argument". Command line argument.
         arg: i32,
     }
 
