@@ -731,7 +731,7 @@ fn gen_from_subcommand(
 #[cfg(feature = "paw")]
 fn gen_paw_impl(name: &Ident) -> TokenStream {
     quote! {
-        impl paw::ParseArgs for #name {
+        impl ::structopt::paw::ParseArgs for #name {
             type Error = std::io::Error;
 
             fn parse_args() -> std::result::Result<Self, Self::Error> {

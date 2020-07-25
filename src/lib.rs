@@ -1063,6 +1063,8 @@ use std::ffi::OsString;
 
 /// Re-exports
 pub use clap;
+#[cfg(feature = "paw")]
+pub use paw_dep as paw;
 
 /// **This is NOT PUBLIC API**.
 #[doc(hidden)]
