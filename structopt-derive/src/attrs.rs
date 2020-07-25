@@ -437,11 +437,15 @@ impl Attrs {
                         "parse attribute is not allowed for flattened entry"
                     );
                 }
-                if res.has_explicit_methods() || res.has_doc_methods() {
+                if res.has_explicit_methods() {
                     abort!(
                         res.kind.span(),
-                        "methods and doc comments are not allowed for flattened entry"
+                        "methods are not allowed for flattened entry"
                     );
+                }
+
+                if res.has_doc_methods() {
+                    res.doc_comment = vec![];
                 }
             }
 

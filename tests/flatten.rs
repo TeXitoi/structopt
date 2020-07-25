@@ -8,6 +8,8 @@
 
 use structopt::StructOpt;
 
+mod utils;
+
 #[test]
 fn flatten() {
     #[derive(StructOpt, PartialEq, Debug)]
@@ -150,4 +152,31 @@ fn subcommand_in_flatten() {
     }
 
     Struct1::from_iter(&["test", "command", "foo"]);
+}
+
+#[test]
+fn flatten_doc_comment() {
+    #[derive(StructOpt, PartialEq, Debug)]
+    struct Common {
+        /// This is an arg. Arg mean "argument". Command line argument.
+        arg: i32,
+    }
+
+    #[derive(StructOpt, PartialEq, Debug)]
+    struct Opt {
+        /// The very important comment that clippy had me put here.
+        /// It knows better.
+        #[structopt(flatten)]
+        common: Common,
+    }
+    assert_eq!(
+        Opt {
+            common: Common { arg: 42 }
+        },
+        Opt::from_iter(&["test", "42"])
+    );
+
+    let help = utils::get_help::<Opt>();
+    assert!(help.contains("This is an arg."));
+    assert!(!help.contains("The very important"));
 }
