@@ -309,3 +309,31 @@ fn test_rename_all_is_propagation_can_be_overridden() {
         Opt::from_clap(&Opt::clap().get_matches_from(&["test", "SECOND_VARIANT", "--foo-option"]))
     );
 }
+
+#[test]
+fn test_lower_is_renamed() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Opt {
+        #[structopt(rename_all = "lower", long)]
+        foo_option: bool,
+    }
+
+    assert_eq!(
+        Opt { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--foooption"]))
+    );
+}
+
+#[test]
+fn test_upper_is_renamed() {
+    #[derive(StructOpt, Debug, PartialEq)]
+    struct Opt {
+        #[structopt(rename_all = "upper", long)]
+        foo_option: bool,
+    }
+
+    assert_eq!(
+        Opt { foo_option: true },
+        Opt::from_clap(&Opt::clap().get_matches_from(&["test", "--FOOOPTION"]))
+    );
+}
