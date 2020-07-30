@@ -214,8 +214,8 @@ impl Name {
                     ScreamingSnake => s.to_shouty_snake_case(),
                     Snake => s.to_snake_case(),
                     Verbatim => s,
-                    Lower => s.to_lowercase().replace("_", ""),
-                    Upper => s.to_uppercase().replace("_", ""),
+                    Lower => s.to_snake_case().replace("_", ""),
+                    Upper => s.to_shouty_snake_case().replace("_", ""),
                 };
                 quote_spanned!(ident.span()=> #s)
             }
