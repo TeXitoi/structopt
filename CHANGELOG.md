@@ -1,3 +1,10 @@
+# v0.3.16 (2020-08-05)
+
+* Added [the new example](https://github.com/TeXitoi/structopt/blob/master/examples/required_if.rs).
+* Allow `#[structopt(flatten)]` fields to have doc comments. The comments are ignored.
+* The `paw` crate is now being reexported when `paw` feature is enabled,
+  see [`#407`](https://github.com/TeXitoi/structopt/issues/407).
+
 # v0.3.15 (2020-06-16)
 
 * Minor documentation improvements.
