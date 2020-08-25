@@ -481,8 +481,9 @@ fn gen_augment_clap_enum(
         let kind = attrs.kind();
         match &*kind {
             Kind::ExternalSubcommand => {
+                let app_var = Ident::new("app", Span::call_site());
                 quote_spanned! { attrs.kind().span()=>
-                    let app = app.setting(
+                    let #app_var = #app_var.setting(
                         ::structopt::clap::AppSettings::AllowExternalSubcommands
                     );
                 }
