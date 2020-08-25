@@ -1,3 +1,8 @@
+# v0.3.17 (2020-08-25)
+
+* Fixed [a breakage](https://github.com/TeXitoi/structopt/issues/424) with resent rustc versions
+  due to `quote_spanned` misuse.
+
 # v0.3.16 (2020-08-05)
 
 * Added [the new example](https://github.com/TeXitoi/structopt/blob/master/examples/required_if.rs).
