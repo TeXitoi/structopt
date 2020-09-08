@@ -368,6 +368,8 @@ impl Attrs {
                     self.has_custom_parser = true;
                     self.parser = Parser::from_spec(ident, spec);
                 }
+
+                ValueName(ident, lit_str) => self.push_method(ident, lit_str),
             }
         }
     }

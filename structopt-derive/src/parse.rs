@@ -30,6 +30,7 @@ pub enum StructOptAttr {
     RenameAllEnv(Ident, LitStr),
     RenameAll(Ident, LitStr),
     NameLitStr(Ident, LitStr),
+    ValueName(Ident, LitStr),
 
     // parse(parser_kind [= parser_func])
     Parse(Ident, ParserSpec),
@@ -98,6 +99,8 @@ impl Parse for StructOptAttr {
                         let expr = Expr::Lit(expr);
                         Ok(Skip(name, Some(expr)))
                     }
+
+                    "value_name" => Ok(ValueName(name, lit)),
 
                     _ => Ok(NameLitStr(name, lit)),
                 }
