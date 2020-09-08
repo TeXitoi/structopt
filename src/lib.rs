@@ -50,6 +50,7 @@
 //!     - [External subcommands](#external-subcommands)
 //!     - [Flattening subcommands](#flattening-subcommands)
 //! - [Flattening](#flattening)
+//! - [Changing value names](#changing-value-names)
 //! - [Custom string parsers](#custom-string-parsers)
 //!
 //!
@@ -88,7 +89,7 @@
 //!     out_type: String,
 //!
 //!     /// File name: only required when `out-type` is set to `file`
-//!     #[structopt(name = "FILE", required_if("out-type", "file"))]
+//!     #[structopt(value_name = "FILE", required_if("out-type", "file"))]
 //!     file_name: Option<String>,
 //! }
 //!
@@ -295,6 +296,10 @@
 //! - [`flatten`](#flattening): `flatten`
 //!
 //!     Usable on field-level or single-typed tuple variants.
+//!
+//! - [`value_name`](#changing-value-names): `value_name = "value-name"`
+//!
+//!     Usable only on field-level.
 //!
 //! - [`subcommand`](#subcommands): `subcommand`
 //!
@@ -994,6 +999,22 @@
 //! This feature also makes it possible to define a `StructOpt` struct in a
 //! library, parse the corresponding arguments in the main argument parser, and
 //! pass off this struct to a handler provided by that library.
+//!
+//! ## Changing value names
+//!
+//! Giving values explicit names can be a helpful hint to the user about the
+//! type of the value. You can define custom value names using the `value_name`
+//! attribute:
+//!
+//! ```
+//! # use structopt::StructOpt;
+//! #[derive(StructOpt)]
+//! struct Opt {
+//!     // This will show up as `--count <NUM>` in the `--help` output.
+//!     #[structopt(value_name = "NUM")]
+//!     count: usize,
+//! }
+//! ```
 //!
 //! ## Custom string parsers
 //!
