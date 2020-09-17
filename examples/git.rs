@@ -7,7 +7,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "git")]
-/// the stupid content tracker
+/// the well-known version control tool
 enum Opt {
     /// fetch branches from remote repository
     Fetch {
