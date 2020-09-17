@@ -764,7 +764,7 @@
 //!
 //! # use std::path::PathBuf;
 //! #[derive(StructOpt)]
-//! #[structopt(about = "the stupid content tracker")]
+//! #[structopt(about = "the well-known version control tool")]
 //! enum Git {
 //!     Add {
 //!         #[structopt(short)]
