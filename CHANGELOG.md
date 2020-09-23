@@ -1,3 +1,9 @@
+# v0.3.18 (2020-09-23)
+
+* Unsafe code [has been forbidden](https://github.com/TeXitoi/structopt/issues/432). This makes
+  [`cargo geiger`](https://github.com/rust-secure-code/cargo-geiger) list structopt as "safe".
+  Maybe it will help somebody trying to locate a bug in their dependency tree.
+
 # v0.3.17 (2020-08-25)
 
 * Fixed [a breakage](https://github.com/TeXitoi/structopt/issues/424) with resent rustc versions
