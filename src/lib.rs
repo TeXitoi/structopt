@@ -7,6 +7,7 @@
 // except according to those terms.
 
 #![deny(missing_docs)]
+#![forbid(unsafe_code)]
 
 //! This crate defines the `StructOpt` trait and its custom derive.
 //!

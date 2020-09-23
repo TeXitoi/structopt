@@ -11,6 +11,7 @@
 //! for the usage of `#[derive(StructOpt)]`.
 
 #![allow(clippy::large_enum_variant)]
+#![forbid(unsafe_code)]
 
 extern crate proc_macro;
 
