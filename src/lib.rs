@@ -1089,6 +1089,16 @@ pub trait StructOpt {
         Self::from_clap(&Self::clap().get_matches())
     }
 
+    /// Builds the struct from the command line arguments ([`std::env::args_os`]). 
+    /// Unlike [`StructOpt::from_args`], returns [`clap::Error`] on failure instead of aborting the program, 
+    /// so calling [`.exit`][clap::Error::exit] is up to you.
+    fn from_args_safe() -> Result<Self, clap::Error>
+    where
+        Self: Sized,
+    {
+        Self::clap().get_matches_safe().map(|matches| Self::from_clap(&matches))
+    }
+
     /// Gets the struct from any iterator such as a `Vec` of your making.
     /// Print the error message and quit the program in case of failure.
     ///
