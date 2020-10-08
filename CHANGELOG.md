@@ -1,3 +1,8 @@
+# v0.3.19 (2020-10-08)
+
+* Added [StructOpt::from_args_safe](https://docs.rs/structopt/0.3/structopt/trait.StructOpt.html#tymethod.from_args_safe) as a shortcut for `StructOpt::from_iter_safe(std::env::args_os())`.
+* Some links in documentation have been corrected.
+
 # v0.3.18 (2020-09-23)
 
 * Unsafe code [has been forbidden](https://github.com/TeXitoi/structopt/issues/432). This makes
