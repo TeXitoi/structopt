@@ -10,7 +10,7 @@ fn invisible_group_issue_439() {
             #[derive(Debug, StructOpt)]
             struct Opts {
                 #[structopt(long = "x")]
-                x: $bool
+                x: $bool,
             }
         };
     }
