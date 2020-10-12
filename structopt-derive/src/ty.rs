@@ -63,6 +63,8 @@ fn subty_if<F>(ty: &syn::Type, f: F) -> Option<&syn::Type>
 where
     F: FnOnce(&PathSegment) -> bool,
 {
+    let ty = strip_group(ty);
+
     only_last_segment(ty)
         .filter(|segment| f(segment))
         .and_then(|segment| {
@@ -85,6 +87,8 @@ pub fn subty_if_name<'a>(ty: &'a syn::Type, name: &str) -> Option<&'a syn::Type>
 }
 
 pub fn is_simple_ty(ty: &syn::Type, name: &str) -> bool {
+    let ty = strip_group(ty);
+
     only_last_segment(ty)
         .map(|segment| {
             if let PathArguments::None = segment.arguments {
@@ -94,6 +98,23 @@ pub fn is_simple_ty(ty: &syn::Type, name: &str) -> bool {
             }
         })
         .unwrap_or(false)
+}
+
+// If the struct is placed inside of a macro_rules! declaration,
+// in some circumstances, the tokens inside will be enclosed
+// in `proc_macro::Group` delimited by invisible `proc_macro::Delimiter::None`.
+//
+// In syn speak, this is encoded via `*::Group` variants. We don't really care about
+// that, so let's just strip it.
+//
+// Details: https://doc.rust-lang.org/proc_macro/enum.Delimiter.html#variant.None
+// See also: https://github.com/TeXitoi/structopt/issues/439
+fn strip_group(mut ty: &syn::Type) -> &syn::Type {
+    while let Type::Group(group) = ty {
+        ty = &*group.elem;
+    }
+
+    ty
 }
 
 fn is_generic_ty(ty: &syn::Type, name: &str) -> bool {
