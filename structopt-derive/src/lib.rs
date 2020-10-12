@@ -11,6 +11,8 @@
 //! for the usage of `#[derive(StructOpt)]`.
 
 #![allow(clippy::large_enum_variant)]
+// FIXME: remove when and if our MSRV hits 1.42
+#![allow(clippy::match_like_matches_macro)]
 #![forbid(unsafe_code)]
 
 extern crate proc_macro;
