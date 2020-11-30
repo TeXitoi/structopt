@@ -1,3 +1,8 @@
+# v0.3.21 (2020-11-30)
+
+* Fixed [another breakage](https://github.com/TeXitoi/structopt/issues/447)
+  when the struct is placed inside a `macro_rules!` macro.
+
 # v0.3.20 (2020-10-12)
 
 * Fixed [a breakage](https://github.com/TeXitoi/structopt/issues/439)
