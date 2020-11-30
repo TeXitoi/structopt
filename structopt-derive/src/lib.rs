@@ -647,16 +647,19 @@ fn gen_from_subcommand(
             _ => false,
         });
 
+    let other = format_ident!("other");
+    let matches = format_ident!("matches");
+
     let external = match ext_subcmd {
         Some((span, var_name, str_ty, values_of)) => quote_spanned! { span=>
-            match other {
+            match #other {
                 ("", ::std::option::Option::None) => None,
 
-                (external, Some(matches)) => {
+                (external, Some(#matches)) => {
                     ::std::option::Option::Some(#name::#var_name(
                         ::std::iter::once(#str_ty::from(external))
                         .chain(
-                            matches.#values_of("").into_iter().flatten().map(#str_ty::from)
+                            #matches.#values_of("").into_iter().flatten().map(#str_ty::from)
                         )
                         .collect::<::std::vec::Vec<_>>()
                     ))
@@ -682,7 +685,7 @@ fn gen_from_subcommand(
             Unit => quote!(),
             Unnamed(ref fields) if fields.unnamed.len() == 1 => {
                 let ty = &fields.unnamed[0];
-                quote!( ( <#ty as ::structopt::StructOpt>::from_clap(matches) ) )
+                quote!( ( <#ty as ::structopt::StructOpt>::from_clap(#matches) ) )
             }
             Unnamed(..) => abort!(
                 variant.ident,
@@ -691,7 +694,7 @@ fn gen_from_subcommand(
         };
 
         quote! {
-            (#sub_name, Some(matches)) => {
+            (#sub_name, Some(#matches)) => {
                 Some(#name :: #variant_name #constructor_block)
             }
         }
@@ -704,7 +707,7 @@ fn gen_from_subcommand(
                 let ty = &fields.unnamed[0];
                 quote! {
                     if let Some(res) =
-                        <#ty as ::structopt::StructOptInternal>::from_subcommand(other)
+                        <#ty as ::structopt::StructOptInternal>::from_subcommand(#other)
                     {
                         return Some(#name :: #variant_name (res));
                     }
@@ -723,7 +726,7 @@ fn gen_from_subcommand(
         ) -> Option<Self> {
             match sub {
                 #( #match_arms, )*
-                other => {
+                #other => {
                     #( #child_subcommands )else*;
                     #external
                 }
