@@ -27,14 +27,15 @@ fn invisible_group_issue_439() {
 #[test]
 fn issue_447() {
     macro_rules! Command {
-      ( $name:ident, [
+        ( $name:ident, [
         #[$meta:meta] $var:ident($inner:ty)
       ] ) => {
-        #[derive(Debug, PartialEq, structopt::StructOpt)]
-        enum $name {
-          #[$meta] $var($inner),
-        }
-      };
+            #[derive(Debug, PartialEq, structopt::StructOpt)]
+            enum $name {
+                #[$meta]
+                $var($inner),
+            }
+        };
     }
 
     Command! {GitCmd, [
