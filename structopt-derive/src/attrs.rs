@@ -602,9 +602,16 @@ impl Attrs {
             (None, Some(m)) => m.to_token_stream(),
 
             (None, None) => std::env::var("CARGO_PKG_VERSION")
-                .map(|version| quote!( .version(#version) ))
+                .map(|version| {
+                    let mut if_debug = version;
+                    if cfg!(debug_assertions) {
+                        // If the build is debug type, express it explicitly from the version of
+                        // the package.
+                        if_debug = format!("{}-debug", if_debug);
+                    }
+                    quote!( .version(#if_debug))
+                })
                 .unwrap_or_default(),
-
             _ => quote!(),
         }
     }
