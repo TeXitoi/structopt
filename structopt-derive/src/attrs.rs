@@ -100,7 +100,7 @@ impl Method {
         Method { name, args }
     }
 
-    fn from_lit_or_env(ident: Ident, lit: Option<LitStr>, env_var: &str) -> Option<Self> {
+    fn from_lit_or_env(ident: Ident, lit: Option<LitStr>, env_var: &str) -> Self {
         let mut lit = match lit {
             Some(lit) => lit,
 
@@ -121,7 +121,7 @@ impl Method {
             lit = LitStr::new(&edited, lit.span());
         }
 
-        Some(Method::new(ident, quote!(#lit)))
+        Method::new(ident, quote!(#lit))
     }
 }
 
@@ -335,11 +335,15 @@ impl Attrs {
                 }
 
                 About(ident, about) => {
-                    self.about = Method::from_lit_or_env(ident, about, "CARGO_PKG_DESCRIPTION");
+                    self.about = Some(Method::from_lit_or_env(
+                        ident,
+                        about,
+                        "CARGO_PKG_DESCRIPTION",
+                    ));
                 }
 
                 Author(ident, author) => {
-                    self.author = Method::from_lit_or_env(ident, author, "CARGO_PKG_AUTHORS");
+                    self.author = Some(Method::from_lit_or_env(ident, author, "CARGO_PKG_AUTHORS"));
                 }
 
                 Version(ident, version) => {
