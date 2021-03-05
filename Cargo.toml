@@ -35,3 +35,4 @@ paw_dep = { version = "1", optional = true, package = "paw" }
 [dev-dependencies]
 trybuild = { version = "1.0.5", features = ["diff"] }
 rustversion = "1"
+strum = { version = "0.20", features = ["derive"] }
