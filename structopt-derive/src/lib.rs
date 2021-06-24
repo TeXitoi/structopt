@@ -770,32 +770,54 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         return false;
     }
 
-    struct TraitBoundAmendments(TokenStream);
-    impl TraitBoundAmendments {
-        fn new() -> Self { Self(TokenStream::new()) }
+    struct TraitBoundAmendments{
+        tokens: TokenStream,
+        need_where: bool,
+        need_comma: bool,
+    }
 
-        fn extend(&mut self, amendment: TokenStream) {
-            if !self.0.is_empty() {
-                self.0.extend(quote!{ , });
+    impl TraitBoundAmendments {
+        fn new(where_clause: Option<&WhereClause>) -> Self {
+            let tokens = TokenStream::new();
+            let (need_where,need_comma) = if let Some(where_clause) = where_clause {
+                if where_clause.predicates.trailing_punct() {
+                    (false, false)
+                } else {
+                    (false, true)
+                }
+            } else {
+                (true, false)
+            };
+            Self{tokens, need_where, need_comma}
+        }
+
+        fn add(&mut self, amendment: TokenStream) {
+            if self.need_where {
+                self.tokens.extend(quote!{ where });
+                self.need_where = false;
             }
-            self.0.extend(amendment);
+            if self.need_comma {
+                self.tokens.extend(quote!{ , });
+            }
+            self.tokens.extend(amendment);
+            self.need_comma = true;
         }
 
         fn into_tokens(self) -> TokenStream {
-            self.0
+            self.tokens
         }
     }
 
-    let mut trait_bound_amendments = TraitBoundAmendments::new();
+    let mut trait_bound_amendments = TraitBoundAmendments::new(generics.where_clause.as_ref());
 
     for param in &generics.params {
         if let GenericParam::Type(param) = param {
             let param_ident = &param.ident;
             if type_param_bounds_contains(&param.bounds, "StructOpt") {
-                trait_bound_amendments.extend(quote!{ #param_ident : ::structopt::StructOptInternal });
+                trait_bound_amendments.add(quote!{ #param_ident : ::structopt::StructOptInternal });
             }
             if type_param_bounds_contains(&param.bounds, "FromStr") {
-                trait_bound_amendments.extend(quote!{ < #param_ident as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
+                trait_bound_amendments.add(quote!{ < #param_ident as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
             }
         }
     }
@@ -805,10 +827,10 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
             if let WherePredicate::Type(predicate) = predicate {
                 let predicate_bounded_ty = &predicate.bounded_ty;
                 if type_param_bounds_contains(&predicate.bounds, "StructOpt") {
-                    trait_bound_amendments.extend(quote!{ #predicate_bounded_ty : ::structopt::StructOptInternal });
+                    trait_bound_amendments.add(quote!{ #predicate_bounded_ty : ::structopt::StructOptInternal });
                 }
                 if type_param_bounds_contains(&predicate.bounds, "FromStr") {
-                    trait_bound_amendments.extend(quote!{ < #predicate_bounded_ty as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
+                    trait_bound_amendments.add(quote!{ < #predicate_bounded_ty as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
                 }
             }
         }
@@ -818,15 +840,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    let where_clause = if !trait_bound_amendments.is_empty() {
-        if let Some(where_clause) = where_clause {
-            quote!{ #where_clause, #trait_bound_amendments }
-        } else {
-            quote!{ where #trait_bound_amendments }
-        }
-    } else {
-        quote!{ #where_clause }
-    };
+    let where_clause = quote!{ #where_clause #trait_bound_amendments };
 
     (impl_generics, ty_generics, where_clause)
 }

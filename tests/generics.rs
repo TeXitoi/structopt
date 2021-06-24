@@ -119,3 +119,19 @@ fn generic_wo_trait_bound() {
         Opt::<Duration>::from_iter([& "--answer", "42" ])
     )
 }
+
+#[test]
+fn generic_where_clause_w_trailing_comma() {
+
+    use std::str::FromStr;
+
+    #[derive(StructOpt,PartialEq,Debug)]
+    struct Opt<T> where T:FromStr, {
+        pub answer: T
+    }
+
+    assert_eq!(
+        Opt::<isize>{answer:42},
+        Opt::<isize>::from_iter(&[ "--answer", "42" ])
+    )
+}
