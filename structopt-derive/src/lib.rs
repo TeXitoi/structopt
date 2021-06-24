@@ -559,10 +559,10 @@ fn gen_augment_clap_enum(
     }
 }
 
-fn gen_from_clap_enum(name: &Ident) -> TokenStream {
+fn gen_from_clap_enum() -> TokenStream {
     quote! {
         fn from_clap(matches: &::structopt::clap::ArgMatches) -> Self {
-            <#name as ::structopt::StructOptInternal>::from_subcommand(matches.subcommand())
+            <Self as ::structopt::StructOptInternal>::from_subcommand(matches.subcommand())
                 .expect("structopt misuse: You likely tried to #[flatten] a struct \
                          that contains #[subcommand]. This is forbidden.")
         }
@@ -816,7 +816,7 @@ fn impl_structopt_for_enum(
     let attrs = basic_clap_app_gen.attrs;
 
     let augment_clap = gen_augment_clap_enum(variants, &attrs);
-    let from_clap = gen_from_clap_enum(name);
+    let from_clap = gen_from_clap_enum();
     let from_subcommand = gen_from_subcommand(name, variants, &attrs);
     let paw_impl = gen_paw_impl(name);
 
