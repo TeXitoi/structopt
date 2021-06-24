@@ -755,14 +755,14 @@ fn gen_paw_impl(_: &ImplGenerics, _: &Ident, _: &TypeGenerics, _: &TokenStream) 
 fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, TypeGenerics, TokenStream) {
     use syn::{ token::Add, TypeParamBound::Trait };
 
-    fn path_is_structop(path: &Path) -> bool {
+    fn path_is_structopt(path: &Path) -> bool {
         path.segments.last().unwrap().ident == "StructOpt"
     }
 
-    fn type_param_bounds_contains_structop(bounds: &Punctuated<TypeParamBound, Add>) -> bool {
+    fn type_param_bounds_contains_structopt(bounds: &Punctuated<TypeParamBound, Add>) -> bool {
         for bound in bounds {
             if let Trait(bound) = bound {
-                if path_is_structop(&bound.path) {
+                if path_is_structopt(&bound.path) {
                     return true;
                 }
             }
@@ -775,7 +775,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
     for param in &generics.params {
         if let GenericParam::Type(param) = param {
             let param_ident = &param.ident;
-            if type_param_bounds_contains_structop(&param.bounds) {
+            if type_param_bounds_contains_structopt(&param.bounds) {
                 if !trait_bound_amendments.is_empty() {
                     trait_bound_amendments.extend(quote!{ , });
                 }
@@ -788,7 +788,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         for predicate in &where_clause.predicates {
             if let WherePredicate::Type(predicate) = predicate {
                 let predicate_bounded_ty = &predicate.bounded_ty;
-                if type_param_bounds_contains_structop(&predicate.bounds) {
+                if type_param_bounds_contains_structopt(&predicate.bounds) {
                     if !trait_bound_amendments.is_empty() {
                         trait_bound_amendments.extend(quote!{ , });
                     }
