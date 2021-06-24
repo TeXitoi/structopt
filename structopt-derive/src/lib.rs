@@ -755,14 +755,14 @@ fn gen_paw_impl(_: &ImplGenerics, _: &Ident, _: &TypeGenerics, _: &TokenStream) 
 fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, TypeGenerics, TokenStream) {
     use syn::{ token::Add, TypeParamBound::Trait };
 
-    fn path_is_structopt(path: &Path) -> bool {
-        path.segments.last().unwrap().ident == "StructOpt"
+    fn path_ends_with(path: &Path, ident: &str) -> bool {
+        path.segments.last().unwrap().ident == ident
     }
 
-    fn type_param_bounds_contains_structopt(bounds: &Punctuated<TypeParamBound, Add>) -> bool {
+    fn type_param_bounds_contains(bounds: &Punctuated<TypeParamBound, Add>, ident: &str) -> bool {
         for bound in bounds {
             if let Trait(bound) = bound {
-                if path_is_structopt(&bound.path) {
+                if path_ends_with(&bound.path, ident) {
                     return true;
                 }
             }
@@ -770,16 +770,32 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         return false;
     }
 
-    let mut trait_bound_amendments = TokenStream::new();
+    struct TraitBoundAmendments(TokenStream);
+    impl TraitBoundAmendments {
+        fn new() -> Self { Self(TokenStream::new()) }
+
+        fn extend(&mut self, amendment: TokenStream) {
+            if !self.0.is_empty() {
+                self.0.extend(quote!{ , });
+            }
+            self.0.extend(amendment);
+        }
+
+        fn into_tokens(self) -> TokenStream {
+            self.0
+        }
+    }
+
+    let mut trait_bound_amendments = TraitBoundAmendments::new();
 
     for param in &generics.params {
         if let GenericParam::Type(param) = param {
             let param_ident = &param.ident;
-            if type_param_bounds_contains_structopt(&param.bounds) {
-                if !trait_bound_amendments.is_empty() {
-                    trait_bound_amendments.extend(quote!{ , });
-                }
+            if type_param_bounds_contains(&param.bounds, "StructOpt") {
                 trait_bound_amendments.extend(quote!{ #param_ident : ::structopt::StructOptInternal });
+            }
+            if type_param_bounds_contains(&param.bounds, "FromStr") {
+                trait_bound_amendments.extend(quote!{ < #param_ident as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
             }
         }
     }
@@ -788,15 +804,17 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         for predicate in &where_clause.predicates {
             if let WherePredicate::Type(predicate) = predicate {
                 let predicate_bounded_ty = &predicate.bounded_ty;
-                if type_param_bounds_contains_structopt(&predicate.bounds) {
-                    if !trait_bound_amendments.is_empty() {
-                        trait_bound_amendments.extend(quote!{ , });
-                    }
+                if type_param_bounds_contains(&predicate.bounds, "StructOpt") {
                     trait_bound_amendments.extend(quote!{ #predicate_bounded_ty : ::structopt::StructOptInternal });
+                }
+                if type_param_bounds_contains(&predicate.bounds, "FromStr") {
+                    trait_bound_amendments.extend(quote!{ < #predicate_bounded_ty as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
                 }
             }
         }
     }
+
+    let trait_bound_amendments = trait_bound_amendments.into_tokens();
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 

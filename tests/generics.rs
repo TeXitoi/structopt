@@ -84,3 +84,20 @@ fn generic_enum_w_where_clause() {
     )
 
 }
+
+#[test]
+fn generic_w_fromstr_trait_bound() {
+
+    use std::str::FromStr;
+
+    #[derive(StructOpt,PartialEq,Debug)]
+    struct Opt<T> where T:FromStr
+    {
+        answer: T
+    }
+
+    assert_eq!(
+        Opt::<isize>{answer:42},
+        Opt::<isize>::from_iter([& "--answer", "42" ])
+    )
+}
