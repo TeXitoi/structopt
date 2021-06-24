@@ -1,3 +1,7 @@
+# unreleased
+
+* Add support for [generics in derive](https://github.com/TeXitoi/structopt/issues/128)
+
 # v0.3.21 (2020-11-30)
 
 * Fixed [another breakage](https://github.com/TeXitoi/structopt/issues/447)
