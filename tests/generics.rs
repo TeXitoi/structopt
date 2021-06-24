@@ -101,3 +101,21 @@ fn generic_w_fromstr_trait_bound() {
         Opt::<isize>::from_iter([& "--answer", "42" ])
     )
 }
+
+#[test]
+fn generic_wo_trait_bound() {
+
+    use std::time::Duration;
+
+    #[derive(StructOpt,PartialEq,Debug)]
+    struct Opt<T> {
+        answer: isize,
+        #[structopt(skip)]
+        took: Option<T>
+    }
+
+    assert_eq!(
+        Opt::<Duration>{answer:42,took:None},
+        Opt::<Duration>::from_iter([& "--answer", "42" ])
+    )
+}
