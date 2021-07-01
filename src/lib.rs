@@ -1058,15 +1058,17 @@
 //! ## Generics
 //!
 //! Generic structs and enums can be used. They require explicit trait bounds
-//! any generic types that will be used by the `StructOpt` derive macro.
+//! on any generic types that will be used by the `StructOpt` derive macro. In
+//! some cases, associated types will require additional bounds. See the usage
+//! of `FromStr` below for an example of this.
 //!
 //! ```
 //! # use structopt::StructOpt;
-//! use std::str::FromStr;
+//! use std::{fmt, str::FromStr};
 //!
 //! // a struct with single custom argument
 //! #[derive(StructOpt)]
-//! struct GenericArgs<T:FromStr> {
+//! struct GenericArgs<T:FromStr> where <T as FromStr>::Err: fmt::Display + fmt::Debug {
 //!     generic_arg_1: String,
 //!     generic_arg_2: String,
 //!     custom_arg_1: T

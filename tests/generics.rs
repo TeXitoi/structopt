@@ -88,10 +88,10 @@ fn generic_enum_w_where_clause() {
 #[test]
 fn generic_w_fromstr_trait_bound() {
 
-    use std::str::FromStr;
+    use std::{fmt, str::FromStr};
 
     #[derive(StructOpt,PartialEq,Debug)]
-    struct Opt<T> where T:FromStr
+    struct Opt<T> where T:FromStr, <T as FromStr>::Err: fmt::Debug + fmt::Display
     {
         answer: T
     }
@@ -123,10 +123,10 @@ fn generic_wo_trait_bound() {
 #[test]
 fn generic_where_clause_w_trailing_comma() {
 
-    use std::str::FromStr;
+    use std::{fmt, str::FromStr};
 
     #[derive(StructOpt,PartialEq,Debug)]
-    struct Opt<T> where T:FromStr, {
+    struct Opt<T> where T:FromStr, <T as FromStr>::Err: fmt::Debug + fmt::Display {
         pub answer: T
     }
 

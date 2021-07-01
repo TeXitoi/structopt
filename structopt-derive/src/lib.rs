@@ -816,9 +816,6 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
             if type_param_bounds_contains(&param.bounds, "StructOpt") {
                 trait_bound_amendments.add(quote!{ #param_ident : ::structopt::StructOptInternal });
             }
-            if type_param_bounds_contains(&param.bounds, "FromStr") {
-                trait_bound_amendments.add(quote!{ < #param_ident as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
-            }
         }
     }
 
@@ -828,9 +825,6 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
                 let predicate_bounded_ty = &predicate.bounded_ty;
                 if type_param_bounds_contains(&predicate.bounds, "StructOpt") {
                     trait_bound_amendments.add(quote!{ #predicate_bounded_ty : ::structopt::StructOptInternal });
-                }
-                if type_param_bounds_contains(&predicate.bounds, "FromStr") {
-                    trait_bound_amendments.add(quote!{ < #predicate_bounded_ty as ::std::str::FromStr>::Err : ::std::fmt::Display + ::std::fmt::Debug });
                 }
             }
         }
