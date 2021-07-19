@@ -76,7 +76,7 @@ fn test_parse_hex() {
     let err = HexOpt::clap()
         .get_matches_from_safe(&["test", "-n", "gg"])
         .unwrap_err();
-    assert!(err.message.contains("invalid digit found in string"), err);
+    assert!(err.message.contains("invalid digit found in string"), "{}", err);
 }
 
 fn custom_parser_1(_: &str) -> &'static str {

@@ -17,7 +17,7 @@ fn special_types_bool() {
                 Ok(self::bool(s.into()))
             }
         }
-    };
+    }
 
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
