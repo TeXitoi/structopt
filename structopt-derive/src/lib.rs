@@ -736,7 +736,12 @@ fn gen_from_subcommand(
 }
 
 #[cfg(feature = "paw")]
-fn gen_paw_impl(impl_generics: &ImplGenerics, name: &Ident, ty_generics: &TypeGenerics, where_clause: &TokenStream) -> TokenStream {
+fn gen_paw_impl(
+    impl_generics: &ImplGenerics,
+    name: &Ident,
+    ty_generics: &TypeGenerics,
+    where_clause: &TokenStream,
+) -> TokenStream {
     quote! {
         impl #impl_generics ::structopt::paw::ParseArgs for #name #ty_generics #where_clause {
             type Error = std::io::Error;
@@ -752,8 +757,10 @@ fn gen_paw_impl(_: &ImplGenerics, _: &Ident, _: &TypeGenerics, _: &TokenStream) 
     TokenStream::new()
 }
 
-fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, TypeGenerics, TokenStream) {
-    use syn::{ token::Add, TypeParamBound::Trait };
+fn split_structopt_generics_for_impl(
+    generics: &Generics,
+) -> (ImplGenerics, TypeGenerics, TokenStream) {
+    use syn::{token::Add, TypeParamBound::Trait};
 
     fn path_ends_with(path: &Path, ident: &str) -> bool {
         path.segments.last().unwrap().ident == ident
@@ -770,7 +777,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         return false;
     }
 
-    struct TraitBoundAmendments{
+    struct TraitBoundAmendments {
         tokens: TokenStream,
         need_where: bool,
         need_comma: bool,
@@ -779,7 +786,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
     impl TraitBoundAmendments {
         fn new(where_clause: Option<&WhereClause>) -> Self {
             let tokens = TokenStream::new();
-            let (need_where,need_comma) = if let Some(where_clause) = where_clause {
+            let (need_where, need_comma) = if let Some(where_clause) = where_clause {
                 if where_clause.predicates.trailing_punct() {
                     (false, false)
                 } else {
@@ -788,16 +795,20 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
             } else {
                 (true, false)
             };
-            Self{tokens, need_where, need_comma}
+            Self {
+                tokens,
+                need_where,
+                need_comma,
+            }
         }
 
         fn add(&mut self, amendment: TokenStream) {
             if self.need_where {
-                self.tokens.extend(quote!{ where });
+                self.tokens.extend(quote! { where });
                 self.need_where = false;
             }
             if self.need_comma {
-                self.tokens.extend(quote!{ , });
+                self.tokens.extend(quote! { , });
             }
             self.tokens.extend(amendment);
             self.need_comma = true;
@@ -814,7 +825,8 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
         if let GenericParam::Type(param) = param {
             let param_ident = &param.ident;
             if type_param_bounds_contains(&param.bounds, "StructOpt") {
-                trait_bound_amendments.add(quote!{ #param_ident : ::structopt::StructOptInternal });
+                trait_bound_amendments
+                    .add(quote! { #param_ident : ::structopt::StructOptInternal });
             }
         }
     }
@@ -824,7 +836,8 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
             if let WherePredicate::Type(predicate) = predicate {
                 let predicate_bounded_ty = &predicate.bounded_ty;
                 if type_param_bounds_contains(&predicate.bounds, "StructOpt") {
-                    trait_bound_amendments.add(quote!{ #predicate_bounded_ty : ::structopt::StructOptInternal });
+                    trait_bound_amendments
+                        .add(quote! { #predicate_bounded_ty : ::structopt::StructOptInternal });
                 }
             }
         }
@@ -834,7 +847,7 @@ fn split_structopt_generics_for_impl(generics: &Generics) -> (ImplGenerics, Type
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    let where_clause = quote!{ #where_clause #trait_bound_amendments };
+    let where_clause = quote! { #where_clause #trait_bound_amendments };
 
     (impl_generics, ty_generics, where_clause)
 }
@@ -902,7 +915,6 @@ fn impl_structopt_for_enum(
     attrs: &[Attribute],
     generics: &Generics,
 ) -> TokenStream {
-
     let (impl_generics, ty_generics, where_clause) = split_structopt_generics_for_impl(&generics);
 
     let basic_clap_app_gen = gen_clap_enum(attrs);
@@ -980,7 +992,9 @@ fn impl_structopt(input: &DeriveInput) -> TokenStream {
             fields: syn::Fields::Named(ref fields),
             ..
         }) => impl_structopt_for_struct(struct_name, &fields.named, &input.attrs, &input.generics),
-        Enum(ref e) => impl_structopt_for_enum(struct_name, &e.variants, &input.attrs, &input.generics),
+        Enum(ref e) => {
+            impl_structopt_for_enum(struct_name, &e.variants, &input.attrs, &input.generics)
+        }
         _ => abort_call_site!("structopt only supports non-tuple structs and enums"),
     }
 }

@@ -1089,8 +1089,6 @@
 //! }
 //! ```
 
-
-
 // those mains are for a reason
 #![allow(clippy::needless_doctest_main)]
 
