@@ -101,7 +101,7 @@ fn generic_w_fromstr_trait_bound() {
 
     assert_eq!(
         Opt::<isize> { answer: 42 },
-        Opt::<isize>::from_iter([&"--answer", "42"])
+        Opt::<isize>::from_iter(&["--answer", "42"])
     )
 }
 
@@ -121,7 +121,7 @@ fn generic_wo_trait_bound() {
             answer: 42,
             took: None
         },
-        Opt::<Duration>::from_iter([&"--answer", "42"])
+        Opt::<Duration>::from_iter(&["--answer", "42"])
     )
 }
 
