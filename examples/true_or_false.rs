@@ -23,7 +23,7 @@ struct Opt {
     bar: bool,
 
     // `bool` can be positional only with explicit `parse(...)` annotation
-    #[structopt(long, parse(try_from_str))]
+    #[structopt(parse(try_from_str))]
     boom: bool,
 }
 
