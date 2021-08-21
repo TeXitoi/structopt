@@ -117,7 +117,7 @@ fn issue_359() {
 }
 
 #[test]
-fn issue_indicatif() {
+fn issue_490() {
     use std::iter::FromIterator;
     use std::str::FromStr;
     use structopt::StructOpt;
