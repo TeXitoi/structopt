@@ -22,7 +22,7 @@ matrix:
       before_script: rustup component add clippy
       script: cargo clippy --all -- -D warnings
 
-    - rust: 1.36.0
+    - rust: 1.46.0
     - rust: stable
     - rust: beta
     - rust: nightly
