@@ -1,3 +1,7 @@
+# v0.3.23 (unreleased)
+
+* Update minimal rust version to 1.46 because of bitflags 1.3
+
 # v0.3.22 (2021-07-04)
 
 * Add support for [generics in derive](https://github.com/TeXitoi/structopt/issues/128)
