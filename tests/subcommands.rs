@@ -341,7 +341,7 @@ fn skip_subcommand() {
             Err(clap::Error {
                 kind: clap::ErrorKind::UnknownArgument,
                 ..
-            }),
+            })
         ),
         "Unexpected result: {:?}",
         res
