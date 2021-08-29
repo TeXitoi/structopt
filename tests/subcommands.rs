@@ -301,3 +301,49 @@ fn external_subcommand_optional() {
 
     assert_eq!(Opt::from_iter(&["test"]), Opt { sub: None });
 }
+
+#[test]
+fn skip_subcommand() {
+    #[derive(Debug, PartialEq, StructOpt)]
+    struct Opt {
+        #[structopt(subcommand)]
+        sub: Subcommands,
+    }
+
+    #[derive(Debug, PartialEq, StructOpt)]
+    enum Subcommands {
+        Add,
+        Remove,
+
+        #[allow(dead_code)]
+        #[structopt(skip)]
+        Skip,
+    }
+
+    assert_eq!(
+        Opt::from_iter(&["test", "add"]),
+        Opt {
+            sub: Subcommands::Add
+        }
+    );
+
+    assert_eq!(
+        Opt::from_iter(&["test", "remove"]),
+        Opt {
+            sub: Subcommands::Remove
+        }
+    );
+
+    let res = Opt::from_iter_safe(&["test", "skip"]);
+    assert!(
+        matches!(
+            res,
+            Err(clap::Error {
+                kind: clap::ErrorKind::UnknownArgument,
+                ..
+            }),
+        ),
+        "Unexpected result: {:?}",
+        res
+    );
+}
