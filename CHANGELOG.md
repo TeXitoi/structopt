@@ -1,4 +1,4 @@
-# v0.3.23 (unreleased)
+# v0.3.23 (2021-08-30)
 
 * Update minimal rust version to 1.46 because of bitflags 1.3
 * Fixed [a bug that occurs when the type of `map` becomes ambiguous](https://github.com/TeXitoi/structopt/issues/490).
