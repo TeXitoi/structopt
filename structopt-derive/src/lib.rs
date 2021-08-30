@@ -330,6 +330,13 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                 let flag = *attrs.parser().kind == ParserKind::FromFlag;
                 let occurrences = *attrs.parser().kind == ParserKind::FromOccurrences;
                 let name = attrs.cased_name();
+                let convert_type = match **ty {
+                    Ty::Vec | Ty::Option => sub_type(&field.ty).unwrap_or(&field.ty),
+                    Ty::OptionOption | Ty::OptionVec => {
+                        sub_type(&field.ty).and_then(sub_type).unwrap_or(&field.ty)
+                    }
+                    _ => &field.ty,
+                };
                 let field_value = match **ty {
                     Ty::Bool => quote_spanned!(ty.span()=> #matches.is_present(#name)),
 
@@ -349,7 +356,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     Ty::OptionVec => quote_spanned! { ty.span()=>
                         if #matches.is_present(#name) {
                             Some(#matches.#values_of(#name)
-                                 .map_or_else(Vec::new, |v| v.map(#parse).collect()))
+                                 .map_or_else(Vec::new, |v| v.map::<#convert_type, _>(#parse).collect()))
                         } else {
                             None
                         }
@@ -357,7 +364,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
 
                     Ty::Vec => quote_spanned! { ty.span()=>
                         #matches.#values_of(#name)
-                            .map_or_else(Vec::new, |v| v.map(#parse).collect())
+                            .map_or_else(Vec::new, |v| v.map::<#convert_type, _>(#parse).collect())
                     },
 
                     Ty::Other if occurrences => quote_spanned! { ty.span()=>

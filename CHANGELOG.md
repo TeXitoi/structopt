@@ -1,6 +1,7 @@
 # v0.3.23 (unreleased)
 
 * Update minimal rust version to 1.46 because of bitflags 1.3
+* Fixed [a bug that occurs when the type of `map` becomes ambiguous](https://github.com/TeXitoi/structopt/issues/490).
 * Add support for [skip for enum variant subcommands](https://github.com/TeXitoi/structopt/issues/493)
 
 # v0.3.22 (2021-07-04)
