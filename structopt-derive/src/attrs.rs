@@ -405,6 +405,7 @@ impl Attrs {
         parent_attrs: Option<&Attrs>,
         argument_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
+        allow_skip: bool,
     ) -> Self {
         let mut res = Self::new(span, name, parent_attrs, None, argument_casing, env_casing);
         res.push_attrs(attrs);
@@ -418,8 +419,10 @@ impl Attrs {
         }
         match &*res.kind {
             Kind::Subcommand(_) => abort!(res.kind.span(), "subcommand is only allowed on fields"),
-            Kind::Skip(_) => abort!(res.kind.span(), "skip is only allowed on fields"),
-            Kind::Arg(_) | Kind::ExternalSubcommand | Kind::Flatten => res,
+            Kind::Skip(_) if !allow_skip => {
+                abort!(res.kind.span(), "skip is only allowed on fields")
+            }
+            Kind::Arg(_) | Kind::ExternalSubcommand | Kind::Flatten | Kind::Skip(_) => res,
         }
     }
 

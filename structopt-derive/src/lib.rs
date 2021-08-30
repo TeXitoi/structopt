@@ -416,6 +416,7 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
         None,
         Sp::call_site(DEFAULT_CASING),
         Sp::call_site(DEFAULT_ENV_CASING),
+        false,
     );
     let tokens = {
         let name = attrs.cased_name();
@@ -478,7 +479,7 @@ fn gen_augment_clap_enum(
 ) -> TokenStream {
     use syn::Fields::*;
 
-    let subcommands = variants.iter().map(|variant| {
+    let subcommands = variants.iter().filter_map(|variant| {
         let attrs = Attrs::from_struct(
             variant.span(),
             &variant.attrs,
@@ -486,26 +487,29 @@ fn gen_augment_clap_enum(
             Some(parent_attribute),
             parent_attribute.casing(),
             parent_attribute.env_casing(),
+            true,
         );
 
         let kind = attrs.kind();
         match &*kind {
+            Kind::Skip(_) => None,
+
             Kind::ExternalSubcommand => {
                 let app_var = Ident::new("app", Span::call_site());
-                quote_spanned! { attrs.kind().span()=>
+                Some(quote_spanned! { attrs.kind().span()=>
                     let #app_var = #app_var.setting(
                         ::structopt::clap::AppSettings::AllowExternalSubcommands
                     );
-                }
+                })
             },
 
             Kind::Flatten => {
                 match variant.fields {
                     Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
                         let ty = &unnamed[0];
-                        quote! {
+                        Some(quote! {
                             let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
-                        }
+                        })
                     },
                     _ => abort!(
                         variant,
@@ -542,13 +546,13 @@ fn gen_augment_clap_enum(
                 let name = attrs.cased_name();
                 let from_attrs = attrs.top_level_methods();
                 let version = attrs.version();
-                quote! {
+                Some(quote! {
                     let app = app.subcommand({
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
                         let #app_var = #arg_block;
                         #app_var#from_attrs#version
                     });
-                }
+                })
             },
         }
     });
@@ -595,58 +599,61 @@ fn gen_from_subcommand(
                 Some(parent_attribute),
                 parent_attribute.casing(),
                 parent_attribute.env_casing(),
+                true,
             );
 
             let variant_name = &variant.ident;
 
-            if let Kind::ExternalSubcommand = *attrs.kind() {
-                if ext_subcmd.is_some() {
-                    abort!(
-                        attrs.kind().span(),
-                        "Only one variant can be marked with `external_subcommand`, \
+            match *attrs.kind() {
+                Kind::ExternalSubcommand => {
+                    if ext_subcmd.is_some() {
+                        abort!(
+                            attrs.kind().span(),
+                            "Only one variant can be marked with `external_subcommand`, \
                          this is the second"
-                    );
-                }
-
-                let ty = match variant.fields {
-                    Unnamed(ref fields) if fields.unnamed.len() == 1 => &fields.unnamed[0].ty,
-
-                    _ => abort!(
-                        variant,
-                        "The enum variant marked with `external_attribute` must be \
-                         a single-typed tuple, and the type must be either `Vec<String>` \
-                         or `Vec<OsString>`."
-                    ),
-                };
-
-                let (span, str_ty, values_of) = match subty_if_name(ty, "Vec") {
-                    Some(subty) => {
-                        if is_simple_ty(subty, "String") {
-                            (
-                                subty.span(),
-                                quote!(::std::string::String),
-                                quote!(values_of),
-                            )
-                        } else {
-                            (
-                                subty.span(),
-                                quote!(::std::ffi::OsString),
-                                quote!(values_of_os),
-                            )
-                        }
+                        );
                     }
 
-                    None => abort!(
-                        ty,
-                        "The type must be either `Vec<String>` or `Vec<OsString>` \
-                         to be used with `external_subcommand`."
-                    ),
-                };
+                    let ty = match variant.fields {
+                        Unnamed(ref fields) if fields.unnamed.len() == 1 => &fields.unnamed[0].ty,
 
-                ext_subcmd = Some((span, variant_name, str_ty, values_of));
-                None
-            } else {
-                Some((variant, attrs))
+                        _ => abort!(
+                            variant,
+                            "The enum variant marked with `external_attribute` must be \
+                         a single-typed tuple, and the type must be either `Vec<String>` \
+                         or `Vec<OsString>`."
+                        ),
+                    };
+
+                    let (span, str_ty, values_of) = match subty_if_name(ty, "Vec") {
+                        Some(subty) => {
+                            if is_simple_ty(subty, "String") {
+                                (
+                                    subty.span(),
+                                    quote!(::std::string::String),
+                                    quote!(values_of),
+                                )
+                            } else {
+                                (
+                                    subty.span(),
+                                    quote!(::std::ffi::OsString),
+                                    quote!(values_of_os),
+                                )
+                            }
+                        }
+
+                        None => abort!(
+                            ty,
+                            "The type must be either `Vec<String>` or `Vec<OsString>` \
+                         to be used with `external_subcommand`."
+                        ),
+                    };
+
+                    ext_subcmd = Some((span, variant_name, str_ty, values_of));
+                    None
+                }
+                Kind::Skip(_) => None,
+                _ => Some((variant, attrs)),
             }
         })
         .partition(|(_, attrs)| match &*attrs.kind() {
