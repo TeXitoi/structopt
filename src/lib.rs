@@ -60,7 +60,7 @@
 //!
 //! First, let's look at the example:
 //!
-//! ```should_panic
+//! ```
 //! use std::path::PathBuf;
 //! use structopt::StructOpt;
 //!
@@ -95,7 +95,10 @@
 //! }
 //!
 //! fn main() {
+//! #   /*
 //!     let opt = Opt::from_args();
+//! #   */
+//! #   let opt = Opt::from_iter(&["binary", "-o", "stdout", "input"]);
 //!     println!("{:?}", opt);
 //! }
 //! ```
@@ -134,13 +137,17 @@
 //!     They are what used to be explicit `#[structopt(raw(...))]` attrs in pre-0.3 `structopt`
 //!
 //! Every `structopt attribute` looks like comma-separated sequence of methods:
-//! ```rust,ignore
+//! ```
+//! # #[derive(structopt::StructOpt)] struct S {
+//! #
 //! #[structopt(
 //!     short, // method with no arguments - always magical
 //!     long = "--long-option", // method with one argument
 //!     required_if("out", "file"), // method with one and more args
 //!     parse(from_os_str = path::to::parser) // some magical methods have their own syntax
 //! )]
+//! #
+//! # s: () } mod path { pub(crate) mod to { pub(crate) fn parser(_: &std::ffi::OsStr) {} }}
 //! ```
 //!
 //! `#[structopt(...)]` attributes can be placed on top of `struct`, `enum`,
@@ -174,11 +181,15 @@
 //! They are the reason why `structopt` is so flexible. **Every and each method from
 //! `clap::App/Arg` can be used this way!**
 //!
-//! ```ignore
+//! ```
+//! # #[derive(structopt::StructOpt)] struct S {
+//! #
 //! #[structopt(
 //!     global = true, // name = arg form, neat for one-arg methods
 //!     required_if("out", "file") // name(arg1, arg2, ...) form.
 //! )]
+//! #
+//! # s: String }
 //! ```
 //!
 //! The first form can only be used for methods which take only one argument.
@@ -631,7 +642,7 @@
 //! Also, `structopt` will *still* remove leading and trailing blank lines so
 //! these formats are equivalent:
 //!
-//! ```ignore
+//! ```
 //! /** This is a doc comment
 //!
 //! Hello! */
@@ -645,6 +656,8 @@
 //! /// This is a doc comment
 //! ///
 //! /// Hello!
+//! #
+//! # mod m {}
 //! ```
 //! ______________
 //!
