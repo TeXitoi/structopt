@@ -435,7 +435,6 @@
 //!     /// for its type (in this case 0).
 //!     #[structopt(skip)]
 //!     skipped: u32,
-//!
 //! }
 //!
 //! # Opt::from_iter(
@@ -452,7 +451,7 @@
 //! #[derive(StructOpt)]
 //! struct Opt {
 //!     #[structopt(default_value = "", long)]
-//!     prefix: String
+//!     prefix: String,
 //! }
 //! ```
 //!
@@ -474,7 +473,7 @@
 //! struct Opt {
 //!     // just leave the `= "..."` part and structopt will figure it for you
 //!     #[structopt(default_value, long)]
-//!     prefix: String // `String` implements both `Default` and `ToString`
+//!     prefix: String, // `String` implements both `Default` and `ToString`
 //! }
 //! ```
 //!
@@ -499,8 +498,8 @@
 //! #[derive(StructOpt)]
 //! #[structopt(about = "I am a program and I work, just pass `-h`")]
 //! struct Foo {
-//!   #[structopt(short, help = "Pass `-h` and you'll see me!")]
-//!   bar: String
+//!     #[structopt(short, help = "Pass `-h` and you'll see me!")]
+//!     bar: String,
 //! }
 //! ```
 //!
@@ -513,8 +512,8 @@
 //! #[derive(StructOpt)]
 //! /// I am a program and I work, just pass `-h`
 //! struct Foo {
-//!   /// Pass `-h` and you'll see me!
-//!   bar: String
+//!     /// Pass `-h` and you'll see me!
+//!     bar: String,
 //! }
 //! ```
 //!
@@ -555,7 +554,7 @@
 //!     /// until I'll have destroyed humanity. Enjoy your
 //!     /// pathetic existence, you mere mortals.
 //!     #[structopt(long)]
-//!     kill_all_humans: bool
+//!     kill_all_humans: bool,
 //! }
 //! ```
 //!
@@ -665,8 +664,8 @@
 //!
 //! #[derive(StructOpt)]
 //! struct Foo {
-//!   #[structopt(short, long, env = "PARAMETER_VALUE")]
-//!   parameter_value: String
+//!     #[structopt(short, long, env = "PARAMETER_VALUE")]
+//!     parameter_value: String,
 //! }
 //! ```
 //!
@@ -688,8 +687,8 @@
 //!
 //! #[derive(StructOpt)]
 //! struct Foo {
-//!   #[structopt(long = "secret", env = "SECRET_VALUE", hide_env_values = true)]
-//!   secret_value: String
+//!     #[structopt(long = "secret", env = "SECRET_VALUE", hide_env_values = true)]
+//!     secret_value: String,
 //! }
 //! ```
 //!
@@ -707,8 +706,8 @@
 //!
 //! #[derive(StructOpt)]
 //! struct Foo {
-//!   #[structopt(long = "secret", env)]
-//!   secret_value: String
+//!     #[structopt(long = "secret", env)]
+//!     secret_value: String,
 //! }
 //! ```
 //!
@@ -774,21 +773,21 @@
 //!         #[structopt(short)]
 //!         patch: bool,
 //!         #[structopt(parse(from_os_str))]
-//!         files: Vec<PathBuf>
+//!         files: Vec<PathBuf>,
 //!     },
 //!     Fetch {
 //!         #[structopt(long)]
 //!         dry_run: bool,
 //!         #[structopt(long)]
 //!         all: bool,
-//!         repository: Option<String>
+//!         repository: Option<String>,
 //!     },
 //!     Commit {
 //!         #[structopt(short)]
 //!         message: Option<String>,
 //!         #[structopt(short)]
-//!         all: bool
-//!     }
+//!         all: bool,
+//!     },
 //! }
 //! ```
 //!
@@ -807,22 +806,22 @@
 //!     supervising_faerie: String,
 //!     /// The faerie tree this cookie is being made in.
 //!     tree: Option<String>,
-//!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand
-//!     cmd: Command
+//!     #[structopt(subcommand)] // Note that we mark a field as a subcommand
+//!     cmd: Command,
 //! }
 //!
 //! #[derive(StructOpt)]
 //! enum Command {
 //!     /// Pound acorns into flour for cookie dough.
 //!     Pound {
-//!         acorns: u32
+//!         acorns: u32,
 //!     },
 //!     /// Add magical sparkles -- the secret ingredient!
 //!     Sparkle {
 //!         #[structopt(short, parse(from_occurrences))]
 //!         magicality: u64,
 //!         #[structopt(short)]
-//!         color: String
+//!         color: String,
 //!     },
 //!     Finish(Finish),
 //! }
@@ -832,19 +831,19 @@
 //! struct Finish {
 //!     #[structopt(short)]
 //!     time: u32,
-//!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand
-//!     finish_type: FinishType
+//!     #[structopt(subcommand)] // Note that we mark a field as a subcommand
+//!     finish_type: FinishType,
 //! }
 //!
 //! // subsubcommand!
 //! #[derive(StructOpt)]
 //! enum FinishType {
 //!     Glaze {
-//!         applications: u32
+//!         applications: u32,
 //!     },
 //!     Powder {
 //!         flavor: String,
-//!         dips: u32
+//!         dips: u32,
 //!     }
 //! }
 //! ```
@@ -868,14 +867,14 @@
 //! struct Foo {
 //!     file: String,
 //!     #[structopt(subcommand)]
-//!     cmd: Option<Command>
+//!     cmd: Option<Command>,
 //! }
 //!
 //! #[derive(StructOpt)]
 //! enum Command {
 //!     Bar,
 //!     Baz,
-//!     Quux
+//!     Quux,
 //! }
 //! ```
 //!
@@ -953,7 +952,7 @@
 //!     BaseCli(BaseCli),
 //!     Dex {
 //!         arg2: i32,
-//!     }
+//!     },
 //! }
 //! ```
 //!
@@ -1068,10 +1067,10 @@
 //!
 //! // a struct with single custom argument
 //! #[derive(StructOpt)]
-//! struct GenericArgs<T:FromStr> where <T as FromStr>::Err: fmt::Display + fmt::Debug {
+//! struct GenericArgs<T: FromStr> where <T as FromStr>::Err: fmt::Display + fmt::Debug {
 //!     generic_arg_1: String,
 //!     generic_arg_2: String,
-//!     custom_arg_1: T
+//!     custom_arg_1: T,
 //! }
 //! ```
 //!
@@ -1081,11 +1080,11 @@
 //! # use structopt::StructOpt;
 //! // a struct with multiple custom arguments in a substructure
 //! #[derive(StructOpt)]
-//! struct GenericArgs<T:StructOpt> {
+//! struct GenericArgs<T: StructOpt> {
 //!     generic_arg_1: String,
 //!     generic_arg_2: String,
 //!     #[structopt(flatten)]
-//!     custom_args: T
+//!     custom_args: T,
 //! }
 //! ```
 
