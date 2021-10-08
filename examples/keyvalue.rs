@@ -19,14 +19,19 @@ where
 
 #[derive(StructOpt, Debug)]
 struct Opt {
-    // number_of_values = 1 forces the user to repeat the -D option for each key-value pair:
-    // my_program -D a=1 -D b=2
-    // Without number_of_values = 1 you can do:
+    // We can use -D option in multiple cases :
+    
+    // The most basic:
+    // my_program -D a=1
+    
+    // With multiple values
     // my_program -D a=1 b=2
-    // but this makes adding an argument after the values impossible:
-    // my_program -D a=1 -D b=2 my_input_file
-    // becomes invalid.
-    #[structopt(short = "D", parse(try_from_str = parse_key_val), number_of_values = 1)]
+    
+    // With multiple calls to the -D option
+    // my_program -D a=1 -D b=2
+    
+    // All of these are valid. Note that this is just examples of what is correct.
+    #[structopt(short = "D", parse(try_from_str = parse_key_val))]
     defines: Vec<(String, i32)>,
 }
 
