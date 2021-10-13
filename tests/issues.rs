@@ -117,6 +117,34 @@ fn issue_359() {
 }
 
 #[test]
+fn issue_418() {
+    use structopt::StructOpt;
+
+    #[derive(Debug, StructOpt)]
+    struct Opts {
+        #[structopt(subcommand)]
+        /// The command to run
+        command: Command,
+    }
+
+    #[derive(Debug, StructOpt)]
+    enum Command {
+        /// Reticulate the splines
+        #[structopt(visible_alias = "ret")]
+        Reticulate {
+            /// How many splines
+            num_splines: u8,
+        },
+        /// Frobnicate the rest
+        #[structopt(visible_alias = "frob")]
+        Frobnicate,
+    }
+
+    let help = get_long_help::<Opts>();
+    assert!(help.contains("Reticulate the splines [aliases: ret]"));
+}
+
+#[test]
 fn issue_490() {
     use std::iter::FromIterator;
     use std::str::FromStr;
