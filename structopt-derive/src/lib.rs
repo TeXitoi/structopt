@@ -800,6 +800,7 @@ fn gen_paw_impl(
 
 fn split_structopt_generics_for_impl(
     generics: &Generics,
+    structopt_path: Path,
 ) -> (ImplGenerics, TypeGenerics, TokenStream) {
     use syn::{token::Add, TypeParamBound::Trait};
 
@@ -867,7 +868,7 @@ fn split_structopt_generics_for_impl(
             let param_ident = &param.ident;
             if type_param_bounds_contains(&param.bounds, "StructOpt") {
                 trait_bound_amendments
-                    .add(quote! { #param_ident : ::structopt::StructOptInternal });
+                    .add(quote! { #param_ident : #structopt_path::StructOptInternal });
             }
         }
     }
@@ -878,7 +879,7 @@ fn split_structopt_generics_for_impl(
                 let predicate_bounded_ty = &predicate.bounded_ty;
                 if type_param_bounds_contains(&predicate.bounds, "StructOpt") {
                     trait_bound_amendments
-                        .add(quote! { #predicate_bounded_ty : ::structopt::StructOptInternal });
+                        .add(quote! { #predicate_bounded_ty : #structopt_path::StructOptInternal });
                 }
             }
         }
@@ -899,9 +900,11 @@ fn impl_structopt_for_struct(
     attrs: &[Attribute],
     generics: &Generics,
 ) -> TokenStream {
-    let (impl_generics, ty_generics, where_clause) = split_structopt_generics_for_impl(&generics);
-
     let basic_clap_app_gen = gen_clap_struct(attrs);
+    let structopt_path = basic_clap_app_gen.attrs.structopt_path();
+    let (impl_generics, ty_generics, where_clause) =
+        split_structopt_generics_for_impl(&generics, structopt_path.clone());
+
     let augment_clap = gen_augment_clap(fields, &basic_clap_app_gen.attrs);
     let from_clap = gen_from_clap(name, fields, &basic_clap_app_gen.attrs);
     let paw_impl = gen_paw_impl(
@@ -912,7 +915,6 @@ fn impl_structopt_for_struct(
         &basic_clap_app_gen.attrs,
     );
 
-    let structopt_path = basic_clap_app_gen.attrs.structopt_path();
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
         #[allow(unused_variables)]
@@ -963,12 +965,13 @@ fn impl_structopt_for_enum(
     attrs: &[Attribute],
     generics: &Generics,
 ) -> TokenStream {
-    let (impl_generics, ty_generics, where_clause) = split_structopt_generics_for_impl(&generics);
-
     let basic_clap_app_gen = gen_clap_enum(attrs);
     let clap_tokens = basic_clap_app_gen.tokens;
     let attrs = basic_clap_app_gen.attrs;
     let structopt_path = attrs.structopt_path();
+
+    let (impl_generics, ty_generics, where_clause) =
+        split_structopt_generics_for_impl(&generics, structopt_path.clone());
 
     let augment_clap = gen_augment_clap_enum(variants, &attrs);
     let from_clap = gen_from_clap_enum(&attrs);
