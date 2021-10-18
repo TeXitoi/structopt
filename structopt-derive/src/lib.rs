@@ -520,9 +520,14 @@ fn gen_augment_clap_enum(
 
             _ => {
                 let app_var = Ident::new("subcommand", Span::call_site());
+                let from_attrs = attrs.top_level_methods();
+                let version = attrs.version();
+
                 let arg_block = match variant.fields {
+                    // If the variant is named, then gen_augmentation already generates the
+                    // top level methods (#from_attrs) and version.
                     Named(ref fields) => gen_augmentation(&fields.named, &app_var, &attrs),
-                    Unit => quote!( #app_var ),
+                    Unit => quote!( #app_var#from_attrs#version ),
                     Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
                         let ty = &unnamed[0];
                         quote_spanned! { ty.span()=>
@@ -536,7 +541,7 @@ fn gen_augment_clap_enum(
                                     )
                                 } else {
                                     #app_var
-                                }
+                                }#from_attrs#version
                             }
                         }
                     }
@@ -544,13 +549,10 @@ fn gen_augment_clap_enum(
                 };
 
                 let name = attrs.cased_name();
-                let from_attrs = attrs.top_level_methods();
-                let version = attrs.version();
                 Some(quote! {
                     let app = app.subcommand({
                         let #app_var = ::structopt::clap::SubCommand::with_name(#name);
-                        let #app_var = #arg_block;
-                        #app_var#from_attrs#version
+                        #arg_block
                     });
                 })
             },
