@@ -6,7 +6,7 @@ use syn::{
     self, parenthesized,
     parse::{Parse, ParseBuffer, ParseStream},
     punctuated::Punctuated,
-    Attribute, Expr, ExprLit, Ident, Lit, LitBool, LitStr, Token,
+    Attribute, Expr, ExprLit, Ident, Lit, LitBool, LitStr, Path, Token,
 };
 
 pub enum StructOptAttr {
@@ -42,6 +42,9 @@ pub enum StructOptAttr {
 
     // ident(arbitrary_expr,*)
     MethodCall(Ident, Vec<Expr>),
+
+    // ident = ::structopt::path
+    StructoptPath(Ident, Path),
 }
 
 impl Parse for StructOptAttr {
@@ -97,6 +100,11 @@ impl Parse for StructOptAttr {
                         };
                         let expr = Expr::Lit(expr);
                         Ok(Skip(name, Some(expr)))
+                    }
+
+                    "crate_path" => {
+                        let structopt_path = syn::parse_str::<Path>(&lit_str).unwrap();
+                        Ok(StructoptPath(name, structopt_path))
                     }
 
                     _ => Ok(NameLitStr(name, lit)),

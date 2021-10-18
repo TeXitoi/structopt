@@ -79,19 +79,21 @@ fn gen_augmentation(
                 (Ty::Option, Some(sub_type)) => sub_type,
                 _ => &field.ty,
             };
+
+            let structopt_path = attrs.structopt_path();
             let required = if **ty == Ty::Option {
                 quote!()
             } else {
                 quote_spanned! { kind.span()=>
                     let #app_var = #app_var.setting(
-                        ::structopt::clap::AppSettings::SubcommandRequiredElseHelp
+                        #structopt_path::clap::AppSettings::SubcommandRequiredElseHelp
                     );
                 }
             };
 
             let span = field.span();
             let ts = quote! {
-                let #app_var = <#subcmd_type as ::structopt::StructOptInternal>::augment_clap(
+                let #app_var = <#subcmd_type as #structopt_path::StructOptInternal>::augment_clap(
                     #app_var
                 );
                 #required
@@ -118,6 +120,7 @@ fn gen_augmentation(
             parent_attribute.env_casing(),
         );
         let kind = attrs.kind();
+        let structopt_path = attrs.structopt_path();
         match &*kind {
             Kind::ExternalSubcommand => abort!(
                 kind.span(),
@@ -127,9 +130,9 @@ fn gen_augmentation(
             Kind::Flatten => {
                 let ty = &field.ty;
                 Some(quote_spanned! { kind.span()=>
-                    let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(#app_var);
-                    let #app_var = if <#ty as ::structopt::StructOptInternal>::is_subcommand() {
-                        #app_var.setting(::structopt::clap::AppSettings::SubcommandRequiredElseHelp)
+                    let #app_var = <#ty as #structopt_path::StructOptInternal>::augment_clap(#app_var);
+                    let #app_var = if <#ty as #structopt_path::StructOptInternal>::is_subcommand() {
+                        #app_var.setting(#structopt_path::clap::AppSettings::SubcommandRequiredElseHelp)
                     } else {
                         #app_var
                     };
@@ -222,7 +225,7 @@ fn gen_augmentation(
 
                 Some(quote_spanned! { field.span()=>
                     let #app_var = #app_var.arg(
-                        ::structopt::clap::Arg::with_name(#name)
+                        #structopt_path::clap::Arg::with_name(#name)
                             #modifier
                             #methods
                     );
@@ -261,6 +264,7 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
         );
         let field_name = field.ident.as_ref().unwrap();
         let kind = attrs.kind();
+        let structopt_path = attrs.structopt_path();
         match &*kind {
             Kind::ExternalSubcommand => abort!(
                 kind.span(),
@@ -277,14 +281,14 @@ fn gen_constructor(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) 
                     _ => quote_spanned!( ty.span()=> .unwrap() ),
                 };
                 quote_spanned! { kind.span()=>
-                    #field_name: <#subcmd_type as ::structopt::StructOptInternal>::from_subcommand(
+                    #field_name: <#subcmd_type as #structopt_path::StructOptInternal>::from_subcommand(
                         #matches.subcommand())
                         #unwrapper
                 }
             }
 
             Kind::Flatten => quote_spanned! { kind.span()=>
-                #field_name: ::structopt::StructOpt::from_clap(#matches)
+                #field_name: #structopt_path::StructOpt::from_clap(#matches)
             },
 
             Kind::Skip(val) => match val {
@@ -398,9 +402,10 @@ fn gen_from_clap(
     parent_attribute: &Attrs,
 ) -> TokenStream {
     let field_block = gen_constructor(fields, parent_attribute);
+    let structopt_path = parent_attribute.structopt_path();
 
     quote! {
-        fn from_clap(matches: &::structopt::clap::ArgMatches) -> Self {
+        fn from_clap(matches: &#structopt_path::clap::ArgMatches) -> Self {
             #struct_name #field_block
         }
     }
@@ -418,9 +423,10 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
         Sp::call_site(DEFAULT_ENV_CASING),
         false,
     );
+    let structopt_path = attrs.structopt_path();
     let tokens = {
         let name = attrs.cased_name();
-        quote!(::structopt::clap::App::new(#name))
+        quote!(#structopt_path::clap::App::new(#name))
     };
 
     GenOutput { tokens, attrs }
@@ -429,11 +435,12 @@ fn gen_clap(attrs: &[Attribute]) -> GenOutput {
 fn gen_clap_struct(struct_attrs: &[Attribute]) -> GenOutput {
     let initial_clap_app_gen = gen_clap(struct_attrs);
     let clap_tokens = initial_clap_app_gen.tokens;
+    let structopt_path = initial_clap_app_gen.attrs.structopt_path();
 
     let augmented_tokens = quote! {
-        fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
+        fn clap<'a, 'b>() -> #structopt_path::clap::App<'a, 'b> {
             let app = #clap_tokens;
-            <Self as ::structopt::StructOptInternal>::augment_clap(app)
+            <Self as #structopt_path::StructOptInternal>::augment_clap(app)
         }
     };
 
@@ -446,10 +453,11 @@ fn gen_clap_struct(struct_attrs: &[Attribute]) -> GenOutput {
 fn gen_augment_clap(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs) -> TokenStream {
     let app_var = Ident::new("app", Span::call_site());
     let augmentation = gen_augmentation(fields, &app_var, parent_attribute);
+    let structopt_path = parent_attribute.structopt_path();
     quote! {
         fn augment_clap<'a, 'b>(
-            #app_var: ::structopt::clap::App<'a, 'b>
-        ) -> ::structopt::clap::App<'a, 'b> {
+            #app_var: #structopt_path::clap::App<'a, 'b>
+        ) -> #structopt_path::clap::App<'a, 'b> {
             #augmentation
         }
     }
@@ -458,12 +466,13 @@ fn gen_augment_clap(fields: &Punctuated<Field, Comma>, parent_attribute: &Attrs)
 fn gen_clap_enum(enum_attrs: &[Attribute]) -> GenOutput {
     let initial_clap_app_gen = gen_clap(enum_attrs);
     let clap_tokens = initial_clap_app_gen.tokens;
+    let structopt_path = initial_clap_app_gen.attrs.structopt_path();
 
     let tokens = quote! {
-        fn clap<'a, 'b>() -> ::structopt::clap::App<'a, 'b> {
+        fn clap<'a, 'b>() -> #structopt_path::clap::App<'a, 'b> {
             let app = #clap_tokens
-                .setting(::structopt::clap::AppSettings::SubcommandRequiredElseHelp);
-            <Self as ::structopt::StructOptInternal>::augment_clap(app)
+                .setting(#structopt_path::clap::AppSettings::SubcommandRequiredElseHelp);
+            <Self as #structopt_path::StructOptInternal>::augment_clap(app)
         }
     };
 
@@ -491,6 +500,7 @@ fn gen_augment_clap_enum(
         );
 
         let kind = attrs.kind();
+        let structopt_path = attrs.structopt_path();
         match &*kind {
             Kind::Skip(_) => None,
 
@@ -498,7 +508,7 @@ fn gen_augment_clap_enum(
                 let app_var = Ident::new("app", Span::call_site());
                 Some(quote_spanned! { attrs.kind().span()=>
                     let #app_var = #app_var.setting(
-                        ::structopt::clap::AppSettings::AllowExternalSubcommands
+                        #structopt_path::clap::AppSettings::AllowExternalSubcommands
                     );
                 })
             },
@@ -508,7 +518,7 @@ fn gen_augment_clap_enum(
                     Unnamed(FieldsUnnamed { ref unnamed, .. }) if unnamed.len() == 1 => {
                         let ty = &unnamed[0];
                         Some(quote! {
-                            let app = <#ty as ::structopt::StructOptInternal>::augment_clap(app);
+                            let app = <#ty as #structopt_path::StructOptInternal>::augment_clap(app);
                         })
                     },
                     _ => abort!(
@@ -532,12 +542,12 @@ fn gen_augment_clap_enum(
                         let ty = &unnamed[0];
                         quote_spanned! { ty.span()=>
                             {
-                                let #app_var = <#ty as ::structopt::StructOptInternal>::augment_clap(
+                                let #app_var = <#ty as #structopt_path::StructOptInternal>::augment_clap(
                                     #app_var
                                 );
-                                if <#ty as ::structopt::StructOptInternal>::is_subcommand() {
+                                if <#ty as #structopt_path::StructOptInternal>::is_subcommand() {
                                     #app_var.setting(
-                                        ::structopt::clap::AppSettings::SubcommandRequiredElseHelp
+                                        #structopt_path::clap::AppSettings::SubcommandRequiredElseHelp
                                     )
                                 } else {
                                     #app_var
@@ -551,7 +561,7 @@ fn gen_augment_clap_enum(
                 let name = attrs.cased_name();
                 Some(quote! {
                     let app = app.subcommand({
-                        let #app_var = ::structopt::clap::SubCommand::with_name(#name);
+                        let #app_var = #structopt_path::clap::SubCommand::with_name(#name);
                         #arg_block
                     });
                 })
@@ -561,10 +571,11 @@ fn gen_augment_clap_enum(
 
     let app_methods = parent_attribute.top_level_methods();
     let version = parent_attribute.version();
+    let structopt_path = parent_attribute.structopt_path();
     quote! {
         fn augment_clap<'a, 'b>(
-            app: ::structopt::clap::App<'a, 'b>
-        ) -> ::structopt::clap::App<'a, 'b> {
+            app: #structopt_path::clap::App<'a, 'b>
+        ) -> #structopt_path::clap::App<'a, 'b> {
             let app = app #app_methods;
             #( #subcommands )*;
             app #version
@@ -572,10 +583,11 @@ fn gen_augment_clap_enum(
     }
 }
 
-fn gen_from_clap_enum() -> TokenStream {
+fn gen_from_clap_enum(parent_attribute: &Attrs) -> TokenStream {
+    let structopt_path = parent_attribute.structopt_path();
     quote! {
-        fn from_clap(matches: &::structopt::clap::ArgMatches) -> Self {
-            <Self as ::structopt::StructOptInternal>::from_subcommand(matches.subcommand())
+        fn from_clap(matches: &#structopt_path::clap::ArgMatches) -> Self {
+            <Self as #structopt_path::StructOptInternal>::from_subcommand(matches.subcommand())
                 .expect("structopt misuse: You likely tried to #[flatten] a struct \
                          that contains #[subcommand]. This is forbidden.")
         }
@@ -696,12 +708,14 @@ fn gen_from_subcommand(
     let match_arms = variants.iter().map(|(variant, attrs)| {
         let sub_name = attrs.cased_name();
         let variant_name = &variant.ident;
+        let structopt_path = attrs.structopt_path();
+
         let constructor_block = match variant.fields {
             Named(ref fields) => gen_constructor(&fields.named, &attrs),
             Unit => quote!(),
             Unnamed(ref fields) if fields.unnamed.len() == 1 => {
                 let ty = &fields.unnamed[0];
-                quote!( ( <#ty as ::structopt::StructOpt>::from_clap(#matches) ) )
+                quote!( ( <#ty as #structopt_path::StructOpt>::from_clap(#matches) ) )
             }
             Unnamed(..) => abort!(
                 variant.ident,
@@ -716,14 +730,16 @@ fn gen_from_subcommand(
         }
     });
 
-    let child_subcommands = flatten_variants.iter().map(|(variant, _attrs)| {
+    let child_subcommands = flatten_variants.iter().map(|(variant, attrs)| {
         let variant_name = &variant.ident;
+        let structopt_path = attrs.structopt_path();
+
         match variant.fields {
             Unnamed(ref fields) if fields.unnamed.len() == 1 => {
                 let ty = &fields.unnamed[0];
                 quote! {
                     if let Some(res) =
-                        <#ty as ::structopt::StructOptInternal>::from_subcommand(#other)
+                        <#ty as #structopt_path::StructOptInternal>::from_subcommand(#other)
                     {
                         return Some(#name :: #variant_name (res));
                     }
@@ -736,9 +752,10 @@ fn gen_from_subcommand(
         }
     });
 
+    let structopt_path = parent_attribute.structopt_path();
     quote! {
         fn from_subcommand<'a, 'b>(
-            sub: (&'b str, Option<&'b ::structopt::clap::ArgMatches<'a>>)
+            sub: (&'b str, Option<&'b #structopt_path::clap::ArgMatches<'a>>)
         ) -> Option<Self> {
             match sub {
                 #( #match_arms, )*
@@ -757,19 +774,27 @@ fn gen_paw_impl(
     name: &Ident,
     ty_generics: &TypeGenerics,
     where_clause: &TokenStream,
+    parent_attribute: &Attrs,
 ) -> TokenStream {
+    let structopt_path = parent_attribute.structopt_path();
     quote! {
-        impl #impl_generics ::structopt::paw::ParseArgs for #name #ty_generics #where_clause {
+        impl #impl_generics #structopt_path::paw::ParseArgs for #name #ty_generics #where_clause {
             type Error = std::io::Error;
 
             fn parse_args() -> std::result::Result<Self, Self::Error> {
-                Ok(<#name as ::structopt::StructOpt>::from_args())
+                Ok(<#name as #structopt_path::StructOpt>::from_args())
             }
         }
     }
 }
 #[cfg(not(feature = "paw"))]
-fn gen_paw_impl(_: &ImplGenerics, _: &Ident, _: &TypeGenerics, _: &TokenStream) -> TokenStream {
+fn gen_paw_impl(
+    _: &ImplGenerics,
+    _: &Ident,
+    _: &TypeGenerics,
+    _: &TokenStream,
+    _: &Attrs,
+) -> TokenStream {
     TokenStream::new()
 }
 
@@ -879,8 +904,15 @@ fn impl_structopt_for_struct(
     let basic_clap_app_gen = gen_clap_struct(attrs);
     let augment_clap = gen_augment_clap(fields, &basic_clap_app_gen.attrs);
     let from_clap = gen_from_clap(name, fields, &basic_clap_app_gen.attrs);
-    let paw_impl = gen_paw_impl(&impl_generics, name, &ty_generics, &where_clause);
+    let paw_impl = gen_paw_impl(
+        &impl_generics,
+        name,
+        &ty_generics,
+        &where_clause,
+        &basic_clap_app_gen.attrs,
+    );
 
+    let structopt_path = basic_clap_app_gen.attrs.structopt_path();
     let clap_tokens = basic_clap_app_gen.tokens;
     quote! {
         #[allow(unused_variables)]
@@ -897,7 +929,7 @@ fn impl_structopt_for_struct(
         )]
         #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
-        impl #impl_generics ::structopt::StructOpt for #name #ty_generics #where_clause {
+        impl #impl_generics #structopt_path::StructOpt for #name #ty_generics #where_clause {
             #clap_tokens
             #from_clap
         }
@@ -916,7 +948,7 @@ fn impl_structopt_for_struct(
         )]
         #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
-        impl #impl_generics ::structopt::StructOptInternal for #name #ty_generics #where_clause {
+        impl #impl_generics #structopt_path::StructOptInternal for #name #ty_generics #where_clause {
             #augment_clap
             fn is_subcommand() -> bool { false }
         }
@@ -936,11 +968,12 @@ fn impl_structopt_for_enum(
     let basic_clap_app_gen = gen_clap_enum(attrs);
     let clap_tokens = basic_clap_app_gen.tokens;
     let attrs = basic_clap_app_gen.attrs;
+    let structopt_path = attrs.structopt_path();
 
     let augment_clap = gen_augment_clap_enum(variants, &attrs);
-    let from_clap = gen_from_clap_enum();
+    let from_clap = gen_from_clap_enum(&attrs);
     let from_subcommand = gen_from_subcommand(name, variants, &attrs);
-    let paw_impl = gen_paw_impl(&impl_generics, name, &ty_generics, &where_clause);
+    let paw_impl = gen_paw_impl(&impl_generics, name, &ty_generics, &where_clause, &attrs);
 
     quote! {
         #[allow(unknown_lints)]
@@ -956,7 +989,7 @@ fn impl_structopt_for_enum(
             clippy::cargo
         )]
         #[deny(clippy::correctness)]
-        impl #impl_generics ::structopt::StructOpt for #name #ty_generics #where_clause {
+        impl #impl_generics #structopt_path::StructOpt for #name #ty_generics #where_clause {
             #clap_tokens
             #from_clap
         }
@@ -975,7 +1008,7 @@ fn impl_structopt_for_enum(
         )]
         #[deny(clippy::correctness)]
         #[allow(dead_code, unreachable_code)]
-        impl #impl_generics ::structopt::StructOptInternal for #name #ty_generics #where_clause {
+        impl #impl_generics #structopt_path::StructOptInternal for #name #ty_generics #where_clause {
             #augment_clap
             #from_subcommand
             fn is_subcommand() -> bool { true }

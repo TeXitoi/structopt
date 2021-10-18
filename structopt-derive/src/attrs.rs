@@ -16,7 +16,8 @@ use proc_macro2::{Span, TokenStream};
 use proc_macro_error::abort;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Type,
+    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Path,
+    Type,
 };
 
 #[derive(Clone)]
@@ -93,6 +94,7 @@ pub struct Attrs {
     verbatim_doc_comment: Option<Ident>,
     has_custom_parser: bool,
     kind: Sp<Kind>,
+    structopt_path: Path,
 }
 
 impl Method {
@@ -237,6 +239,11 @@ impl Attrs {
             .map(|attrs| attrs.no_version.clone())
             .unwrap_or(None);
 
+        let structopt_path = parent_attrs
+            .as_ref()
+            .map(|attrs| attrs.structopt_path.clone())
+            .unwrap_or(syn::parse_str::<Path>("::structopt").unwrap());
+
         Self {
             name,
             ty,
@@ -253,6 +260,7 @@ impl Attrs {
 
             has_custom_parser: false,
             kind: Sp::new(Kind::Arg(Sp::new(Ty::Other, default_span)), default_span),
+            structopt_path,
         }
     }
 
@@ -371,6 +379,10 @@ impl Attrs {
                 Parse(ident, spec) => {
                     self.has_custom_parser = true;
                     self.parser = Parser::from_spec(ident, spec);
+                }
+
+                StructoptPath(_, path) => {
+                    self.structopt_path = path;
                 }
             }
         }
@@ -656,6 +668,10 @@ impl Attrs {
                     || m.name == "about"
                     || m.name == "long_about"
             })
+    }
+
+    pub fn structopt_path(&self) -> Path {
+        self.structopt_path.clone()
     }
 }
 
