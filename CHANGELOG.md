@@ -1,3 +1,11 @@
+# v0.3.25 (2021-10-18)
+
+* Fix duplication of aliases in subcommands [#504](https://github.com/TeXitoi/structopt/pull/504)
+
+# v0.3.25 (2021-10-18)
+
+* No changes
+
 # v0.3.23 (2021-08-30)
 
 * Update minimal rust version to 1.46 because of bitflags 1.3
