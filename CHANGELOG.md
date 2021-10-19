@@ -1,4 +1,4 @@
-# v0.3.26 (2021-10-19)
+# v0.3.25 (2021-10-19)
 
 * Added ability to specify custom structopt crate path [#506](https://github.com/TeXitoi/structopt/pull/506)
 
