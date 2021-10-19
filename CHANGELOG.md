@@ -1,3 +1,7 @@
+# v0.3.26 (2021-10-19)
+
+* Added ability to specify custom structopt crate path [#506](https://github.com/TeXitoi/structopt/pull/506)
+
 # v0.3.25 (2021-10-18)
 
 * Fix duplication of aliases in subcommands [#504](https://github.com/TeXitoi/structopt/pull/504)
