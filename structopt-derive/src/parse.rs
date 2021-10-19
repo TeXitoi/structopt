@@ -102,7 +102,7 @@ impl Parse for StructOptAttr {
                         Ok(Skip(name, Some(expr)))
                     }
 
-                    "crate_path" => {
+                    "structopt_path" => {
                         let structopt_path = syn::parse_str::<Path>(&lit_str).unwrap();
                         Ok(StructoptPath(name, structopt_path))
                     }
