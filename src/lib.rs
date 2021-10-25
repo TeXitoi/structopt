@@ -333,7 +333,7 @@
 //!
 //! ## Type magic
 //!
-//! One of major things that makes `structopt` so awesome is it's type magic.
+//! One of major things that makes `structopt` so awesome is its type magic.
 //! Do you want optional positional argument? Use `Option<T>`! Or perhaps optional argument
 //! that optionally takes value (`[--opt=[val]]`)? Use `Option<Option<T>>`!
 //!
