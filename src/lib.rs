@@ -179,7 +179,9 @@
 //! ## Raw methods
 //!
 //! They are the reason why `structopt` is so flexible. **Every and each method from
-//! `clap::App/Arg` can be used this way!**
+//! `clap::App/Arg` can be used this way!** See the [`clap::App`
+//! methods](https://docs.rs/clap/2/clap/struct.App.html) and [`clap::Arg`
+//! methods](https://docs.rs/clap/2/clap/struct.Arg.html).
 //!
 //! ```
 //! # #[derive(structopt::StructOpt)] struct S {
