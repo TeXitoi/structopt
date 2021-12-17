@@ -1,5 +1,22 @@
 //! How to use environment variable fallback an how it
 //! interacts with `default_value`.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! env 0.3.25
+//! Example for allowing to specify options via environment variables
+//!
+//! USAGE:
+//!     env [OPTIONS] --api-url <api-url>
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! OPTIONS:
+//!         --api-url <api-url>    URL for the API server [env: API_URL=]
+//!         --retries <retries>    Number of retries [env: RETRIES=]  [default: 5]
+//! -----------------------------------------------------
 
 use structopt::StructOpt;
 

@@ -10,6 +10,26 @@
 // https://github.com/rust-lang/rust/issues/24584 is fixed
 
 //! A test to check that structopt compiles with deny(missing_docs)
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//! Some subcommands
+//!
+//! USAGE:
+//!     deny_missing_docs [FLAGS] [SUBCOMMAND]
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!     -v
+//!
+//! SUBCOMMANDS:
+//!     a       command A
+//!     b       command B
+//!     c       command C
+//!     help    Prints this message or the help of the given subcommand(s)
+//! -----------------------------------------------------
 
 #![deny(missing_docs)]
 

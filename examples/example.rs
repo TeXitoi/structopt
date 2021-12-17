@@ -1,4 +1,27 @@
 //! Somewhat complex example of usage of structopt.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! example 0.3.25
+//! An example of StructOpt usage
+//!
+//! USAGE:
+//!     example [FLAGS] [OPTIONS] <input> [--] [output]
+//!
+//! FLAGS:
+//!     -d, --debug      Activate debug mode
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! OPTIONS:
+//!         --log <log>         Log file, stdout if no file, no logging if not present
+//!         --optv <optv>...
+//!     -s, --speed <speed>     Set speed [default: 42]
+//!
+//! ARGS:
+//!     <input>     Input file
+//!     <output>    Output file, stdout if not present
+//! -----------------------------------------------------
 
 use structopt::StructOpt;
 

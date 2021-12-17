@@ -2,6 +2,24 @@
 //! as well as a demonstration of adding documentation to subcommands.
 //! Documentation can be added either through doc comments or
 //! `help`/`about` attributes.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! git 0.3.25
+//! the stupid content tracker
+//!
+//! USAGE:
+//!     git <SUBCOMMAND>
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! SUBCOMMANDS:
+//!     add
+//!     fetch    fetch branches from remote repository
+//!     help     Prints this message or the help of the given subcommand(s)
+//! -----------------------------------------------------
 
 use structopt::StructOpt;
 

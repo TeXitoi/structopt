@@ -1,4 +1,28 @@
 //! A somewhat comprehensive example of a typical `StructOpt` usage.use
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! basic 0.3.25
+//! A basic example
+//!
+//! USAGE:
+//!     basic [FLAGS] [OPTIONS] --output <output> [--] [FILE]...
+//!
+//! FLAGS:
+//!     -d, --debug      Activate debug mode
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!     -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
+//!
+//! OPTIONS:
+//!     -l, --level <level>...     admin_level to consider
+//!     -c, --nb-cars <nb-cars>    Number of cars
+//!     -o, --output <output>      Output file
+//!     -s, --speed <speed>        Set speed [default: 42]
+//!
+//! ARGS:
+//!     <FILE>...    Files to process
+//! -----------------------------------------------------
 
 use std::path::PathBuf;
 use structopt::StructOpt;

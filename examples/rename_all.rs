@@ -20,7 +20,24 @@
 //!
 //! - **Lower Case**: Keep all letters lowercase and remove word boundaries.
 //!
-//! - **Upper Case**: Keep all letters upperrcase and remove word boundaries.
+//! - **Upper Case**: Keep all letters uppercase and remove word boundaries.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! rename_all 0.3.25
+//!
+//! USAGE:
+//!     rename_all <SUBCOMMAND>
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! SUBCOMMANDS:
+//!     FIRST_COMMAND    A screaming loud first command. Only use if necessary
+//!     SecondCommand    Not nearly as loud as the first command
+//!     help             Prints this message or the help of the given subcommand(s)
+//! -----------------------------------------------------
 
 use structopt::StructOpt;
 

@@ -1,5 +1,18 @@
 //! How to add `no-thing` flag which is `true` by default and
 //! `false` if passed.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     negative_flag [FLAGS]
+//!
+//! FLAGS:
+//!     -h, --help          Prints help information
+//!     -V, --version       Prints version information
+//!         --no-verbose
+//! -----------------------------------------------------
 
 use structopt::StructOpt;
 

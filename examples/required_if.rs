@@ -1,4 +1,23 @@
 //! How to use `required_if` with structopt.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     required_if -o <out-type> [FILE]
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! OPTIONS:
+//!     -o <out-type>        Where to write the output: to `stdout` or `file`
+//!
+//! ARGS:
+//!     <FILE>    File name: only required when `out-type` is set to `file`
+//! -----------------------------------------------------
+
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt, PartialEq)]
