@@ -31,7 +31,7 @@ How to extract subcommands' args into external structs.
 
 ### [Environment variables](env.rs)
 
-How to use environment variable fallback an how it interacts with `default_value`.
+How to use environment variable fallback and how it interacts with `default_value`.
 
 ### [Advanced](example.rs)
 

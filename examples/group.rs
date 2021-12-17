@@ -1,4 +1,24 @@
 //! How to use `clap::Arg::group`
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     group [OPTIONS] <--method <method>|--get|--head|--post|--put|--delete>
+//!
+//! FLAGS:
+//!         --delete     HTTP DELETE
+//!         --get        HTTP GET
+//!     -h, --help       Prints help information
+//!         --head       HTTP HEAD
+//!         --post       HTTP POST
+//!         --put        HTTP PUT
+//!     -V, --version    Prints version information
+//!
+//! OPTIONS:
+//!         --method <method>    Set a custom HTTP verb
+//! -----------------------------------------------------
 
 use structopt::{clap::ArgGroup, StructOpt};
 

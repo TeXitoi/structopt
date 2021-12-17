@@ -6,6 +6,20 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//! An example of how to generate bash completions with structopt
+//!
+//! USAGE:
+//!     gen_completions [FLAGS]
+//!
+//! FLAGS:
+//!     -d, --debug      Activate debug mode
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//! -----------------------------------------------------
+
 use structopt::clap::Shell;
 use structopt::StructOpt;
 

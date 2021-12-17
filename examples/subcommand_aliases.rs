@@ -1,4 +1,21 @@
 //! How to assign some aliases to subcommands
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     subcommand_aliases <SUBCOMMAND>
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! SUBCOMMANDS:
+//!     bar
+//!     foo
+//!     help    Prints this message or the help of the given subcommand(s)
+//! -----------------------------------------------------
 
 use structopt::clap::AppSettings;
 use structopt::StructOpt;

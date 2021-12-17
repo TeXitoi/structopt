@@ -1,4 +1,19 @@
 //! How to use `arg_enum!` with `StructOpt`.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     enum_in_args <i>
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! ARGS:
+//!     <i>    Important argument [possible values: Foo, Bar, FooBar]
+//! -----------------------------------------------------
 
 use clap::arg_enum;
 use structopt::StructOpt;

@@ -1,4 +1,19 @@
 //! How to parse "key=value" pairs with structopt.
+//!
+//! Running this example with --help prints this message:
+//! -----------------------------------------------------
+//! structopt 0.3.25
+//!
+//! USAGE:
+//!     keyvalue [OPTIONS]
+//!
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
+//!
+//! OPTIONS:
+//!     -D <defines>...
+//! -----------------------------------------------------
 
 use std::error::Error;
 use structopt::StructOpt;
