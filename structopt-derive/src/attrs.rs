@@ -11,7 +11,7 @@ use crate::{parse::*, spanned::Sp, ty::Ty};
 
 use std::env;
 
-use heck::{CamelCase, KebabCase, MixedCase, ShoutySnakeCase, SnakeCase};
+use heck::{ToKebabCase, ToLowerCamelCase, ToShoutySnakeCase, ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::abort;
 use quote::{quote, quote_spanned, ToTokens};
@@ -182,7 +182,7 @@ impl CasingStyle {
     fn from_lit(name: LitStr) -> Sp<Self> {
         use CasingStyle::*;
 
-        let normalized = name.value().to_camel_case().to_lowercase();
+        let normalized = name.value().to_upper_camel_case().to_lowercase();
         let cs = |kind| Sp::new(kind, name.span());
 
         match normalized.as_ref() {
@@ -208,9 +208,9 @@ impl Name {
             Name::Derived(ident) => {
                 let s = ident.unraw().to_string();
                 let s = match style {
-                    Pascal => s.to_camel_case(),
+                    Pascal => s.to_upper_camel_case(),
                     Kebab => s.to_kebab_case(),
-                    Camel => s.to_mixed_case(),
+                    Camel => s.to_lower_camel_case(),
                     ScreamingSnake => s.to_shouty_snake_case(),
                     Snake => s.to_snake_case(),
                     Verbatim => s,
