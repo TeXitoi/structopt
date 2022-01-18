@@ -11,6 +11,14 @@
 
 //! This crate defines the `StructOpt` trait and its custom derive.
 //!
+//! ## Maintenance
+//!
+//! As clap v3 is now out, and the structopt features are integrated
+//! into (almost as-is), structopt is now in maintenance mode: no new
+//! feature will be added.
+//!
+//! Bugs will be fixed, and documentation improvements will be accepted.
+//!
 //! ## Features
 //!
 //! If you want to disable all the `clap` features (colors,

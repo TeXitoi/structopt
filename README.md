@@ -7,7 +7,7 @@ Parse command line arguments by defining a struct.  It combines [clap](https://c
 
 ## Maintenance
 
-As clap v3 is now out, and the structopt features are intregrated into (almost as-is), structopt is now in maintenance mode: no new feature will be added.
+As clap v3 is now out, and the structopt features are integrated into (almost as-is), structopt is now in maintenance mode: no new feature will be added.
 
 Bugs will be fixed, and documentation improvements will be accepted.
 
