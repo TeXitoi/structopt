@@ -5,6 +5,12 @@
 
 Parse command line arguments by defining a struct.  It combines [clap](https://crates.io/crates/clap) with custom derive.
 
+## Maintenance
+
+As clap v3 is now out, and the structopt features are intregrated into (almost as-is), structopt is now in maintenance mode: no new feature will be added.
+
+Bugs will be fixed, and documentation improvements will be accepted.
+
 ## Documentation
 
 Find it on [Docs.rs](https://docs.rs/structopt).  You can also check the [examples](https://github.com/TeXitoi/structopt/tree/master/examples) and the [changelog](https://github.com/TeXitoi/structopt/blob/master/CHANGELOG.md).
