@@ -11,6 +11,8 @@ As clap v3 is now out, and the structopt features are integrated into (almost as
 
 Bugs will be fixed, and documentation improvements will be accepted.
 
+See the [structopt -> clap migration guide](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md#migrate-structopt)
+
 ## Documentation
 
 Find it on [Docs.rs](https://docs.rs/structopt).  You can also check the [examples](https://github.com/TeXitoi/structopt/tree/master/examples) and the [changelog](https://github.com/TeXitoi/structopt/blob/master/CHANGELOG.md).
