@@ -11,7 +11,7 @@ As clap v3 is now out, and the structopt features are integrated into (almost as
 
 Bugs will be fixed, and documentation improvements will be accepted.
 
-See the [structopt -> clap migration guide](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md#migrate-structopt)
+See the [structopt -> clap migration guide](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md#migrating)
 
 ## Documentation
 
