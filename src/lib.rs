@@ -1189,6 +1189,24 @@ pub trait StructOpt {
     {
         Ok(Self::from_clap(&Self::clap().get_matches_from_safe(iter)?))
     }
+
+    /// Generate help string from the struct
+    ///
+    /// Returns the string which is the same as output with `--help` or a [`clap::Error`] if failure.
+    ///
+    /// **NOTE**: If help string with invalid utf8 error will map to [`clap::Error`] with [`clap::ErrorKind::InvalidUtf8`]
+    fn gen_help() -> Result<String, clap::Error> {
+        let mut help = Vec::<u8>::new();
+        let app = Self::clap();
+        app.write_help(&mut help)?;
+        Ok(std::str::from_utf8(&help.as_slice())
+            .map_err(|e| clap::Error {
+                message: "The output of `--help` is not utf8 encoding".into(),
+                kind: clap::ErrorKind::InvalidUtf8,
+                info: Some(vec![e.to_string()]),
+            })?
+            .to_string())
+    }
 }
 
 /// This trait is NOT API. **SUBJECT TO CHANGE WITHOUT NOTICE!**.
