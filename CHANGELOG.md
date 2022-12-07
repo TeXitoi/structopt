@@ -449,7 +449,7 @@ fn main() {
 
 ### Don't special case `u64` by [@SergioBenitez](https://github.com/SergioBenitez)
 
-If you are using a `u64` in your struct to get the number of occurence of a flag, you should now add `parse(from_occurrences)` on the flag.
+If you are using a `u64` in your struct to get the number of occurrence of a flag, you should now add `parse(from_occurrences)` on the flag.
 
 For example
 ```rust
@@ -470,11 +470,11 @@ There was no reason to take the argument by value. Most of the StructOpt users w
 
 ### Fail if attributes are not used by [@TeXitoi](https://github.com/TeXitoi)
 
-StructOpt was quite fuzzy in its attribute parsing: it was only searching for interresting things, e. g. something like `#[structopt(foo(bar))]` was accepted but not used. It now fails the compilation.
+StructOpt was quite fuzzy in its attribute parsing: it was only searching for interesting things, e. g. something like `#[structopt(foo(bar))]` was accepted but not used. It now fails the compilation.
 
-You should have nothing to do here. This breaking change may highlight some missuse that can be bugs.
+You should have nothing to do here. This breaking change may highlight some misuse that can be bugs.
 
-In future versions, if there is cases that are not highlighed, they will be considerated as bugs, not breaking changes.
+In future versions, if there is cases that are not highlighted, they will be considerated as bugs, not breaking changes.
 
 ### Use `raw()` wrapping instead of `_raw` suffixing by [@TeXitoi](https://github.com/TeXitoi)
 
@@ -522,7 +522,7 @@ You have to change `foo_raw = "bar", baz_raw = "foo"` by `raw(foo = "bar", baz =
 
 # v0.1.1 (2017-09-22)
 
-* Better formating of multiple authors by [@killercup](https://github.com/killercup)
+* Better formatting of multiple authors by [@killercup](https://github.com/killercup)
 
 # v0.1.0 (2017-07-17)
 
