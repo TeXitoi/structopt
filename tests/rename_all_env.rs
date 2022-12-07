@@ -37,7 +37,7 @@ fn overridable() {
         be_nice: String,
 
         #[structopt(rename_all_env = "pascal", env)]
-        be_agressive: String,
+        be_aggressive: String,
     }
 
     let help = get_help::<BehaviorModel>();

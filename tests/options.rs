@@ -115,7 +115,7 @@ fn options() {
 }
 
 #[test]
-fn empy_default_value() {
+fn empty_default_value() {
     #[derive(StructOpt, PartialEq, Debug)]
     struct Opt {
         #[structopt(short, default_value = "")]
