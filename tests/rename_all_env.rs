@@ -42,5 +42,5 @@ fn overridable() {
 
     let help = get_help::<BehaviorModel>();
     assert!(help.contains("[env: be-nice=]"));
-    assert!(help.contains("[env: BeAgressive=]"));
+    assert!(help.contains("[env: BeAggressive=]"));
 }
