@@ -1202,7 +1202,7 @@ pub trait StructOptInternal: StructOpt {
         false
     }
 
-    fn from_subcommand<'a, 'b>(_sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self>
+    fn from_subcommand<'a>(_sub: (&'a str, Option<&'a clap::ArgMatches<'_>>)) -> Option<Self>
     where
         Self: std::marker::Sized,
     {
@@ -1227,7 +1227,7 @@ impl<T: StructOptInternal> StructOptInternal for Box<T> {
     }
 
     #[doc(hidden)]
-    fn from_subcommand<'a, 'b>(sub: (&'b str, Option<&'b clap::ArgMatches<'a>>)) -> Option<Self> {
+    fn from_subcommand<'a>(sub: (&'a str, Option<&'a clap::ArgMatches<'_>>)) -> Option<Self> {
         <T as StructOptInternal>::from_subcommand(sub).map(Box::new)
     }
 
