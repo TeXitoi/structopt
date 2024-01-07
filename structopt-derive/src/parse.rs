@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use proc_macro_error::{abort, ResultExt};
+use proc_macro_error::abort;
 use quote::ToTokens;
 use syn::{
     self, parenthesized,
@@ -53,7 +53,7 @@ impl Parse for StructOptAttr {
 
         if input.peek(Token![=]) {
             // `name = value` attributes.
-            let assign_token = input.parse::<Token![=]>()?; // skip '='
+            let _assign_token = input.parse::<Token![=]>()?; // skip '='
 
             if input.peek(LitStr) {
                 let lit: LitStr = input.parse()?;
@@ -102,19 +102,11 @@ impl Parse for StructOptAttr {
                     _ => Ok(NameLitStr(name, lit)),
                 }
             } else {
-                match input.parse::<Expr>() {
-                    Ok(expr) => {
-                        if name_str == "skip" {
-                            Ok(Skip(name, Some(expr)))
-                        } else {
-                            Ok(NameExpr(name, expr))
-                        }
-                    }
-
-                    Err(_) => abort! {
-                        assign_token,
-                        "expected `string literal` or `expression` after `=`"
-                    },
+                let expr = input.parse::<Expr>()?;
+                if name_str == "skip" {
+                    Ok(Skip(name, Some(expr)))
+                } else {
+                    Ok(NameExpr(name, expr))
                 }
             }
         } else if input.peek(syn::token::Paren) {
@@ -125,7 +117,7 @@ impl Parse for StructOptAttr {
             match name_str.as_ref() {
                 "parse" => {
                     let parser_specs: Punctuated<ParserSpec, Token![,]> =
-                        nested.parse_terminated(ParserSpec::parse)?;
+                        Punctuated::parse_terminated_with(&nested, ParserSpec::parse)?;
 
                     if parser_specs.len() == 1 {
                         Ok(Parse(name, parser_specs[0].clone()))
@@ -157,7 +149,7 @@ impl Parse for StructOptAttr {
 
                 _ => {
                     let method_args: Punctuated<_, Token![,]> =
-                        nested.parse_terminated(Expr::parse)?;
+                        Punctuated::parse_terminated_with(&nested, Expr::parse)?;
                     Ok(MethodCall(name, Vec::from_iter(method_args)))
                 }
             }
@@ -263,10 +255,14 @@ fn raw_method_suggestion(ts: ParseBuffer) -> String {
 pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr> {
     all_attrs
         .iter()
-        .filter(|attr| attr.path.is_ident("structopt"))
+        .filter(|attr| attr.path().is_ident("structopt"))
         .flat_map(|attr| {
-            attr.parse_args_with(Punctuated::<StructOptAttr, Token![,]>::parse_terminated)
-                .unwrap_or_abort()
+            match attr.parse_args_with(Punctuated::<StructOptAttr, Token![,]>::parse_terminated) {
+                Ok(attrs) => attrs,
+                Err(err) => {
+                    abort!(err.span(), err)
+                }
+            }
         })
         .collect()
 }

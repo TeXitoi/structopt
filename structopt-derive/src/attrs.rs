@@ -16,7 +16,8 @@ use proc_macro2::{Span, TokenStream};
 use proc_macro_error::abort;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Type,
+    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, ExprLit, Ident, LitStr, MetaNameValue,
+    Type,
 };
 
 #[derive(Clone)]
@@ -382,14 +383,18 @@ impl Attrs {
 
         let comment_parts: Vec<_> = attrs
             .iter()
-            .filter(|attr| attr.path.is_ident("doc"))
+            .filter(|attr| attr.path().is_ident("doc"))
             .filter_map(|attr| {
-                if let Ok(NameValue(MetaNameValue { lit: Str(s), .. })) = attr.parse_meta() {
-                    Some(s.value())
-                } else {
-                    // non #[doc = "..."] attributes are not our concern
-                    // we leave them for rustc to handle
-                    None
+                match &attr.meta {
+                    NameValue(MetaNameValue {
+                        value: Expr::Lit(ExprLit { lit: Str(s), .. }),
+                        ..
+                    }) => Some(s.value()),
+                    _ => {
+                        // non #[doc = "..."] attributes are not our concern
+                        // we leave them for rustc to handle
+                        None
+                    }
                 }
             })
             .collect();

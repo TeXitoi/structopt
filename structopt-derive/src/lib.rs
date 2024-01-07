@@ -776,13 +776,13 @@ fn gen_paw_impl(_: &ImplGenerics, _: &Ident, _: &TypeGenerics, _: &TokenStream) 
 fn split_structopt_generics_for_impl(
     generics: &Generics,
 ) -> (ImplGenerics, TypeGenerics, TokenStream) {
-    use syn::{token::Add, TypeParamBound::Trait};
+    use syn::{token::Plus, TypeParamBound::Trait};
 
     fn path_ends_with(path: &Path, ident: &str) -> bool {
         path.segments.last().unwrap().ident == ident
     }
 
-    fn type_param_bounds_contains(bounds: &Punctuated<TypeParamBound, Add>, ident: &str) -> bool {
+    fn type_param_bounds_contains(bounds: &Punctuated<TypeParamBound, Plus>, ident: &str) -> bool {
         for bound in bounds {
             if let Trait(bound) = bound {
                 if path_ends_with(&bound.path, ident) {
