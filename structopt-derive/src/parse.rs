@@ -174,8 +174,8 @@ impl Parse for StructOptAttr {
                 "verbatim_doc_comment" => Ok(VerbatimDocComment(name)),
 
                 "default_value" => Ok(DefaultValue(name, None)),
-                "about" => (Ok(About(name, None))),
-                "author" => (Ok(Author(name, None))),
+                "about" => Ok(About(name, None)),
+                "author" => Ok(Author(name, None)),
 
                 "skip" => Ok(Skip(name, None)),
 
