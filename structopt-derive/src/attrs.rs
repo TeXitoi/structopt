@@ -13,10 +13,11 @@ use std::env;
 
 use heck::{ToKebabCase, ToLowerCamelCase, ToShoutySnakeCase, ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::abort;
+use proc_macro2_diagnostics::{Diagnostic, SpanDiagnosticExt as _};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, Ident, LitStr, MetaNameValue, Type,
+    self, ext::IdentExt, spanned::Spanned, Attribute, Expr, ExprLit, Ident, LitStr, MetaNameValue,
+    Type,
 };
 
 #[derive(Clone)]
@@ -100,18 +101,32 @@ impl Method {
         Method { name, args }
     }
 
-    fn from_lit_or_env(ident: Ident, lit: Option<LitStr>, env_var: &str) -> Self {
+    fn from_lit_or_env(
+        ident: Ident,
+        lit: Option<LitStr>,
+        env_var: &str,
+    ) -> Result<Self, Diagnostic> {
         let mut lit = match lit {
             Some(lit) => lit,
 
             None => match env::var(env_var) {
                 Ok(val) => LitStr::new(&val, ident.span()),
-                Err(_) => {
-                    abort!(ident,
-                        "cannot derive `{}` from Cargo.toml", ident;
-                        note = "`{}` environment variable is not set", env_var;
-                        help = "use `{} = \"...\"` to set {} manually", ident, ident;
-                    );
+                Err(error) => {
+                    let diagnostic = ident
+                        .span()
+                        .error(format!("cannot derive `{}` from Cargo.toml", ident))
+                        .help(format!(
+                            "use `{} = \"...\"` to set {} manually",
+                            ident, ident
+                        ));
+                    return Err(match error {
+                        env::VarError::NotPresent => diagnostic
+                            .note(format!("`{}` environment variable is not set", env_var)),
+                        env::VarError::NotUnicode(val) => diagnostic.note(format!(
+                            "`{}` environment variable contains non-unicode data `{}`",
+                            env_var, val.to_string_lossy(),
+                        )),
+                    });
                 }
             },
         };
@@ -121,7 +136,7 @@ impl Method {
             lit = LitStr::new(&edited, lit.span());
         }
 
-        Method::new(ident, quote!(#lit))
+        Ok(Self::new(ident, quote!(#lit)))
     }
 }
 
@@ -139,7 +154,7 @@ impl Parser {
         Sp::new(Parser { kind, func }, span)
     }
 
-    fn from_spec(parse_ident: Ident, spec: ParserSpec) -> Sp<Self> {
+    fn from_spec(parse_ident: Ident, spec: ParserSpec) -> Result<Sp<Self>, Diagnostic> {
         use ParserKind::*;
 
         let kind = match &*spec.kind.to_string() {
@@ -149,7 +164,12 @@ impl Parser {
             "try_from_os_str" => TryFromOsStr,
             "from_occurrences" => FromOccurrences,
             "from_flag" => FromFlag,
-            s => abort!(spec.kind, "unsupported parser `{}`", s),
+            s => {
+                return Err(spec
+                    .kind
+                    .span()
+                    .error(format!("unsupported parser `{}`", s)))
+            }
         };
 
         let func = match spec.parse_func {
@@ -158,44 +178,49 @@ impl Parser {
                     quote_spanned!(spec.kind.span()=> ::std::convert::From::from)
                 }
                 TryFromStr => quote_spanned!(spec.kind.span()=> ::std::str::FromStr::from_str),
-                TryFromOsStr => abort!(
-                    spec.kind,
-                    "you must set parser for `try_from_os_str` explicitly"
-                ),
+                TryFromOsStr => {
+                    return Err(spec
+                        .kind
+                        .span()
+                        .error("you must set parser for `try_from_os_str` explicitly"))
+                }
                 FromOccurrences => quote_spanned!(spec.kind.span()=> { |v| v as _ }),
                 FromFlag => quote_spanned!(spec.kind.span()=> ::std::convert::From::from),
             },
 
             Some(func) => match func {
                 syn::Expr::Path(_) => quote!(#func),
-                _ => abort!(func, "`parse` argument must be a function path"),
+                _ => {
+                    return Err(func
+                        .span()
+                        .error("`parse` argument must be a function path"))
+                }
             },
         };
 
         let kind = Sp::new(kind, spec.kind.span());
         let parser = Parser { kind, func };
-        Sp::new(parser, parse_ident.span())
+        Ok(Sp::new(parser, parse_ident.span()))
     }
 }
 
 impl CasingStyle {
-    fn from_lit(name: LitStr) -> Sp<Self> {
+    fn from_lit(name: LitStr) -> Result<Sp<Self>, Diagnostic> {
         use CasingStyle::*;
 
         let normalized = name.value().to_upper_camel_case().to_lowercase();
-        let cs = |kind| Sp::new(kind, name.span());
-
-        match normalized.as_ref() {
-            "camel" | "camelcase" => cs(Camel),
-            "kebab" | "kebabcase" => cs(Kebab),
-            "pascal" | "pascalcase" => cs(Pascal),
-            "screamingsnake" | "screamingsnakecase" => cs(ScreamingSnake),
-            "snake" | "snakecase" => cs(Snake),
-            "verbatim" | "verbatimcase" => cs(Verbatim),
-            "lower" | "lowercase" => cs(Lower),
-            "upper" | "uppercase" => cs(Upper),
-            s => abort!(name, "unsupported casing: `{}`", s),
-        }
+        let kind = match normalized.as_ref() {
+            "camel" | "camelcase" => Camel,
+            "kebab" | "kebabcase" => Kebab,
+            "pascal" | "pascalcase" => Pascal,
+            "screamingsnake" | "screamingsnakecase" => ScreamingSnake,
+            "snake" | "snakecase" => Snake,
+            "verbatim" | "verbatimcase" => Verbatim,
+            "lower" | "lowercase" => Lower,
+            "upper" | "uppercase" => Upper,
+            s => return Err(name.span().error(format!("unsupported casing: `{}`", s))),
+        };
+        Ok(Sp::new(kind, name.span()))
     }
 }
 
@@ -266,10 +291,10 @@ impl Attrs {
         }
     }
 
-    fn push_attrs(&mut self, attrs: &[Attribute]) {
+    fn push_attrs(&mut self, attrs: &[Attribute]) -> Result<(), Diagnostic> {
         use crate::parse::StructOptAttr::*;
 
-        for attr in parse_structopt_attributes(attrs) {
+        for attr in parse_structopt_attributes(attrs)? {
             match attr {
                 Short(ident) | Long(ident) => {
                     self.push_method(ident, self.name.clone().translate(*self.casing));
@@ -282,7 +307,7 @@ impl Attrs {
                 Subcommand(ident) => {
                     let ty = Sp::call_site(Ty::Other);
                     let kind = Sp::new(Kind::Subcommand(ty), ident.span());
-                    self.set_kind(kind);
+                    self.set_kind(kind)?;
                 }
 
                 ExternalSubcommand(ident) => {
@@ -291,12 +316,12 @@ impl Attrs {
 
                 Flatten(ident) => {
                     let kind = Sp::new(Kind::Flatten, ident.span());
-                    self.set_kind(kind);
+                    self.set_kind(kind)?;
                 }
 
                 Skip(ident, expr) => {
                     let kind = Sp::new(Kind::Skip(expr), ident.span());
-                    self.set_kind(kind);
+                    self.set_kind(kind)?;
                 }
 
                 NoVersion(ident) => self.no_version = Some(ident),
@@ -310,13 +335,10 @@ impl Attrs {
                         let ty = if let Some(ty) = self.ty.as_ref() {
                             ty
                         } else {
-                            abort!(
-                                ident,
-                                "#[structopt(default_value)] (without an argument) can be used \
-                                only on field level";
-
-                                note = "see \
-                                    https://docs.rs/structopt/0.3.5/structopt/#magical-methods")
+                            return Err(
+                                ident.span().error(
+                                    "#[structopt(default_value)] (without an argument) can be used only on field level",
+                                ).note("see  https://docs.rs/structopt/0.3.5/structopt/#magical-methods"));
                         };
 
                         quote_spanned!(ident.span()=> {
@@ -335,15 +357,13 @@ impl Attrs {
                 }
 
                 About(ident, about) => {
-                    self.about = Some(Method::from_lit_or_env(
-                        ident,
-                        about,
-                        "CARGO_PKG_DESCRIPTION",
-                    ));
+                    let about = Method::from_lit_or_env(ident, about, "CARGO_PKG_DESCRIPTION")?;
+                    self.about = Some(about);
                 }
 
                 Author(ident, author) => {
-                    self.author = Some(Method::from_lit_or_env(ident, author, "CARGO_PKG_AUTHORS"));
+                    let author = Method::from_lit_or_env(ident, author, "CARGO_PKG_AUTHORS")?;
+                    self.author = Some(author);
                 }
 
                 Version(ident, version) => {
@@ -361,35 +381,40 @@ impl Attrs {
                 MethodCall(name, args) => self.push_method(name, quote!(#(#args),*)),
 
                 RenameAll(_, casing_lit) => {
-                    self.casing = CasingStyle::from_lit(casing_lit);
+                    self.casing = CasingStyle::from_lit(casing_lit)?;
                 }
 
                 RenameAllEnv(_, casing_lit) => {
-                    self.env_casing = CasingStyle::from_lit(casing_lit);
+                    self.env_casing = CasingStyle::from_lit(casing_lit)?;
                 }
 
                 Parse(ident, spec) => {
                     self.has_custom_parser = true;
-                    self.parser = Parser::from_spec(ident, spec);
+                    self.parser = Parser::from_spec(ident, spec)?;
                 }
             }
         }
+        Ok(())
     }
 
     fn push_doc_comment(&mut self, attrs: &[Attribute], name: &str) {
-        use crate::Lit::*;
-        use crate::Meta::*;
+        use syn::Lit::*;
+        use syn::Meta::*;
 
         let comment_parts: Vec<_> = attrs
             .iter()
-            .filter(|attr| attr.path.is_ident("doc"))
+            .filter(|attr| attr.path().is_ident("doc"))
             .filter_map(|attr| {
-                if let Ok(NameValue(MetaNameValue { lit: Str(s), .. })) = attr.parse_meta() {
-                    Some(s.value())
-                } else {
-                    // non #[doc = "..."] attributes are not our concern
-                    // we leave them for rustc to handle
-                    None
+                match &attr.meta {
+                    NameValue(MetaNameValue {
+                        value: Expr::Lit(ExprLit { lit: Str(s), .. }),
+                        ..
+                    }) => Some(s.value()),
+                    _ => {
+                        // non #[doc = "..."] attributes are not our concern
+                        // we leave them for rustc to handle
+                        None
+                    }
                 }
             })
             .collect();
@@ -406,23 +431,26 @@ impl Attrs {
         argument_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
         allow_skip: bool,
-    ) -> Self {
+    ) -> Result<Self, Diagnostic> {
         let mut res = Self::new(span, name, parent_attrs, None, argument_casing, env_casing);
-        res.push_attrs(attrs);
+        res.push_attrs(attrs)?;
         res.push_doc_comment(attrs, "about");
 
         if res.has_custom_parser {
-            abort!(
-                res.parser.span(),
-                "`parse` attribute is only allowed on fields"
-            );
+            return Err(res
+                .parser
+                .span()
+                .error("`parse` attribute is only allowed on fields"));
         }
         match &*res.kind {
-            Kind::Subcommand(_) => abort!(res.kind.span(), "subcommand is only allowed on fields"),
+            Kind::Subcommand(_) => Err(res
+                .kind
+                .span()
+                .error("subcommand is only allowed on fields")),
             Kind::Skip(_) if !allow_skip => {
-                abort!(res.kind.span(), "skip is only allowed on fields")
+                Err(res.kind.span().error("skip is only allowed on fields"))
             }
-            Kind::Arg(_) | Kind::ExternalSubcommand | Kind::Flatten | Kind::Skip(_) => res,
+            Kind::Arg(_) | Kind::ExternalSubcommand | Kind::Flatten | Kind::Skip(_) => Ok(res),
         }
     }
 
@@ -431,7 +459,7 @@ impl Attrs {
         parent_attrs: Option<&Attrs>,
         struct_casing: Sp<CasingStyle>,
         env_casing: Sp<CasingStyle>,
-    ) -> Self {
+    ) -> Result<Self, Diagnostic> {
         let name = field.ident.clone().unwrap();
         let mut res = Self::new(
             field.span(),
@@ -441,22 +469,22 @@ impl Attrs {
             struct_casing,
             env_casing,
         );
-        res.push_attrs(&field.attrs);
+        res.push_attrs(&field.attrs)?;
         res.push_doc_comment(&field.attrs, "help");
 
         match &*res.kind {
             Kind::Flatten => {
                 if res.has_custom_parser {
-                    abort!(
-                        res.parser.span(),
-                        "parse attribute is not allowed for flattened entry"
-                    );
+                    return Err(res
+                        .parser
+                        .span()
+                        .error("parse attribute is not allowed for flattened entry"));
                 }
                 if res.has_explicit_methods() {
-                    abort!(
-                        res.kind.span(),
-                        "methods are not allowed for flattened entry"
-                    );
+                    return Err(res
+                        .kind
+                        .span()
+                        .error("methods are not allowed for flattened entry"));
                 }
 
                 if res.has_doc_methods() {
@@ -468,31 +496,31 @@ impl Attrs {
 
             Kind::Subcommand(_) => {
                 if res.has_custom_parser {
-                    abort!(
-                        res.parser.span(),
-                        "parse attribute is not allowed for subcommand"
-                    );
+                    return Err(res
+                        .parser
+                        .span()
+                        .error("parse attribute is not allowed for subcommand"));
                 }
                 if res.has_explicit_methods() {
-                    abort!(
-                        res.kind.span(),
-                        "methods in attributes are not allowed for subcommand"
-                    );
+                    return Err(res
+                        .kind
+                        .span()
+                        .error("methods in attributes are not allowed for subcommand"));
                 }
 
                 let ty = Ty::from_syn_ty(&field.ty);
                 match *ty {
                     Ty::OptionOption => {
-                        abort!(
-                            field.ty,
-                            "Option<Option<T>> type is not allowed for subcommand"
-                        );
+                        return Err(field
+                            .ty
+                            .span()
+                            .error("Option<Option<T>> type is not allowed for subcommand"));
                     }
                     Ty::OptionVec => {
-                        abort!(
-                            field.ty,
-                            "Option<Vec<T>> type is not allowed for subcommand"
-                        );
+                        return Err(field
+                            .ty
+                            .span()
+                            .error("Option<Vec<T>> type is not allowed for subcommand"));
                     }
                     _ => (),
                 }
@@ -501,10 +529,10 @@ impl Attrs {
             }
             Kind::Skip(_) => {
                 if res.has_explicit_methods() {
-                    abort!(
-                        res.kind.span(),
-                        "methods are not allowed for skipped fields"
-                    );
+                    return Err(res
+                        .kind
+                        .span()
+                        .error("methods are not allowed for skipped fields"));
                 }
             }
             Kind::Arg(orig_ty) => {
@@ -519,43 +547,46 @@ impl Attrs {
                 match *ty {
                     Ty::Bool => {
                         if res.is_positional() && !res.has_custom_parser {
-                            abort!(field.ty,
-                                "`bool` cannot be used as positional parameter with default parser";
-                                help = "if you want to create a flag add `long` or `short`";
-                                help = "If you really want a boolean parameter \
-                                    add an explicit parser, for example `parse(try_from_str)`";
-                                note = "see also https://github.com/TeXitoi/structopt/tree/master/examples/true_or_false.rs";
-                            )
+                            return Err(field.ty.span().error(
+                                "`bool` cannot be used as positional parameter with default parser").help(
+                                "if you want to create a flag add `long` or `short`").help(
+                                "If you really want a boolean parameter \
+                                    add an explicit parser, for example `parse(try_from_str)`").note(
+                                "see also https://github.com/TeXitoi/structopt/tree/master/examples/true_or_false.rs"));
                         }
                         if let Some(m) = res.find_method("default_value") {
-                            abort!(m.name, "default_value is meaningless for bool")
+                            return Err(m
+                                .name
+                                .span()
+                                .error("default_value is meaningless for bool"));
                         }
                         if let Some(m) = res.find_method("required") {
-                            abort!(m.name, "required is meaningless for bool")
+                            return Err(m.name.span().error("required is meaningless for bool"));
                         }
                     }
                     Ty::Option => {
                         if let Some(m) = res.find_method("default_value") {
-                            abort!(m.name, "default_value is meaningless for Option")
+                            return Err(m
+                                .name
+                                .span()
+                                .error("default_value is meaningless for Option"));
                         }
                         if let Some(m) = res.find_method("required") {
-                            abort!(m.name, "required is meaningless for Option")
+                            return Err(m.name.span().error("required is meaningless for Option"));
                         }
                     }
                     Ty::OptionOption => {
                         if res.is_positional() {
-                            abort!(
-                                field.ty,
-                                "Option<Option<T>> type is meaningless for positional argument"
-                            )
+                            return Err(field.ty.span().error(
+                                "Option<Option<T>> type is meaningless for positional argument",
+                            ));
                         }
                     }
                     Ty::OptionVec => {
                         if res.is_positional() {
-                            abort!(
-                                field.ty,
-                                "Option<Vec<T>> type is meaningless for positional argument"
-                            )
+                            return Err(field.ty.span().error(
+                                "Option<Vec<T>> type is meaningless for positional argument",
+                            ));
                         }
                     }
 
@@ -565,17 +596,17 @@ impl Attrs {
             }
         }
 
-        res
+        Ok(res)
     }
 
-    fn set_kind(&mut self, kind: Sp<Kind>) {
+    fn set_kind(&mut self, kind: Sp<Kind>) -> Result<(), Diagnostic> {
         if let Kind::Arg(_) = *self.kind {
             self.kind = kind;
+            Ok(())
         } else {
-            abort!(
-                kind.span(),
-                "subcommand, flatten and skip cannot be used together"
-            );
+            Err(kind
+                .span()
+                .error("subcommand, flatten and skip cannot be used together"))
         }
     }
 
