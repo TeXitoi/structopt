@@ -1,6 +1,5 @@
 use std::iter::FromIterator;
 
-use proc_macro_error::abort;
 use quote::ToTokens;
 use syn::{
     self, parenthesized,
@@ -61,12 +60,13 @@ impl Parse for StructOptAttr {
 
                 let check_empty_lit = |s| {
                     if lit_str.is_empty() {
-                        abort!(
-                            lit,
+                        Err(input.error(format!(
                             "`#[structopt({} = \"\")]` is deprecated in structopt 0.3, \
                              now it's default behavior",
                             s
-                        );
+                        )))
+                    } else {
+                        Ok(())
                     }
                 };
 
@@ -76,17 +76,17 @@ impl Parse for StructOptAttr {
                     "default_value" => Ok(DefaultValue(name, Some(lit))),
 
                     "version" => {
-                        check_empty_lit("version");
+                        check_empty_lit("version")?;
                         Ok(Version(name, lit))
                     }
 
                     "author" => {
-                        check_empty_lit("author");
+                        check_empty_lit("author")?;
                         Ok(Author(name, Some(lit)))
                     }
 
                     "about" => {
-                        check_empty_lit("about");
+                        check_empty_lit("about")?;
                         Ok(About(name, Some(lit)))
                     }
 
@@ -122,30 +122,32 @@ impl Parse for StructOptAttr {
                     if parser_specs.len() == 1 {
                         Ok(Parse(name, parser_specs[0].clone()))
                     } else {
-                        abort!(name, "`parse` must have exactly one argument")
+                        return Err(syn::Error::new(name.span(), "`parse` must have exactly one argument"));
                     }
                 }
 
-                "raw" => match nested.parse::<LitBool>() {
-                    Ok(bool_token) => {
-                        let expr = ExprLit {
-                            attrs: vec![],
-                            lit: Lit::Bool(bool_token),
-                        };
-                        let expr = Expr::Lit(expr);
-                        Ok(MethodCall(name, vec![expr]))
-                    }
-
-                    Err(_) => {
-                        abort!(name,
+                "raw" => {
+                    let bool_token = nested.parse::<LitBool>().map_err(|_err| {
+                        // NOTE: this previously emitted:
+                        //
+                        // help = "if you meant to call `clap::Arg::raw()` method \
+                        //     you should use bool literal, like `raw(true)` or `raw(false)`";
+                        // note = raw_method_suggestion(nested);
+                        //
+                        // using proc-macro-error, but this is not possible using proc-macro2-diagnostics
+                        // because this function returns a syn::Result rather than a Result<_, Diagnostic>.
+                        syn::Error::new(name.span(), 
                             "`#[structopt(raw(...))` attributes are removed in structopt 0.3, \
-                            they are replaced with raw methods";
-                            help = "if you meant to call `clap::Arg::raw()` method \
-                                you should use bool literal, like `raw(true)` or `raw(false)`";
-                            note = raw_method_suggestion(nested);
-                        );
-                    }
-                },
+                            they are replaced with raw methods"
+                        )
+                    })?;
+                    let expr = ExprLit {
+                        attrs: vec![],
+                        lit: Lit::Bool(bool_token),
+                    };
+                    let expr = Expr::Lit(expr);
+                    Ok(MethodCall(name, vec![expr]))
+                }
 
                 _ => {
                     let method_args: Punctuated<_, Token![,]> =
@@ -171,14 +173,13 @@ impl Parse for StructOptAttr {
 
                 "skip" => Ok(Skip(name, None)),
 
-                "version" => abort!(
-                    name,
+                "version" => Err(input.error(
                     "#[structopt(version)] is invalid attribute, \
                      structopt 0.3 inherits version from Cargo.toml by default, \
-                     no attribute needed"
-                ),
+                     no attribute needed",
+                )),
 
-                _ => abort!(name, "unexpected attribute: {}", name_str),
+                name_str => Err(input.error(format!("unexpected attribute: {}", name_str))),
             }
         }
     }
@@ -209,6 +210,7 @@ impl Parse for ParserSpec {
     }
 }
 
+#[allow(dead_code)]
 fn raw_method_suggestion(ts: ParseBuffer) -> String {
     let do_parse = move || -> Result<(Ident, Punctuated<Expr, Token![,]>), syn::Error> {
         let name = ts.parse()?;
@@ -252,17 +254,14 @@ fn raw_method_suggestion(ts: ParseBuffer) -> String {
     }
 }
 
-pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> Vec<StructOptAttr> {
+pub fn parse_structopt_attributes(all_attrs: &[Attribute]) -> syn::Result<Vec<StructOptAttr>> {
     all_attrs
         .iter()
         .filter(|attr| attr.path().is_ident("structopt"))
-        .flat_map(|attr| {
-            match attr.parse_args_with(Punctuated::<StructOptAttr, Token![,]>::parse_terminated) {
-                Ok(attrs) => attrs,
-                Err(err) => {
-                    abort!(err.span(), err)
-                }
-            }
+        .try_fold(Vec::new(), |mut acc, attr| {
+            let attrs =
+                attr.parse_args_with(Punctuated::<StructOptAttr, Token![,]>::parse_terminated)?;
+            acc.extend(attrs);
+            Ok(acc)
         })
-        .collect()
 }
